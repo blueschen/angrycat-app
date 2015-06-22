@@ -15,6 +15,30 @@
 /*!40101 SET @OLD_SQL_MODE=@@SQL_MODE, SQL_MODE='NO_AUTO_VALUE_ON_ZERO' */;
 /*!40111 SET @OLD_SQL_NOTES=@@SQL_NOTES, SQL_NOTES=0 */;
 
+/*Table structure for table `personalinfo` */
+
+DROP TABLE IF EXISTS `personalinfo`;
+
+CREATE TABLE `personalinfo` (
+  `id` varchar(100) COLLATE utf8_bin NOT NULL,
+  `name` varchar(200) COLLATE utf8_bin DEFAULT NULL,
+  `nameEng` varchar(200) COLLATE utf8_bin DEFAULT NULL,
+  `code` varchar(200) COLLATE utf8_bin DEFAULT NULL,
+  `idNo` varchar(200) COLLATE utf8_bin DEFAULT NULL,
+  `country` varchar(100) COLLATE utf8_bin DEFAULT NULL,
+  `mobile` varchar(200) COLLATE utf8_bin DEFAULT NULL,
+  `tel` varchar(200) COLLATE utf8_bin DEFAULT NULL,
+  `ext` varchar(50) COLLATE utf8_bin DEFAULT NULL,
+  `address` text COLLATE utf8_bin,
+  `fax` varchar(50) COLLATE utf8_bin DEFAULT NULL,
+  `email` varchar(200) COLLATE utf8_bin DEFAULT NULL,
+  `note` text COLLATE utf8_bin,
+  `class` int(11) DEFAULT NULL,
+  PRIMARY KEY (`id`),
+  KEY `FK_personalinfo_country` (`country`),
+  CONSTRAINT `FK_personalinfo_country` FOREIGN KEY (`country`) REFERENCES `shr_parameter` (`id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_bin;
+
 --
 -- Table structure for table `member`
 --
@@ -115,6 +139,7 @@ CREATE TABLE `shr_alluser` (
   `info` varchar(100) CHARACTER SET utf8 COLLATE utf8_bin DEFAULT NULL,
   `disabled` tinyint(3) unsigned NOT NULL,
   `defaultGroup` varchar(100) CHARACTER SET utf8 COLLATE utf8_bin DEFAULT NULL,
+  `userId` varchar(100) CHARACTER SET utf8 COLLATE utf8_bin DEFAULT NULL,
   PRIMARY KEY (`id`),
   KEY `FK_alluser_1` (`defaultGroup`),
   CONSTRAINT `FK_alluser_1` FOREIGN KEY (`defaultGroup`) REFERENCES `shr_allgroup` (`id`)

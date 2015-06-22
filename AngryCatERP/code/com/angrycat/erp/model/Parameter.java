@@ -20,35 +20,17 @@ import org.hibernate.annotations.GenericGenerator;
 @Entity
 @Table(name = "shr_parameter")
 public class Parameter {
+	private String id;	
+	private String code;	
+	private String nameDefault;
+	private Map<String, String> localeNames = new HashMap<>();	
+	private String note;	
+	private int sequence;
+	private ParameterCategory parameterCategory;
 
 	@Id
 	@GenericGenerator(name = "parameter_id", strategy = "com.angrycat.erp.ds.TimeUID")
 	@GeneratedValue(generator = "parameter_id")
-	private String id;
-	
-	@Column(name = "code")
-	private String code;
-	
-	@Column(name = "name")
-	private String nameDefault;
-	
-	@ElementCollection(fetch=FetchType.EAGER)
-	@MapKeyColumn(name="localString")
-	@Column(name="name")
-	@CollectionTable(name="shr_parameter_i18n", joinColumns=
-	@JoinColumn(name="parameterId"))
-	private Map<String, String> localeNames = new HashMap<>();
-	
-	@Column(name="note")
-	private String note;
-	
-	@Column(name="sequence")
-	private int sequence;
-	
-	@ManyToOne(fetch=FetchType.EAGER)
-	@JoinColumn(name="categoryId")
-	private ParameterCategory parameterCategory;
-
 	public String getId() {
 		return id;
 	}
@@ -56,7 +38,7 @@ public class Parameter {
 	public void setId(String id) {
 		this.id = id;
 	}
-
+	@Column(name = "code")
 	public String getCode() {
 		return code;
 	}
@@ -64,7 +46,7 @@ public class Parameter {
 	public void setCode(String code) {
 		this.code = code;
 	}
-
+	@Column(name = "name")
 	public String getNameDefault() {
 		return nameDefault;
 	}
@@ -72,7 +54,11 @@ public class Parameter {
 	public void setNameDefault(String nameDefault) {
 		this.nameDefault = nameDefault;
 	}
-
+	@ElementCollection(fetch=FetchType.EAGER)
+	@MapKeyColumn(name="localString")
+	@Column(name="name")
+	@CollectionTable(name="shr_parameter_i18n", joinColumns=
+	@JoinColumn(name="parameterId"))
 	public Map<String, String> getLocaleNames() {
 		return localeNames;
 	}
@@ -80,7 +66,7 @@ public class Parameter {
 	public void setLocaleNames(Map<String, String> localeNames) {
 		this.localeNames = localeNames;
 	}
-
+	@Column(name="note")
 	public String getNote() {
 		return note;
 	}
@@ -88,7 +74,7 @@ public class Parameter {
 	public void setNote(String note) {
 		this.note = note;
 	}
-
+	@Column(name="sequence")
 	public int getSequence() {
 		return sequence;
 	}
@@ -96,7 +82,8 @@ public class Parameter {
 	public void setSequence(int sequence) {
 		this.sequence = sequence;
 	}
-
+	@ManyToOne(fetch=FetchType.EAGER)
+	@JoinColumn(name="categoryId")
 	public ParameterCategory getParameterCategory() {
 		return parameterCategory;
 	}

@@ -4,6 +4,7 @@ import javax.persistence.Column;
 import javax.persistence.GeneratedValue;
 import javax.persistence.Id;
 import javax.persistence.MappedSuperclass;
+import javax.persistence.Transient;
 
 import org.apache.commons.lang3.StringUtils;
 import org.hibernate.annotations.GenericGenerator;
@@ -12,16 +13,14 @@ import com.angrycat.erp.security.exception.SecurityRuntimeException;
 
 @MappedSuperclass
 public abstract class SecurityObject {
+
+	private String id;
+	private String name;
+	private boolean readonly;
+	
 	@Id
 	@GenericGenerator(name = "security_object_id", strategy = "com.angrycat.erp.ds.TimeUID")
 	@GeneratedValue(generator = "security_object_id")
-	private String id;
-	
-	@Column(name = "name")
-	private String name;
-	
-	private boolean readonly;
-	
 	public String getId() {
 		return id;
 	}
@@ -32,7 +31,7 @@ public abstract class SecurityObject {
 		}
 		this.id = StringUtils.trim(id);
 	}
-
+	@Column(name = "name")
 	public String getName() {
 		return name;
 	}
@@ -43,7 +42,7 @@ public abstract class SecurityObject {
 		}
 		this.name = StringUtils.trim(name);
 	}
-
+	@Transient
 	public boolean isReadonly() {
 		return readonly;
 	}

@@ -49,7 +49,7 @@
 				<td>{{result.nameEng}}</td>
 				<td>{{result.gender | convertGender}}</td>
 				<td>{{result.birthday}}</td>
-				<td>{{result.important}}</td>
+				<td>{{result.important | convertBoolean}}</td>
 				<td>{{result.toVipDate}}</td>
 				<td>{{result.postalCode}}</td>
 			</tr>
@@ -95,6 +95,11 @@
 		.filter('convertGender', function(){
 			return function(input){
 				return input==0?'男':'女';
+			}
+		})
+		.filter('convertBoolean', function(){
+			return function(input){
+				return input?'是':'否';
 			}
 		});
 </script>
