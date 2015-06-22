@@ -50,8 +50,8 @@ public abstract class CrudBaseService<T> implements CrudService<T> {
 	public static final String ORDER_TYPE					= "orderType";
 	private static final List<String> CONFIG_RANGES			= Arrays.asList(CURRENT_PAGE, COUNT_PER_PAGE, ORDER_TYPE);
 	
-	private DateFormat dateFormatFS = new SimpleDateFormat("yyyy/MM/dd");
-	private DateFormat timeFormatFS = new SimpleDateFormat("yyyy/MM/dd HH:mm:ss");
+	private DateFormat dateFormatFS = new SimpleDateFormat("yyyy-MM-dd");
+	private DateFormat timeFormatFS = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
 		
 	public CrudBaseService(LocalSessionFactoryBean lsfb, HibernateQueryExecutable<T> hqe, Class<T> target){
 		this.lsfb = lsfb;
@@ -204,6 +204,9 @@ public abstract class CrudBaseService<T> implements CrudService<T> {
 		Map<String, Object> conds = cc.getConds();
 		// simpleExpression
 		getSimpleExpressions().forEach((id,v)->{
+			if(v.getType() == Date.class){
+				System.out.println("simple express val: " + v.getValue());
+			}
 			conds.put(SIMPLE_EXPRESSION_PREFIEX + id, v.getValue());
 		});
 		// paging
@@ -229,26 +232,35 @@ public abstract class CrudBaseService<T> implements CrudService<T> {
 		if(val.getClass() == clz){
 			return val;
 		}
-		String str = (String)val;
 		Object result = null;
-		if(StringUtils.isBlank(str)){
-			return null;
-		}
-		str = str.trim();
 		try{
-			if(clz == String.class){
-				result = str;
-			}else if(clz == Integer.class){
-				result = Integer.parseInt(str);
-			}else if(clz == Double.class){
-				result = Double.parseDouble(str);
-			}else if(clz == Float.class){
-				result = Float.parseFloat(str);
-			}else if(clz == Date.class){
-				result = dateFormatFS.parse(str);
-			}else if(clz == Timestamp.class){
-				result = timeFormatFS.parse(str);
-			} 
+			if(val instanceof Long){
+				Long v = (Long)val;
+				if(clz == Date.class){
+					result = new Date(v);
+				}else if(clz == Timestamp.class){
+					result = new Timestamp(v);
+				}
+			}else if(val instanceof String){
+				String str = (String)val;
+				if(StringUtils.isBlank(str)){
+					return result;
+				}
+				str = str.trim();
+				if(clz == String.class){
+					result = str;
+				}else if(clz == Integer.class){
+					result = Integer.parseInt(str);
+				}else if(clz == Double.class){
+					result = Double.parseDouble(str);
+				}else if(clz == Float.class){
+					result = Float.parseFloat(str);
+				}else if(clz == Date.class){
+					result = new Date(dateFormatFS.parse(str).getTime());
+				}else if(clz == Timestamp.class){
+					result = new Timestamp(timeFormatFS.parse(str).getTime());
+				} 
+			}	
 		}catch(Throwable e){
 			throw new RuntimeException(e);
 		}

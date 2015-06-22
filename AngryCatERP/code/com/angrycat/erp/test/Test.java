@@ -1,6 +1,8 @@
 package com.angrycat.erp.test;
 
 import java.sql.Date;
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
 import java.util.Iterator;
 import java.util.function.Consumer;
 
@@ -18,7 +20,8 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 public class Test {
 	public static void main(String[]args){
 //		testInsertParameterToDB();
-		testInsertAngryCatMemberToDB();
+//		testInsertAngryCatMemberToDB();
+		testDateParse();
 	}
 	
 	public static void executeSession(Consumer<Session> c){
@@ -100,5 +103,17 @@ public class Test {
 		ObjectMapper om = new ObjectMapper();
 		
 		
+	}
+	
+	public static void testDateParse(){
+		String p = "yyyy-MM-dd'T'HH:mm:ss";
+		String d = "2015-06-28T16:00:00.000Z";
+		DateFormat df = new SimpleDateFormat(p);
+		try{
+			java.util.Date date = df.parse(d);
+			System.out.println(date);
+		}catch(Throwable e){
+			e.printStackTrace();
+		}
 	}
 }

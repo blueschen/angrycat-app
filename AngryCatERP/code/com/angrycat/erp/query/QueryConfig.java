@@ -1,6 +1,7 @@
 package com.angrycat.erp.query;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -239,13 +240,22 @@ public class QueryConfig implements QueryConfigurable {
 	}
 	
 	private Map<String, Object> genNamedParams(){
-		Map<String, Object> namedParams = 
+		
+				
+		List<SimpleExpression> list = 
 		simpleExpressions.values()
 			.stream()
 			.filter(s->!s.isIgnored())
-			.collect(Collectors.toList())
-				.stream()
-				.collect(Collectors.toMap(SimpleExpression::getId, s->s.getFormattedValue()));
+			.collect(Collectors.toList());
+		Map<String, Object> namedParams = new HashMap<>();
+		System.out.println("list count: " + list.size());
+		list.forEach(s->{
+			System.out.println("s.getId(): " + s.getId() + ", s.getFormattedValue(): " + s.getFormattedValue());
+			namedParams.put(s.getId(), s.getFormattedValue());
+		});
+//				list
+//				.stream()
+//				.collect(Collectors.toMap(SimpleExpression::getId, s->s.getFormattedValue()));
 		return namedParams;
 	}
 

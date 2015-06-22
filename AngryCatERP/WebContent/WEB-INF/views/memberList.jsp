@@ -8,10 +8,11 @@
 <head>
 <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
 <title><s:message code="model.name.member"/></title>
-<link rel="stylesheet" href='<c:url value="/angularjs/bootstrap/3.1.1/css/bootstrap.css"/>'/>
-<link rel="stylesheet" href='<c:url value="/angularjs/bootstrap/3.1.1/css/bootstrap-theme.css"/>'/>
 <script type="text/javascript" src='<c:url value="/angularjs/1.3.16/angular.js"/>'></script>
 <script type="text/javascript" src='<c:url value="/angularjs/ui-bootstrap-tpls-0.13.0.min.js"/>'></script>
+<link rel="stylesheet" href='<c:url value="/angularjs/bootstrap/3.1.1/css/bootstrap.css"/>'/>
+<link rel="stylesheet" href='<c:url value="/angularjs/bootstrap/3.1.1/css/bootstrap-theme.css"/>'/>
+
 </head>
 <body ng-controller="MainCtrl as mainCtrl">
     
@@ -29,6 +30,27 @@
 			<option value="">==請選擇==</option>	
 		</select>
 		<br>
+		
+		<h4>出生年月日</h4>
+    	<div class="row">
+		<div class="col-md-6">
+		<p class="input-group">
+		
+		<input 
+			type="text" 
+			ng-model="mainCtrl.conditionConfig.conds.condition_pBirthday"
+			datepicker-popup="yyyy-MM-dd"
+			is-open="opened"
+			readonly="readonly"
+			class="form-control"
+			>
+			<span class="input-group-btn">
+                <button type="button" class="btn btn-default" ng-click="mainCtrl.openCalendar($event)"><i class="glyphicon glyphicon-calendar"></i></button>
+              </span>
+        </p>
+        </div>
+        </div>
+		<br>	
 		<input type="button" value="查詢" ng-click="mainCtrl.query()"/>
 		<table class="table">
 			<tr>
@@ -65,7 +87,7 @@
 
 <script type="text/javascript">
 	angular.module('angryCatMemberListApp', ['ui.bootstrap'])
-		.controller('MainCtrl', ['$log', '$http', function($log, $http){
+		.controller('MainCtrl', ['$log', '$http', '$scope', function($log, $http, $scope){
 			var self = this,
 				getConditionConfigUrl = '${urlPrefix}/getConditionConfig.json';
 				
@@ -91,6 +113,13 @@
 			self.pageChanged = function(){
 				self.query();
 			}
+			// date related
+			self.openCalendar = function($event){
+			    $event.preventDefault();
+			    $event.stopPropagation();
+			    
+			    $scope.opened = true;
+			}
 		}])
 		.filter('convertGender', function(){
 			return function(input){
@@ -101,6 +130,28 @@
 			return function(input){
 				return input?'是':'否';
 			}
+		})
+		.directive('datepickerPopup', function () {
+  			function link(scope, element, attrs, ngModel) {
+    			// View -> Model
+    			ngModel.$parsers.push(function (value) {
+    				if(!value){
+    					return null;
+    				}
+    				var d = new Date(Date.parse(value)),
+    					year = d.getFullYear(),
+    					month = (d.getMonth()+1),
+    					date = d.getDate(),
+    					time = year + '-' + (month > 9 ? month : ('0' + month)) + '-' + (date > 9 ? date : ('0' + date));
+    				console.log('time: ' + time);
+      				return time;
+    			});
+    		}
+  			return {
+    			restrict: 'A',
+    			require: 'ngModel',
+    			link: link
+  			};
 		});
 </script>
 

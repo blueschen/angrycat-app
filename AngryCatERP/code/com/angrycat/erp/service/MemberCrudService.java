@@ -31,6 +31,7 @@ public class MemberCrudService extends CrudBaseService<Member> {
 		String rootAliasWith = DEFAULT_ROOT_ALIAS + ".";
 		addWhere(ConditionFactory.putStr(rootAliasWith+"name=:pName"))
 		.addWhere(ConditionFactory.putInt(rootAliasWith+"gender=:pGender"))
+		.addWhere(ConditionFactory.putSqlDate(rootAliasWith+"birthday=:pBirthday"))
 		;
 		
 	}
