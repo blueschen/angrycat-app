@@ -16,152 +16,174 @@
 
 <c:set value="member" var="modelName"/>
 <c:set value="${pageContext.request.contextPath}/${modelName}" var="urlPrefix"/>
+
+<style type="text/css">
+	.my-control-label .control-label{
+		text-align: left; 
+		width: 10%;
+	}
+	label {
+  		display: inline-block;
+  		font-size: 18px;
+	}
+	input[type='text']{
+		width: 20%;
+	}
+	textarea{
+		width: 20%;
+	}
+</style>
 </head>
 <body ng-controller="MainCtrl as mainCtrl">
 <input type="hidden" value="{{mainCtrl.member.id}}"/>
 
 
 <div class="container-fluid">
-<div class="bs-docs-grid">
-<div class="row show-grid">
-	<div class="span2">
-		Ohm VIP
-	</div>
-	<div class="span10">
-		<input type="radio" ng-value="true" ng-model="mainCtrl.member.important"/>是
-		<input type="radio" ng-value="false" ng-model="mainCtrl.member.important"/>否
-	</div>
-</div>
-<div class="row show-grid">
-	<div class="span2">
-		FB暱稱
-	</div>
-	<div class="span10">
-		<input type="text" ng-model="mainCtrl.member.fbNickname"/>
-	</div>
-</div>
-<div class="row show-grid">
-	<div class="span2">
-		性別
-	</div>
-	<div class="span10">
-		<input type="radio" ng-value="0" ng-model="mainCtrl.member.gender"/>男
-		<input type="radio" ng-value="1" ng-model="mainCtrl.member.gender"/>女
-	</div>
-</div>
-<div class="row show-grid">
-	<div class="span2">
-		姓名
-	</div>
-	<div class="span10">		
-		<input type="text" ng-model="mainCtrl.member.name"/>
-	</div>
-</div>
-<div class="row show-grid">
-	<div class="span2">
-		身分證字號
-	</div>
-	<div class="span10">
-		<input type="text" ng-model="mainCtrl.member.idNo"/>
-	</div>
-</div>
-<div class="row show-grid">
-	<div class="span2">
-		電子信箱
-	</div>
-	<div class="span10">
-		<input type="text" ng-model="mainCtrl.member.email"/>
-	</div>
-</div>
-<div class="row show-grid">
-	<div class="span2">
-		出生年月日
-	</div>
-	<div class="span10">
-		<p class="input-group">
+
+<form class="form-horizontal">
+	<div class="control-group">
+ 		<div class="controls my-control-label">
+ 			<label class="control-label label-important">
+ 				Ohm VIP
+ 			</label>
+ 			<input type="radio" ng-value="true" ng-model="mainCtrl.member.important" id="importantYes"/>是
+ 			<input type="radio" ng-value="false" ng-model="mainCtrl.member.important" id="importantNo"/>否		
+ 		</div>
+ 	</div>
+ 	<div class="control-group">
+ 		<div class="controls my-control-label">
+ 			<label class="control-label label-important" for="fbNickname">
+ 				FB暱稱
+ 			</label>
+ 			<input type="text" ng-model="mainCtrl.member.fbNickname" id="fbNickname"/>
+ 		</div>
+ 	</div>
+ 	<div class="control-group">
+ 		<div class="controls my-control-label">
+ 			<label class="control-label label-important">
+ 				性別
+ 			</label>
+ 			<input type="radio" ng-value="0" ng-model="mainCtrl.member.gender" id="genderMale"/>男
+ 			<input type="radio" ng-value="1" ng-model="mainCtrl.member.gender" id="genderFemale"/>女
+ 		</div>
+ 	</div>
+ 	<div class="control-group">
+ 		<div class="controls my-control-label">
+ 			<label class="control-label label-important" for="name">
+ 				姓名
+ 			</label>
+ 			<input type="text" ng-model="mainCtrl.member.name" id="name"/>
+ 		</div>
+ 	</div>
+ 	<div class="control-group">
+ 		<div class="controls my-control-label">
+ 			<label class="control-label label-important" for="idNo">
+ 				身分證字號
+ 			</label>
+ 			<input type="text" ng-model="mainCtrl.member.idNo" id="idNo"/>
+ 		</div>
+ 	</div>
+ 	<div class="control-group">
+ 		<div class="controls my-control-label">
+ 			<label class="control-label label-important" for="email">
+ 				電子信箱
+ 			</label>
+ 			<input type="text" ng-model="mainCtrl.member.email" id="email"/>
+ 		</div>
+ 	</div>
+ 	<div class="control-group">
+ 		<div class="controls my-control-label">
+ 			<label class="control-label label-important" for="birthday">
+ 				出生年月日
+ 			</label>			
 			<input type="text" 
 				ng-model="mainCtrl.member.birthday"
 				datepicker-popup="yyyy-MM-dd"
 				is-open="opened1"
 				readonly="readonly"
-				class="form-control"/>
-			<span class="input-group-btn">
+				id="birthday"/>
+			<span>
 				<button type="button" class="btn btn-default" ng-click="mainCtrl.openCalendar($event, 'opened1')"><i class="glyphicon glyphicon-calendar"></i></button>
-			</span>
-        </p>
-	</div>
-</div>
-<div class="row show-grid">
-	<div class="span2">
-		聯絡電話
-	</div>
-	<div class="span10">
-		<input type="text" ng-model="mainCtrl.member.mobile"/>
-	</div>
-</div>
-<div class="row show-grid">
-	<div class="span2">
-		郵遞區號
-	</div>
-	<div class="span10">
-		<input type="text" ng-model="mainCtrl.member.postalCode"/>
-	</div>
-</div>
-<div class="row show-grid">
-	<div class="span2">		
-		地址
-	</div>
-	<div class="span10">
-		<input type="text" ng-model="mainCtrl.member.address"/>
-	</div>
-</div>
-<div class="row show-grid">
-	<div class="span2">
-		轉VIP日期
-	</div>
-	<div class="span10">
-		<p class="input-group">
-			<input type="text"
+			</span>        
+ 		</div>
+ 	</div>
+ 	<div class="control-group">
+ 		<div class="controls my-control-label">
+ 			<label class="control-label label-important" for="mobile">
+ 				聯絡電話	
+ 			</label>
+ 			<input type="text" ng-model="mainCtrl.member.mobile" id="mobile"/>
+ 		</div>
+ 	</div>
+ 	<div class="control-group">
+ 		<div class="controls my-control-label">
+ 			<label class="control-label label-important" for="postalCode">
+ 				郵遞區號	
+ 			</label>
+ 			<input type="text" ng-model="mainCtrl.member.postalCode" id="postalCode"/>
+ 		</div>
+ 	</div>
+ 	<div class="control-group">
+ 		<div class="controls my-control-label">
+ 			<label class="control-label label-important" for="address">
+ 				地址	
+ 			</label>
+ 			<input type="text" ng-model="mainCtrl.member.address" id="address"/>
+ 		</div>
+ 	</div>
+ 	<div class="control-group">
+ 		<div class="controls my-control-label">
+ 			<label class="control-label label-important" for="toVipDate">
+ 				轉VIP日期	
+ 			</label>
+ 			<input type="text"
 				ng-model="mainCtrl.member.toVipDate"
 				datepicker-popup="yyyy-MM-dd"
 				is-open="opened2"
 				readonly="readonly"
-				class="form-control">
-			<span class="input-group-btn">
+				id="toVipDate">
+			<span>
 				<button type="button" class="btn btn-default" ng-click="mainCtrl.openCalendar($event, 'opened2')"><i class="glyphicon glyphicon-calendar"></i></button>
 			</span>
-        </p>
-	</div>
-</div>
-<div class="row show-grid">
-	<div class="span2">
-		備註
-	</div>
-	<div class="span10">
-		<textarea ng-model="mainCtrl.member.note">
-		</textarea>
-	</div>
-</div>
-</div>	
-	
-<input type="button" value="儲存" ng-click="mainCtrl.save()"/>
-<input type="button" value="關閉" onclick="document.location.href='${urlPrefix}/list'"/>	
+ 		</div>
+ 	</div>
+ 	<div class="control-group">
+ 		<div class="controls my-control-label">
+ 			<label class="control-label label-important" for="note">
+ 				備註	
+ 			</label>
+ 			<textarea ng-model="mainCtrl.member.note" id="note" rows="5" cols="30"></textarea>
+ 		</div>
+ 	</div>
+</form>
+
+<form class="form-inline">
+<input type="button" value="{{mainCtrl.member.id | saveOrModify}}" ng-click="mainCtrl.save()" class="btn btn-default"/>
+<input type="button" value="關閉" onclick="document.location.href='${urlPrefix}/list'" class="btn btn-default"/>	
+</form>	
+
 </div>
 <script type="text/javascript">
 	angular.module('angryCatMemberViewApp', ['ui.bootstrap'])
 		.controller('MainCtrl', ['$http', '$scope', function($http, $scope){
 			var self = this,
-				saveUrl = '${urlPrefix}/save.json';
-			
+				saveUrl = '${urlPrefix}/save.json',
+				targetData = ${member};
+			if(targetData){
+				self.member = targetData;
+			}
+			self.actionMsg = function (input){
+				return input ? '儲存': '修改';
+			};
 			self.save = function(){
 				var isNew = self.member.id ? false : true;
 				$http.post(saveUrl, self.member)
 					.then(function(response){
 						self.member = response.data;
-						alert((isNew ? '儲存' : '修改')+'成功!!');
+						alert(self.actionMsg(isNew)+'成功!!');
 					},
 					function(errResponse){
-						alert((isNew ? '儲存' : '修改')+'失敗，錯誤訊息: ' + JSON.stringify(errResponse));
+						alert(self.actionMsg(isNew)+'失敗，錯誤訊息: ' + JSON.stringify(errResponse));
 					});	
 			};
 			// date related
@@ -193,6 +215,11 @@
     			require: 'ngModel',
     			link: link
   			};
+		})
+		.filter('saveOrModify', function(){
+			return function(input){
+				return input ? '修改': '儲存';
+			};
 		});
 </script>
 </body>

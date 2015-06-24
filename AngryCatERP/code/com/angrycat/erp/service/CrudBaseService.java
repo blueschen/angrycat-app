@@ -384,6 +384,7 @@ public abstract class CrudBaseService<T> implements CrudService<T> {
 		return resultset;
 	}
 
+	@Override
 	public T saveOrMerge(Object...obj){
 		Session s = null;
 		Transaction tx = null;
@@ -407,5 +408,14 @@ public abstract class CrudBaseService<T> implements CrudService<T> {
 			
 		}
 		return t;
+	}
+	
+	@Override
+	public T findById(String id){
+		List<T> list = 
+		executeSession(s->{
+			return s.createQuery("FROM " + target.getName() + " p WHERE p.id = ?").setString(0, id).list();
+		});
+		return list.size() > 0 ? list.get(0) : null;
 	}
 }

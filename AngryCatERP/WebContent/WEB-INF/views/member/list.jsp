@@ -4,136 +4,113 @@
 <%@ taglib uri="http://www.springframework.org/tags/form" prefix="sf"%>
 <%@ taglib uri="http://www.springframework.org/tags" prefix="s"%>
 
-<html ng-app="angryCatMemberListApp">
-<head>
-<meta content="width=device-width, initial-scale=1.0" name="viewport">
-<title><s:message code="model.name.member"/></title>
-<script type="text/javascript" src='<c:url value="/jquery/2.1.1/jquery.min.js"/>'></script>
-<script type="text/javascript" src='<c:url value="/angularjs/1.3.16/angular.js"/>'></script>
-<script type="text/javascript" src='<c:url value="/angularjs/ui-bootstrap-tpls-0.13.0.min.js"/>'></script>
-<link rel="stylesheet" href='<c:url value="/angularjs/bootstrap/3.1.1/css/bootstrap.css"/>'/>
-<link rel="stylesheet" href='<c:url value="/angularjs/bootstrap/3.1.1/css/bootstrap-theme.css"/>'/>
-<link rel="stylesheet" href='<c:url value="/angularjs/bootstrap/3.1.1/css/bootstrap-responsive.css"/>'/>
-
 <c:set value="member" var="modelName"/>
 <c:set value="${pageContext.request.contextPath}/${modelName}" var="urlPrefix"/>
+
+<html ng-app="angryCatMemberListApp">
+<head>
+	<meta content="width=device-width, initial-scale=1.0" name="viewport">
+	<title><s:message code="model.name.member"/></title>
+	
+	<script type="text/javascript" src='<c:url value="/jquery/2.1.1/jquery.min.js"/>'></script>
+	<script type="text/javascript" src='<c:url value="/angularjs/1.3.16/angular.js"/>'></script>
+	<script type="text/javascript" src='<c:url value="/angularjs/ui-bootstrap-tpls-0.13.0.min.js"/>'></script>
+	
+	<link rel="stylesheet" href='<c:url value="/angularjs/bootstrap/3.1.1/css/bootstrap.css"/>'/>
+	<link rel="stylesheet" href='<c:url value="/angularjs/bootstrap/3.1.1/css/bootstrap-theme.css"/>'/>
+	<link rel="stylesheet" href='<c:url value="/angularjs/bootstrap/3.1.1/css/bootstrap-responsive.css"/>'/>
+	
+	<style type="text/css">		
+		label {
+  			display: inline-block;
+  			font-size: 18px;
+		}
+	</style>
 </head>
 <body ng-controller="MainCtrl as mainCtrl">
  
  <h1>Hello <s:message code="model.name.${modelName}"/>!</h1>
  
- <div class="container-fluid">
- <div class="bs-docs-grid">
- <div class="row show-grid">
- 	<div class="span2">
- 		<h4>姓名:</h4>
- 	</div>
-  	<div class="span4">
- 		<input type="text" ng-model="mainCtrl.conditionConfig.conds.condition_pName">
- 	</div>
-   	<div class="span2">
- 		<h4>性別:</h4>
- 	</div>
-   	<div class="span4">
- 		<select 
-			ng-model="mainCtrl.conditionConfig.conds.condition_pGender" 
-			ng-options="g.value as g.label for g in mainCtrl.genders">
-			<option value="">==請選擇==</option>	
-		</select>
- 	</div>
- </div>
- 
- <div class="row show-grid">
- 	<div class="span2">
- 		<h4>出生年月日</h4>
- 	</div>
- 	<div class="span4">
- 		<p class="input-group">
-		<input 
-			type="text" 
-			ng-model="mainCtrl.conditionConfig.conds.condition_pBirthday"
-			datepicker-popup="yyyy-MM-dd"
-			is-open="opened"
-			readonly="readonly"
-			class="form-control"
-			>
-			<span class="input-group-btn">
-                <button type="button" class="btn btn-default" ng-click="mainCtrl.openCalendar($event)"><i class="glyphicon glyphicon-calendar"></i></button>
-              </span>
-        </p>
- 	</div>
- 	 <div class="span2">
- 	
- 	</div>
- 	<div class="span4">
- 	
- 	</div>
-</div>   
-</div>	
-		<input type="button" value="查詢" ng-click="mainCtrl.query()"/>
-		<input type="button" value="刪除" ng-click="mainCtrl.deleteItems()"/>
-		<input type="button" value="新增" onclick="document.location.href = '${urlPrefix}/add';"/>
-<div class="bs-docs-grid">
-<div class="row show-grid">
-	<div class="span1">
- 		<input type="checkbox" id="allItems" ng-click="mainCtrl.isCheckAll($event)">
- 	</div>
- 	<div class="span2">
- 		身分證字號
- 	</div>
- 	<div class="span2">
- 		姓名
- 	</div>
- 	<div class="span1">
- 		FB暱稱
- 	</div>
- 	<div class="span1">
- 		性別
- 	</div>
- 	<div class="span1">
- 		生日	
- 	</div>
- 	<div class="span1">
- 		VIP
- 	</div>
- 	<div class="span2">
- 		成為VIP時間
- 	</div>
- 	<div class="span1">
- 		郵遞區號
- 	</div>	
-</div>
 
-<div class="row show-grid" ng-repeat="result in mainCtrl.conditionConfig.results">
-	<div class="span1">
- 		<input type="checkbox" value="{{result.id}}" name="ids">
+ 
+<div class="container-fluid">
+
+<form class="form-horizontal">
+ 	<div class="control-group">
+ 		<div class="controls">
+ 			<label class="control-label label-important" for="pName" >
+ 				姓名
+ 			</label>
+ 			<input type="text" ng-model="mainCtrl.conditionConfig.conds.condition_pName" id="pName">
+ 		</div>
  	</div>
- 	<div class="span2">
- 		{{result.idNo}}
+ 	<div class="control-group">
+ 		<div class="controls">
+			<label class="control-label" for="pGender">
+ 				性別
+ 			</label>
+ 			<select 
+				ng-model="mainCtrl.conditionConfig.conds.condition_pGender" 
+				ng-options="g.value as g.label for g in mainCtrl.genders"
+				id="pGender">
+				<option value="">==請選擇==</option>	
+			</select>
+ 		</div>
  	</div>
- 	<div class="span2">
- 		{{result.name}}
+ 	<div class="control-group">
+ 		<div class="controls">
+
+ 			<label class="control-label" for="pBirthday">
+ 				出生年月日
+ 			</label>
+				<input 
+					type="text" 
+					ng-model="mainCtrl.conditionConfig.conds.condition_pBirthday"
+					datepicker-popup="yyyy-MM-dd"
+					is-open="opened"
+					readonly="readonly"
+					id="pBirthday">
+				<span>
+                	<button type="button" class="btn btn-default" ng-click="mainCtrl.openCalendar($event)"><i class="glyphicon glyphicon-calendar"></i></button>
+            	</span>
+ 		</div>
  	</div>
- 	<div class="span1">
- 		{{result.fbNickname}}
- 	</div>
- 	<div class="span1">
- 		{{result.gender | convertGender}}
- 	</div>
- 	<div class="span1">
- 		{{result.birthday}}	
- 	</div>
- 	<div class="span1">
- 		{{result.important | convertBoolean}}
- 	</div>
- 	<div class="span2">
- 		{{result.toVipDate}}
- 	</div>
- 	<div class="span1">
- 		{{result.postalCode}}
- 	</div>	
-</div>
-</div>
+ </form>
+ 
+ <form class="form-inline">
+ 	<input type="button" value="查詢" ng-click="mainCtrl.query()" class="btn btn-default"/>
+ 	<input type="button" value="清除" ng-click="mainCtrl.clear()" class="btn btn-default"/>
+ 	<input type="button" value="刪除" ng-click="mainCtrl.deleteItems()" class="btn btn-default"/>
+ 	<input type="button" value="新增" onclick="document.location.href = '${urlPrefix}/add';" class="btn btn-default"/>
+ </form>	
+		
+		
+<table class="table table-bordered table-hover table-condense">
+	<tr>
+		<td><input type="checkbox" id="allItems" ng-click="mainCtrl.isCheckAll($event)"></td>
+		<td>身分證字號</td>
+		<td>姓名</td>
+		<td>FB暱稱</td>
+		<td>性別</td>
+		<td>生日</td>
+		<td>VIP</td>
+		<td>成為VIP時間</td>
+		<td>郵遞區號</td>
+		<td>內容</td>
+	</tr>
+	<tr ng-repeat="result in mainCtrl.conditionConfig.results" >
+		<td><input type="checkbox" value="{{result.id}}" name="ids"></td>
+		<td>{{result.idNo}}</td>
+		<td>{{result.name}}</td>
+		<td>{{result.fbNickname}}</td>
+		<td>{{result.gender | convertGender}}</td>
+		<td>{{result.birthday}}</td>
+		<td>{{result.important | convertBoolean}}</td>
+		<td>{{result.toVipDate}}</td>
+		<td>{{result.postalCode}}</td>
+		<td id="{{result.id}}" to-view><span><i class="glyphicon glyphicon-file"></i></span></td>
+	</tr>
+</table>		
 		<pagination 
 			total-items="mainCtrl.conditionConfig.pageNavigator.totalCount" 
 			ng-model="mainCtrl.conditionConfig.conds.currentPage" 
@@ -171,6 +148,16 @@
 			self.pageChanged = function(){
 				self.query();
 			}
+			self.clear = function(){
+				var config = self.conditionConfig;
+				if(config && config.conds){
+					for(var cond in config.conds){
+						if(cond.indexOf('condition_') == 0){
+							config.conds[cond] = null;
+						}
+					}
+				}
+			};
 			self.deleteItems = function(){
 				var ids = document.getElementsByName('ids');
 				if(!ids){
@@ -204,7 +191,6 @@
 					$log.log('failed!!!!!' + JSON.stringify(errResponse));
 				});
 			};
-			self.add = function(){}
 			self.isCheckAll = function($event){
 				var isChecked = $event.target.checked,
 					ids = document.getElementsByName('ids');
@@ -250,7 +236,6 @@
     					month = (d.getMonth()+1),
     					date = d.getDate(),
     					time = year + '-' + (month > 9 ? month : ('0' + month)) + '-' + (date > 9 ? date : ('0' + date));
-    				console.log('ori time value: ' + value);
       				return time;
     			});
     		}
@@ -259,6 +244,14 @@
     			require: 'ngModel',
     			link: link
   			};
+		})
+		.directive('toView', function(){
+			return function(scope, ele){
+				ele.bind('click', function(){
+					var id = angular.element(ele)[0].getAttribute('id');
+					document.location.href = '${urlPrefix}/view/' + id;
+				});
+			};
 		});
 </script>
 
