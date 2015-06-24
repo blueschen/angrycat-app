@@ -18,8 +18,8 @@ import com.angrycat.erp.security.extend.UserInfo;
 
 public class DBTest {
 	public static void main(String[]args){
-//		insertSecurity();
-		testRole();
+		insertSecurity();
+//		testRole();
 	}
 	public static void insertSecurity(){
 		executeSession(s->{

@@ -4,6 +4,7 @@ import java.sql.Date;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.Iterator;
+import java.util.Locale;
 import java.util.function.Consumer;
 
 import org.hibernate.Session;
@@ -20,7 +21,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 public class Test {
 	public static void main(String[]args){
 //		testInsertParameterToDB();
-//		testInsertAngryCatMemberToDB();
+		testInsertAngryCatMemberToDB();
 		testDateParse();
 	}
 	
@@ -89,7 +90,7 @@ public class Test {
 				acm.setName("aname_"+i);
 				acm.setNameEng("anameEng_"+i);
 				acm.setNote("anote_"+i);
-				acm.setPostalCode("apostalCode_"+i);
+				acm.setPostalCode("acode_"+i);
 				acm.setToVipDate(new Date(System.currentTimeMillis()-1000*60*60*24*182*i));
 				
 				s.save(acm);
@@ -106,9 +107,9 @@ public class Test {
 	}
 	
 	public static void testDateParse(){
-		String p = "yyyy-MM-dd'T'HH:mm:ss";
-		String d = "2015-06-28T16:00:00.000Z";
-		DateFormat df = new SimpleDateFormat(p);
+		String p = "EEE, d MMM yyyy HH:mm:ss Z";
+		String d = "Fri Jun 19 2015 08:00:00 GMT+0800";
+		DateFormat df = new SimpleDateFormat(p); 
 		try{
 			java.util.Date date = df.parse(d);
 			System.out.println(date);

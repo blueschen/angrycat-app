@@ -61,6 +61,7 @@ CREATE TABLE `member` (
   `address` varchar(200) COLLATE utf8_bin DEFAULT NULL COMMENT '地址',
   `toVipDate` datetime DEFAULT NULL COMMENT '轉VIP日期',
   `note` varchar(45) COLLATE utf8_bin DEFAULT NULL COMMENT '備註',
+  `fbNickname` varchar(200) COLLATE utf8_bin DEFAULT NULL COMMENT 'FB暱稱',
   PRIMARY KEY (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_bin COMMENT='OHM Beads TW (AngryCat) 一般會員資料';
 /*!40101 SET character_set_client = @saved_cs_client */;

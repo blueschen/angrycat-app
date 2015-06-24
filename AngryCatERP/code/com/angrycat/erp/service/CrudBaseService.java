@@ -6,11 +6,14 @@ import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.Enumeration;
 import java.util.List;
 import java.util.Map;
 import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.function.Predicate;
+
+import javax.servlet.http.HttpSession;
 
 import org.apache.commons.lang3.StringUtils;
 import org.hibernate.ScrollMode;
@@ -19,6 +22,8 @@ import org.hibernate.Session;
 import org.hibernate.SessionFactory;
 import org.hibernate.Transaction;
 import org.springframework.orm.hibernate4.LocalSessionFactoryBean;
+import org.springframework.web.context.request.RequestContextHolder;
+import org.springframework.web.context.request.ServletRequestAttributes;
 
 import com.angrycat.erp.condition.ConditionConfigurable;
 import com.angrycat.erp.condition.Order;
@@ -191,7 +196,15 @@ public abstract class CrudBaseService<T> implements CrudService<T> {
 			}
 		}
 
-		
+		// TODO testing...
+		HttpSession hs = ((ServletRequestAttributes)RequestContextHolder.currentRequestAttributes()).getRequest().getSession();
+		Enumeration<String> e = hs.getAttributeNames();
+		System.out.println("Session info:");
+		while(e.hasMoreElements()){
+			String attriName = e.nextElement();
+			System.out.println("attriName: " + attriName);
+			System.out.println("attriVal: " + hs.getAttribute(attriName));
+		}
 	}
 
 	/**
@@ -275,8 +288,11 @@ public abstract class CrudBaseService<T> implements CrudService<T> {
 	}
 	
 	@Override
-	public List<T> executeQueryPageableAfterDelete(List<String> ids){
-		return executeQueryPageableAfterDelete(null, ids);
+	public ConditionConfig<T> executeQueryPageableAfterDelete(List<String> ids){
+		List<T> results = executeQueryPageableAfterDelete(null, ids);
+		ConditionConfig<T> cc = getConditionConfig();
+		cc.setResults(results);
+		return cc;
 	}
 	
 	@Override
@@ -368,4 +384,28 @@ public abstract class CrudBaseService<T> implements CrudService<T> {
 		return resultset;
 	}
 
+	public T saveOrMerge(Object...obj){
+		Session s = null;
+		Transaction tx = null;
+		T t = null;
+		try{
+			s = sf.openSession();
+			tx = s.beginTransaction();
+			
+			for(Object o : obj){
+				s.saveOrUpdate(o);
+				s.flush();
+				if(o.getClass() == target){
+					t = (T)o; 
+				}
+			}
+			
+			tx.commit();
+		}catch(Throwable e){
+			e.printStackTrace();
+		}finally{
+			
+		}
+		return t;
+	}
 }

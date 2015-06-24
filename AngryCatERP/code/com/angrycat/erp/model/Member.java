@@ -22,6 +22,7 @@ public class Member {
 	private boolean important;
 	private String name;
 	private String nameEng;
+	private String fbNickname;
 	private int gender;
 	private String idNo;
 	private Date birthday;
@@ -125,5 +126,12 @@ public class Member {
 	}
 	public void setNote(String note) {
 		this.note = note;
+	}
+	@Column(name="fbNickname")
+	public String getFbNickname() {
+		return fbNickname;
+	}
+	public void setFbNickname(String fbNickname) {
+		this.fbNickname = fbNickname;
 	}
 }

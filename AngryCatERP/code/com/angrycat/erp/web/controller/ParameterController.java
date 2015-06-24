@@ -24,7 +24,7 @@ import com.angrycat.erp.web.component.ConditionConfig;
 public class ParameterController {
 
 	
-	private static final String PARAMATER_LIST = "parameterList";
+	private static final String PARAMATER_LIST = "parameter/list";
 	
 	@Autowired
 	@Qualifier("parameterCrudService")

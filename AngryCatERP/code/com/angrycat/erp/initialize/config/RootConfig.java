@@ -28,6 +28,7 @@ public class RootConfig {
 		MySQLDataSource ds = new MySQLDataSource();
 		ds.setUrl("jdbc:mariadb://localhost:3306/angrycat");
 		ds.setUser("root");
+		ds.setPassword("root");
 		return ds;
 	}
 	
