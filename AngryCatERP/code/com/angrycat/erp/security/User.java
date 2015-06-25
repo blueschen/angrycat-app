@@ -26,6 +26,12 @@ public class User extends SecurityObject implements RoleBelong {
 	private boolean disabled = false;
 	private UserInfo info;
 	
+	public User(){}
+	public User(String userId, String password){
+		this.userId = userId;
+		this.password = password;
+	}
+	
 	@Column(name = "userId", unique = true)
 	public String getUserId() {
 		return userId;

@@ -11,7 +11,7 @@ import com.angrycat.erp.model.Member;
 import com.angrycat.erp.query.HibernateQueryExecutable;
 
 @Service
-public class MemberCrudService extends CrudBaseService<Member> {
+public class MemberCrudService extends CrudBaseService<Member, Member> {
 
 	/**
 	 * 

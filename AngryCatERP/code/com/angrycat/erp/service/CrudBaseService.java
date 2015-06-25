@@ -6,14 +6,11 @@ import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.Arrays;
 import java.util.Collections;
-import java.util.Enumeration;
 import java.util.List;
 import java.util.Map;
 import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.function.Predicate;
-
-import javax.servlet.http.HttpSession;
 
 import org.apache.commons.lang3.StringUtils;
 import org.hibernate.ScrollMode;
@@ -21,9 +18,10 @@ import org.hibernate.ScrollableResults;
 import org.hibernate.Session;
 import org.hibernate.SessionFactory;
 import org.hibernate.Transaction;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Scope;
 import org.springframework.orm.hibernate4.LocalSessionFactoryBean;
-import org.springframework.web.context.request.RequestContextHolder;
-import org.springframework.web.context.request.ServletRequestAttributes;
+import org.springframework.stereotype.Service;
 
 import com.angrycat.erp.condition.ConditionConfigurable;
 import com.angrycat.erp.condition.Order;
@@ -34,7 +32,9 @@ import com.angrycat.erp.query.QueryConfigurable;
 import com.angrycat.erp.query.QueryGenerator;
 import com.angrycat.erp.web.component.ConditionConfig;
 
-public abstract class CrudBaseService<T> implements CrudService<T> {
+@Service
+@Scope("prototype")
+public class CrudBaseService<T, R> implements CrudService<T, R> {
 
 	/**
 	 * 
@@ -44,9 +44,9 @@ public abstract class CrudBaseService<T> implements CrudService<T> {
 	private SessionFactory sf;
 	private LocalSessionFactoryBean lsfb;
 	private HibernateQueryExecutable<T> hqe;
-	private Class<T> target;
+	private Class<R> root;
 	
-	final String DEFAULT_ROOT_ALIAS = "p";
+	public static final String DEFAULT_ROOT_ALIAS = "p";
 	final int DEFAULT_BATCH_SIZE = 100;
 	
 	public static final String SIMPLE_EXPRESSION_PREFIEX	= "condition_";
@@ -57,14 +57,28 @@ public abstract class CrudBaseService<T> implements CrudService<T> {
 	
 	private DateFormat dateFormatFS = new SimpleDateFormat("yyyy-MM-dd");
 	private DateFormat timeFormatFS = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
-		
-	public CrudBaseService(LocalSessionFactoryBean lsfb, HibernateQueryExecutable<T> hqe, Class<T> target){
+	
+	@Autowired
+	public CrudBaseService(LocalSessionFactoryBean lsfb, HibernateQueryExecutable<T> hqe){
 		this.lsfb = lsfb;
 		this.sf = lsfb.getObject();
 		this.hqe = hqe;
-		this.target = target;
+	}
+	
+	public CrudBaseService(LocalSessionFactoryBean lsfb, HibernateQueryExecutable<T> hqe, Class<R> root){
+		this(lsfb, hqe);
+		this.root = root;
 	}
 
+	public void setRoot(Class<R> root){
+		this.root = root;
+	}
+	
+	public void setRootAndInitDefault(Class<R> root){
+		setRoot(root);
+		init();
+	}
+	
 	@Override
 	public List<T> executeQueryList() {
 		return hqe.executeQueryList();
@@ -195,16 +209,6 @@ public abstract class CrudBaseService<T> implements CrudService<T> {
 				addOrderAfterClear(order);
 			}
 		}
-
-		// TODO testing...
-		HttpSession hs = ((ServletRequestAttributes)RequestContextHolder.currentRequestAttributes()).getRequest().getSession();
-		Enumeration<String> e = hs.getAttributeNames();
-		System.out.println("Session info:");
-		while(e.hasMoreElements()){
-			String attriName = e.nextElement();
-			System.out.println("attriName: " + attriName);
-			System.out.println("attriVal: " + hs.getAttribute(attriName));
-		}
 	}
 
 	/**
@@ -283,7 +287,7 @@ public abstract class CrudBaseService<T> implements CrudService<T> {
 	
 	public void init() {
 		String rootAlias = DEFAULT_ROOT_ALIAS;
-		createFromAlias(target.getName(), rootAlias)
+		createFromAlias(root.getName(), rootAlias)
 		.addSelect(rootAlias);
 	}
 	
@@ -385,10 +389,10 @@ public abstract class CrudBaseService<T> implements CrudService<T> {
 	}
 
 	@Override
-	public T saveOrMerge(Object...obj){
+	public R saveOrMerge(Object...obj){
 		Session s = null;
 		Transaction tx = null;
-		T t = null;
+		R r = null;
 		try{
 			s = sf.openSession();
 			tx = s.beginTransaction();
@@ -396,8 +400,8 @@ public abstract class CrudBaseService<T> implements CrudService<T> {
 			for(Object o : obj){
 				s.saveOrUpdate(o);
 				s.flush();
-				if(o.getClass() == target){
-					t = (T)o; 
+				if(o.getClass() == root){
+					r = (R)o; 
 				}
 			}
 			
@@ -407,14 +411,14 @@ public abstract class CrudBaseService<T> implements CrudService<T> {
 		}finally{
 			
 		}
-		return t;
+		return r;
 	}
 	
 	@Override
 	public T findById(String id){
 		List<T> list = 
 		executeSession(s->{
-			return s.createQuery("FROM " + target.getName() + " p WHERE p.id = ?").setString(0, id).list();
+			return s.createQuery("FROM " + root.getName() + " p WHERE p.id = ?").setString(0, id).list();
 		});
 		return list.size() > 0 ? list.get(0) : null;
 	}

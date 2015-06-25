@@ -11,7 +11,7 @@ import com.angrycat.erp.model.Parameter;
 import com.angrycat.erp.query.HibernateQueryExecutable;
 
 @Service
-public class ParameterCrudService extends CrudBaseService<Parameter> {
+public class ParameterCrudService extends CrudBaseService<Parameter, Parameter> {
 	/**
 	 * 
 	 */

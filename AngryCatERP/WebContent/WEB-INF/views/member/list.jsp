@@ -75,6 +75,30 @@
             	</span>
  		</div>
  	</div>
+ 	 <div class="control-group">
+ 		<div class="controls">
+ 			<label class="control-label label-important" for="pIdNo" >
+ 				身分證字號
+ 			</label>
+ 			<input type="text" ng-model="mainCtrl.conditionConfig.conds.condition_pIdNo" id="pIdNo">
+ 		</div>
+ 	</div>
+ 	 	 <div class="control-group">
+ 		<div class="controls">
+ 			<label class="control-label label-important" for="pFbNickname" >
+ 				FB暱稱
+ 			</label>
+ 			<input type="text" ng-model="mainCtrl.conditionConfig.conds.condition_pFbNickname" id="pFbNickname">
+ 		</div>
+ 	</div>
+ 	 	 <div class="control-group">
+ 		<div class="controls">
+ 			<label class="control-label label-important" for="pMobile" >
+ 				電話
+ 			</label>
+ 			<input type="text" ng-model="mainCtrl.conditionConfig.conds.condition_pMobile" id="pMobile">
+ 		</div>
+ 	</div>
  </form>
  
  <form class="form-inline">

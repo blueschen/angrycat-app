@@ -2,6 +2,8 @@ package com.angrycat.erp.web.controller;
 
 import java.util.List;
 
+import javax.annotation.PostConstruct;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Scope;
@@ -15,8 +17,11 @@ import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.ResponseStatus;
 
+import com.angrycat.erp.condition.ConditionFactory;
+import com.angrycat.erp.condition.MatchMode;
 import com.angrycat.erp.model.Member;
-import com.angrycat.erp.service.MemberCrudService;
+import com.angrycat.erp.service.CrudBaseService;
+import com.angrycat.erp.web.WebUtils;
 import com.angrycat.erp.web.component.ConditionConfig;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
@@ -25,8 +30,23 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 @Scope("session")
 public class MemberController {
 	@Autowired
-	@Qualifier("memberCrudService")
-	private MemberCrudService memberCrudService;
+	@Qualifier("crudBaseService")
+	private CrudBaseService<Member, Member> memberCrudService;
+	
+	@PostConstruct
+	public void init(){
+		memberCrudService.setRootAndInitDefault(Member.class);
+
+		String rootAliasWith = CrudBaseService.DEFAULT_ROOT_ALIAS + ".";
+		memberCrudService
+			.addWhere(ConditionFactory.like(rootAliasWith+"name LIKE :pName", MatchMode.ANYWHERE))
+			.addWhere(ConditionFactory.putInt(rootAliasWith+"gender=:pGender"))
+			.addWhere(ConditionFactory.putSqlDate(rootAliasWith+"birthday=:pBirthday"))
+			.addWhere(ConditionFactory.like(rootAliasWith+"idNo LIKE :pIdNo", MatchMode.START))
+			.addWhere(ConditionFactory.like(rootAliasWith+"fbNickname LIKE :pFbNickname", MatchMode.START))
+			.addWhere(ConditionFactory.like(rootAliasWith+"mobile LIKE :pMobile", MatchMode.START))
+		;
+	}
 	
 	@RequestMapping(value="/list", method=RequestMethod.GET)
 	public String list(){
@@ -68,18 +88,9 @@ public class MemberController {
 	@RequestMapping(value="/view/{id}",
 			method=RequestMethod.GET)
 	public String view(@PathVariable("id")String id, Model model){
-		System.out.println("param id: " + id);
-		try{
-			Member member = memberCrudService.findById(id);
-			if(member == null){
-				throw new RuntimeException("id: " + id + " not found!!");
-			}
-			ObjectMapper om = new ObjectMapper();
-			String result = om.writeValueAsString(member);
-			model.addAttribute("member", result);
-		}catch(Throwable e){
-			throw new RuntimeException(e);
-		}
+		Member member = memberCrudService.findById(id);
+		String result = WebUtils.parseToJson(member);
+		model.addAttribute("member", result);
 		return "member/view";
 	}
 	@RequestMapping(value="/save",

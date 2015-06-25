@@ -151,6 +151,7 @@ public class ConditionFactory implements Serializable {
 		like.setPropertyName(propertyName);
 		like.setOperator(operator);
 		like.setMatchMode(matchMode);
+		like.setType(String.class);
 		return like;
 	}
 	public static LikeExpression like(String expr, MatchMode matchMode){

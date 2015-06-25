@@ -3,19 +3,20 @@
 <%@ taglib uri="http://java.sun.com/jsp/jstl/core" prefix="c"%>
 <%@ taglib uri="http://www.springframework.org/tags/form" prefix="sf"%>
 <%@ taglib uri="http://www.springframework.org/tags" prefix="s"%>
+
+<c:set value="member" var="modelName"/>
+<c:set value="${pageContext.request.contextPath}/${modelName}" var="urlPrefix"/>
+
 <html ng-app="angryCatMemberViewApp">
 <head>
 <meta content="width=device-width, initial-scale=1.0" name="viewport">
-<title><s:message code="model.name.member"/></title>
+<title><s:message code="model.name.${modelName}"/></title>
 <script type="text/javascript" src='<c:url value="/jquery/2.1.1/jquery.min.js"/>'></script>
 <script type="text/javascript" src='<c:url value="/angularjs/1.3.16/angular.js"/>'></script>
 <script type="text/javascript" src='<c:url value="/angularjs/ui-bootstrap-tpls-0.13.0.min.js"/>'></script>
 <link rel="stylesheet" href='<c:url value="/angularjs/bootstrap/3.1.1/css/bootstrap.css"/>'/>
 <link rel="stylesheet" href='<c:url value="/angularjs/bootstrap/3.1.1/css/bootstrap-theme.css"/>'/>
 <link rel="stylesheet" href='<c:url value="/angularjs/bootstrap/3.1.1/css/bootstrap-responsive.css"/>'/>
-
-<c:set value="member" var="modelName"/>
-<c:set value="${pageContext.request.contextPath}/${modelName}" var="urlPrefix"/>
 
 <style type="text/css">
 	.my-control-label .control-label{
@@ -168,9 +169,9 @@
 		.controller('MainCtrl', ['$http', '$scope', function($http, $scope){
 			var self = this,
 				saveUrl = '${urlPrefix}/save.json',
-				targetData = ${member};
+				targetData = '${member}';
 			if(targetData){
-				self.member = targetData;
+				self.member = JSON.parse(targetData);
 			}
 			self.actionMsg = function (input){
 				return input ? '儲存': '修改';
