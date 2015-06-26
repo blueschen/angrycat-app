@@ -154,12 +154,11 @@ public class ConditionFactory implements Serializable {
 		like.setType(String.class);
 		return like;
 	}
-	public static LikeExpression like(String expr, MatchMode matchMode){
+	public static LikeExpression putStr(String expr, MatchMode matchMode){
 		String operator = findOperator(expr);
-		if(!"LIKE".equals(operator)
-		&&!"like".equals(operator)
-		&&!"NOT LIKE".equals(operator)
-		&&!"not like".equals(operator)){
+		String oper = operator.toLowerCase();
+		if(!"like".equals(oper)
+		&&!"not like".equals(oper)){
 			throw new RuntimeException("like operator NOT existed!!");
 		}
 		String propertyName = findPropertyName(expr);
@@ -168,13 +167,13 @@ public class ConditionFactory implements Serializable {
 		LikeExpression like = newLikeExpression(propertyName, operator, namedParam, matchMode);
 		return like;
 	}
-	public static LikeExpression like(String expr, MatchMode matchMode, String val){		
-		LikeExpression like = like(expr, matchMode);
+	public static LikeExpression putStr(String expr, MatchMode matchMode, String val){
+		LikeExpression like = putStr(expr, matchMode);
 		like.setValue(val);
 		return like;
 	}
 	public static LikeExpression exactMatchLike(String expr){
-		LikeExpression like = like(expr, MatchMode.EXACT);
+		LikeExpression like = putStr(expr, MatchMode.EXACT);
 		return like;
 	}
 	public static LikeExpression exactMatchLike(String expr, String val){
@@ -183,7 +182,7 @@ public class ConditionFactory implements Serializable {
 		return like;
 	}
 	public static LikeExpression anyWhereMatchLike(String expr){
-		LikeExpression like = like(expr, MatchMode.ANYWHERE);
+		LikeExpression like = putStr(expr, MatchMode.ANYWHERE);
 		return like;
 	}
 	public static LikeExpression anyWhereMatchLike(String expr, String val){
@@ -192,7 +191,7 @@ public class ConditionFactory implements Serializable {
 		return like;
 	}
 	public static LikeExpression startMatchLike(String expr){
-		LikeExpression like = like(expr, MatchMode.START);
+		LikeExpression like = putStr(expr, MatchMode.START);
 		return like;
 	}
 	public static LikeExpression startMatchLike(String expr, String val){
@@ -201,7 +200,7 @@ public class ConditionFactory implements Serializable {
 		return like;
 	}
 	public static LikeExpression endMatchLike(String expr){
-		LikeExpression like = like(expr, MatchMode.END);
+		LikeExpression like = putStr(expr, MatchMode.END);
 		return like;
 	}
 	public static LikeExpression endMatchLike(String expr, String val){

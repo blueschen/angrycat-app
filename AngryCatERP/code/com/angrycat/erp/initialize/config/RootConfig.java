@@ -15,7 +15,7 @@ import com.angrycat.erp.query.ConditionalQuery;
 import com.angrycat.erp.query.HibernateQueryExecutable;
 
 @Configuration
-@ComponentScan(basePackages={"com.angrycat.erp.service"})
+@ComponentScan(basePackages={"com.angrycat.erp.service", "com.angrycat.erp.excel", "com.angrycat.erp.ds"})
 public class RootConfig {
 	@Bean
 	public DataSource dataSource(){

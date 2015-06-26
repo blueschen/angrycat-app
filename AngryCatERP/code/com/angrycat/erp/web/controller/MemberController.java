@@ -39,12 +39,12 @@ public class MemberController {
 
 		String rootAliasWith = CrudBaseService.DEFAULT_ROOT_ALIAS + ".";
 		memberCrudService
-			.addWhere(ConditionFactory.like(rootAliasWith+"name LIKE :pName", MatchMode.ANYWHERE))
+			.addWhere(ConditionFactory.putStr(rootAliasWith+"name LIKE :pName", MatchMode.ANYWHERE))
 			.addWhere(ConditionFactory.putInt(rootAliasWith+"gender=:pGender"))
 			.addWhere(ConditionFactory.putSqlDate(rootAliasWith+"birthday=:pBirthday"))
-			.addWhere(ConditionFactory.like(rootAliasWith+"idNo LIKE :pIdNo", MatchMode.START))
-			.addWhere(ConditionFactory.like(rootAliasWith+"fbNickname LIKE :pFbNickname", MatchMode.START))
-			.addWhere(ConditionFactory.like(rootAliasWith+"mobile LIKE :pMobile", MatchMode.START))
+			.addWhere(ConditionFactory.putStr(rootAliasWith+"idNo LIKE :pIdNo", MatchMode.START))
+			.addWhere(ConditionFactory.putStr(rootAliasWith+"fbNickname LIKE :pFbNickname", MatchMode.START))
+			.addWhere(ConditionFactory.putStr(rootAliasWith+"mobile LIKE :pMobile", MatchMode.START))
 		;
 	}
 	
