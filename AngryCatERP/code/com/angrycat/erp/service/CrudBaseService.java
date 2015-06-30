@@ -10,7 +10,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.function.Consumer;
 import java.util.function.Function;
-import java.util.function.Predicate;
 
 import org.apache.commons.lang3.StringUtils;
 import org.hibernate.ScrollMode;
@@ -22,14 +21,11 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Scope;
 import org.springframework.orm.hibernate4.LocalSessionFactoryBean;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
-import com.angrycat.erp.condition.ConditionConfigurable;
 import com.angrycat.erp.condition.Order;
 import com.angrycat.erp.condition.SimpleExpression;
 import com.angrycat.erp.query.ConditionalQuery;
-import com.angrycat.erp.query.HibernateQueryExecutable;
-import com.angrycat.erp.query.PageNavigator;
-import com.angrycat.erp.query.QueryConfigurable;
 import com.angrycat.erp.query.QueryGenerator;
 import com.angrycat.erp.web.component.ConditionConfig;
 
@@ -95,7 +91,11 @@ public class CrudBaseService<T, R> extends ConditionalQuery<T> implements CrudSe
 			if(k.startsWith(SIMPLE_EXPRESSION_PREFIEX)){
 				String id = k.replace(SIMPLE_EXPRESSION_PREFIEX, "");
 				SimpleExpression se = getSimpleExpressions().get(id);
-				se.setValue(parseSimpleExprValueType(se.getType(), v));
+				if(se != null){
+					se.setValue(parseSimpleExprValueType(se.getType(), v));
+				}else{
+					System.out.println("null id:" + id);
+				}
 			// other customized items
 			}else if(!CONFIG_RANGES.contains(k)){
 				addRequestParam(k,v);
@@ -287,28 +287,19 @@ public class CrudBaseService<T, R> extends ConditionalQuery<T> implements CrudSe
 		return resultset;
 	}
 
+	@Transactional
 	@Override
 	public R saveOrMerge(Object...obj){
-		Session s = null;
-		Transaction tx = null;
+		Session s = currentSession();
 		R r = null;
-		try{
-			s = openSession();
-			tx = s.beginTransaction();
-			
-			for(Object o : obj){
-				s.saveOrUpdate(o);
-				s.flush();
-				if(o.getClass() == root){
-					r = (R)o; 
-				}
+		
+		
+		for(Object o : obj){
+			s.saveOrUpdate(o);
+			s.flush();
+			if(o.getClass() == root){
+				r = (R)o; 
 			}
-			
-			tx.commit();
-		}catch(Throwable e){
-			e.printStackTrace();
-		}finally{
-			
 		}
 		return r;
 	}

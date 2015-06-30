@@ -161,7 +161,22 @@
 </div>
 <script type="text/javascript">
 	angular.module('angryCatMemberListApp', ['ui.bootstrap'])
+		.factory('AuthInterceptor', ['$q', function($q){
+			return {
+				responseError: function(responseRejection){
+					if(responseRejection.status == 401){
+						document.location.href = '${pageContext.request.contextPath}/login.jsp';
+					}
+					return $q.reject(responseRejection);
+				}
+			};
+		}])
+		.config(['$httpProvider', function($httpProvider){
+			$httpProvider.defaults.headers.common['X-Requested-With'] = 'XMLHttpRequest'; // to tell server this is a ajax request
+			$httpProvider.interceptors.push('AuthInterceptor');
+		}])
 		.controller('MainCtrl', ['$log', '$http', '$scope', function($log, $http, $scope){
+			
 			var self = this,
 				queryAll = '${urlPrefix}/queryAll.json',
 				queryCondtional = '${urlPrefix}/queryCondtional.json',

@@ -1,6 +1,7 @@
 package com.angrycat.erp.initialize;
 
 import java.io.IOException;
+import java.util.Enumeration;
 import java.util.HashSet;
 import java.util.Set;
 
@@ -36,7 +37,11 @@ public class SecurityFilter implements Filter {
 			HttpSession session = req.getSession();
 			User user = (User)session.getAttribute(WebUtils.SESSION_USER);
 			if(user == null){
-				res.sendRedirect(req.getContextPath() + "/login.jsp");
+				if(isAjax(req)){
+					res.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+				}else{
+					res.sendRedirect(req.getContextPath() + "/login.jsp");
+				}
 				return;
 			}
 		}
@@ -63,6 +68,17 @@ public class SecurityFilter implements Filter {
 			.stream()
 			.anyMatch(s->{return contextUri.startsWith(s);});
 		return allow;
+	}
+	
+	private boolean isAjax(HttpServletRequest request){
+		String requestedWithHeader = request.getHeader("X-Requested-With");
+		Enumeration<String> e = request.getHeaderNames();
+		while(e.hasMoreElements()){
+			String name = e.nextElement();
+			String header = request.getHeader(name);
+			System.out.println("header: " + header);
+		}
+		return "XMLHttpRequest".equals(requestedWithHeader);
 	}
 	
 }

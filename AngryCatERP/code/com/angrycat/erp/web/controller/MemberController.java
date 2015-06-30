@@ -17,13 +17,12 @@ import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.ResponseStatus;
 
+import com.angrycat.erp.common.CommonUtil;
 import com.angrycat.erp.condition.ConditionFactory;
 import com.angrycat.erp.condition.MatchMode;
 import com.angrycat.erp.model.Member;
 import com.angrycat.erp.service.CrudBaseService;
-import com.angrycat.erp.web.WebUtils;
 import com.angrycat.erp.web.component.ConditionConfig;
-import com.fasterxml.jackson.databind.ObjectMapper;
 
 @Controller
 @RequestMapping(value="/member")
@@ -41,7 +40,8 @@ public class MemberController {
 		memberCrudService
 			.addWhere(ConditionFactory.putStr(rootAliasWith+"name LIKE :pName", MatchMode.ANYWHERE))
 			.addWhere(ConditionFactory.putInt(rootAliasWith+"gender=:pGender"))
-			.addWhere(ConditionFactory.putSqlDate(rootAliasWith+"birthday=:pBirthday"))
+			.addWhere(ConditionFactory.putSqlDate(rootAliasWith+"birthday >= :pBirthdayStart"))
+			.addWhere(ConditionFactory.putSqlDate(rootAliasWith+"birthday <= :pBirthdayEnd"))
 			.addWhere(ConditionFactory.putStr(rootAliasWith+"idNo LIKE :pIdNo", MatchMode.START))
 			.addWhere(ConditionFactory.putStr(rootAliasWith+"fbNickname LIKE :pFbNickname", MatchMode.START))
 			.addWhere(ConditionFactory.putStr(rootAliasWith+"mobile LIKE :pMobile", MatchMode.START))
@@ -89,7 +89,7 @@ public class MemberController {
 			method=RequestMethod.GET)
 	public String view(@PathVariable("id")String id, Model model){
 		Member member = memberCrudService.findById(id);
-		String result = WebUtils.parseToJson(member);
+		String result = CommonUtil.parseToJson(member);
 		model.addAttribute("member", result);
 		return "member/view";
 	}

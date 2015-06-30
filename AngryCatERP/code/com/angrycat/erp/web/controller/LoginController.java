@@ -2,9 +2,6 @@ package com.angrycat.erp.web.controller;
 
 import java.util.List;
 
-import javax.servlet.ServletRequest;
-import javax.servlet.http.HttpServletRequest;
-
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -14,8 +11,8 @@ import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.ResponseBody;
 
+import com.angrycat.erp.common.CommonUtil;
 import com.angrycat.erp.condition.ConditionFactory;
 import com.angrycat.erp.security.User;
 import com.angrycat.erp.service.CrudBaseService;
@@ -38,7 +35,7 @@ public class LoginController {
 		if(StringUtils.isBlank(userId)
 		|| StringUtils.isBlank(password)){
 			model.addAttribute("loginErrMsg", "帳號或密碼不正確");
-			model.addAttribute("user", WebUtils.parseToJson(new User(userId, password)));
+			model.addAttribute("user", CommonUtil.parseToJson(new User(userId, password)));
 			return "forward:" + loginPath;
 		}
 		
@@ -54,7 +51,7 @@ public class LoginController {
 			return "redirect:/member/list";
 		}
 		model.addAttribute("loginErrMsg", "帳號不存在");
-		model.addAttribute("user", WebUtils.parseToJson(new User(userId, password)));
+		model.addAttribute("user", CommonUtil.parseToJson(new User(userId, password)));
 		return "forward:" + loginPath;
 	}
 	

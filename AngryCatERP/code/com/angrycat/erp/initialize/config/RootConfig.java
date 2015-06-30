@@ -9,7 +9,6 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Scope;
-import org.springframework.context.annotation.ScopedProxyMode;
 import org.springframework.orm.hibernate4.HibernateTransactionManager;
 import org.springframework.orm.hibernate4.LocalSessionFactoryBean;
 import org.springframework.transaction.PlatformTransactionManager;
@@ -59,18 +58,5 @@ public class RootConfig {
 		htm.setSessionFactory(sessionFactory.getObject());
 		return htm;
 	}
-	
-	@Bean
-	@Scope("prototype")
-	public HibernateQueryExecutable<?> conditionalQuery(LocalSessionFactoryBean lsfb){
-		HibernateQueryExecutable<?> query = new ConditionalQuery<Object>(lsfb.getObject());
-		return query;
-	}
-	
-	// for testing
-	@Bean
-	@Scope("prototype")
-	public QueryConfigurable queryConfigurable(){
-		return new QueryConfig();
-	}
+
 }

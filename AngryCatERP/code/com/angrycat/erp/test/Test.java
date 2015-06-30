@@ -8,6 +8,8 @@ import java.util.function.Consumer;
 
 import org.hibernate.Session;
 import org.hibernate.SessionFactory;
+import org.springframework.aop.framework.Advised;
+import org.springframework.aop.support.AopUtils;
 import org.springframework.context.annotation.AnnotationConfigApplicationContext;
 import org.springframework.orm.hibernate4.LocalSessionFactoryBean;
 
@@ -134,10 +136,23 @@ public class Test {
 	public static void testInitSessionExecutable(){
 		AnnotationConfigApplicationContext acac = new AnnotationConfigApplicationContext(RootConfig.class);
 		com.angrycat.erp.ds.Test<User> se = acac.getBean(com.angrycat.erp.ds.Test.class);
-		se.executeTransaction(s->{
-			Long count = (Long)s.createQuery("SELECT COUNT(u) FROM " + User.class.getName() + " u").uniqueResult();
-			System.out.println("user count: " + count.intValue());
-		});
+	
+		SessionExecutable<User> u = getProxyTargetObject(se);
+		u.add();
 		acac.close();
+	}
+	
+	public static <T>T getProxyTargetObject(Object proxy){
+		T t = null;
+		try{
+			if(AopUtils.isJdkDynamicProxy(proxy)){
+				t = (T)((Advised)proxy).getTargetSource().getTarget();
+			}else{
+				t = (T)proxy;
+			}
+		}catch(Throwable e){
+			throw new RuntimeException(e);
+		}
+		return t;
 	}
 }

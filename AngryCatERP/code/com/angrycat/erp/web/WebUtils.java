@@ -18,15 +18,4 @@ public final class WebUtils {
 		User user = (User)currentSession().getAttribute(SESSION_USER);
 		return user;
 	}
-	public static String parseToJson(Object object){
-		String json = "";
-		try{
-			ObjectMapper om = new ObjectMapper();
-			json = om.writeValueAsString(object);
-		}catch(Throwable e){
-			throw new RuntimeException(e);
-		}
-		
-		return json;
-	}
 }

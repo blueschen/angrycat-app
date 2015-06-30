@@ -63,4 +63,8 @@ public class SessionExecutable<T> implements Test<T>{
 		Session s = lsfb.getObject().getCurrentSession();
 		consumer.accept(s);
 	}
+	
+	public void add(){
+		System.out.println("dddd");
+	}
 }
