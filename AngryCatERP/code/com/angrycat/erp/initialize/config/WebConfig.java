@@ -76,11 +76,16 @@ public class WebConfig extends WebMvcConfigurerAdapter {
 		return validator();
 	}
 	
+	/**
+	 * for upload settings
+	 * @return
+	 * @throws IOException
+	 */
 	@Bean
 	public MultipartResolver multipartResolver() throws IOException{
 		CommonsMultipartResolver multipartResolver = new CommonsMultipartResolver();
 		multipartResolver.setUploadTempDir(new FileSystemResource("/tmp/uploads"));
-		multipartResolver.setMaxUploadSize(2097152);
+		multipartResolver.setMaxUploadSize(2097152); // 2M
 		multipartResolver.setMaxInMemorySize(0);
 		return new CommonsMultipartResolver();
 	}

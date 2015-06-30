@@ -9,13 +9,20 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Scope;
+import org.springframework.context.annotation.ScopedProxyMode;
+import org.springframework.orm.hibernate4.HibernateTransactionManager;
 import org.springframework.orm.hibernate4.LocalSessionFactoryBean;
+import org.springframework.transaction.PlatformTransactionManager;
+import org.springframework.transaction.annotation.EnableTransactionManagement;
 
 import com.angrycat.erp.query.ConditionalQuery;
 import com.angrycat.erp.query.HibernateQueryExecutable;
+import com.angrycat.erp.query.QueryConfig;
+import com.angrycat.erp.query.QueryConfigurable;
 
 @Configuration
 @ComponentScan(basePackages={"com.angrycat.erp.service", "com.angrycat.erp.excel", "com.angrycat.erp.ds"})
+@EnableTransactionManagement
 public class RootConfig {
 	@Bean
 	public DataSource dataSource(){
@@ -47,9 +54,23 @@ public class RootConfig {
 	}
 	
 	@Bean
+	public PlatformTransactionManager transactionManager(LocalSessionFactoryBean sessionFactory){
+		HibernateTransactionManager htm = new HibernateTransactionManager();
+		htm.setSessionFactory(sessionFactory.getObject());
+		return htm;
+	}
+	
+	@Bean
 	@Scope("prototype")
 	public HibernateQueryExecutable<?> conditionalQuery(LocalSessionFactoryBean lsfb){
 		HibernateQueryExecutable<?> query = new ConditionalQuery<Object>(lsfb.getObject());
 		return query;
+	}
+	
+	// for testing
+	@Bean
+	@Scope("prototype")
+	public QueryConfigurable queryConfigurable(){
+		return new QueryConfig();
 	}
 }
