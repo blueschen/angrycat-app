@@ -81,7 +81,6 @@ public class SimpleExpression implements ConditionConfigurable {
 		Class<?> type = getType();
 		Object v = getValue();
 		Object returnVal = null;
-		System.out.println("v: " + v + ", v class: " + v.getClass() + ", type: " + type);
 		if(v.getClass() == type){
 			returnVal = v;
 		}else if(v instanceof String){

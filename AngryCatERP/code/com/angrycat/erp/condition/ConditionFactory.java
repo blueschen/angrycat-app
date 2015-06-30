@@ -56,7 +56,7 @@ public class ConditionFactory implements Serializable {
 		return found;
 	}
 	private static String findOperator(String input){
-		String regex = "(\\s{1}(IN|in|LIKE|like|NOT\\s+LIKE)\\s{1})|(\\=|\\!\\=|\\<\\>|\\>|\\>\\=|\\<|\\<\\=)";
+		String regex = "(\\s+(IN|in|LIKE|like|NOT\\s+LIKE)\\s+)|\\s*(\\>\\=|\\<\\=|\\!\\=|\\=|\\<\\>|\\>|\\<)\\s*";
 		String found = findFirstMatch(regex, input);
 		found = found.trim();
 		return found;
