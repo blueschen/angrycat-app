@@ -30,18 +30,19 @@
 			<label class="control-label" for="userId">帳號</label>
 			<div class="controls">
 				<input type="text" id="userId" ng-model="mainCtrl.user.userId" name="userId" required/>
-				<span class="error" ng-show="loginForm.input.$error.required">必填</span>
+				<span ng-show="loginForm.userId.$error.required">必填</span>
 			</div>
 		</div>
 		<div class="control-group">
 			<label class="control-label" for="password">密碼</label>
 			<div class="controls">
 				<input type="password" id="password" ng-model="mainCtrl.user.password" name="password" required/>
+				<span ng-show="loginForm.password.$error.required">必填</span>
 			</div>
 		</div>
 		<div class="control-group">
 			<div class="controls">
-				<button type="submit" class="btn btn-default">登入</button>
+				<button type="submit" class="btn btn-default" ng-disabled="loginForm.$invalid">登入</button>
 			</div>
 		</div>
 	</form>

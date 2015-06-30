@@ -60,18 +60,29 @@
  	<div class="control-group">
  		<div class="controls">
 
- 			<label class="control-label" for="pBirthday">
+ 			<label class="control-label" for="pBirthdayStart">
  				出生年月日
  			</label>
 				<input 
 					type="text" 
-					ng-model="mainCtrl.conditionConfig.conds.condition_pBirthday"
+					ng-model="mainCtrl.conditionConfig.conds.condition_pBirthdayStart"
 					datepicker-popup="yyyy-MM-dd"
-					is-open="opened"
+					is-open="pBirthdayStart"
 					readonly="readonly"
-					id="pBirthday">
+					id="pBirthdayStart">
 				<span>
-                	<button type="button" class="btn btn-default" ng-click="mainCtrl.openCalendar($event)"><i class="glyphicon glyphicon-calendar"></i></button>
+                	<button type="button" class="btn btn-default" ng-click="mainCtrl.openCalendar($event, 'pBirthdayStart')"><i class="glyphicon glyphicon-calendar"></i></button>
+            	</span>
+            	~
+            	<input 
+					type="text" 
+					ng-model="mainCtrl.conditionConfig.conds.condition_pBirthdayEnd"
+					datepicker-popup="yyyy-MM-dd"
+					is-open="pBirthdayEnd"
+					readonly="readonly"
+					id="pBirthdayEnd">
+				<span>
+                	<button type="button" class="btn btn-default" ng-click="mainCtrl.openCalendar($event, 'pBirthdayEnd')"><i class="glyphicon glyphicon-calendar"></i></button>
             	</span>
  		</div>
  	</div>
@@ -139,7 +150,13 @@
 			total-items="mainCtrl.conditionConfig.pageNavigator.totalCount" 
 			ng-model="mainCtrl.conditionConfig.conds.currentPage" 
 			ng-change="mainCtrl.pageChanged()"
-			items-per-page="mainCtrl.conditionConfig.conds.countPerPage"></pagination>
+			items-per-page="mainCtrl.conditionConfig.conds.countPerPage"
+			max-size="10"
+			previous-text="&lsaquo;"
+			next-text="&rsaquo;"
+			first-text="&laquo;"
+			last-text="&raquo;"
+			boundary-links="true"></pagination>
 	
 </div>
 <script type="text/javascript">
@@ -231,11 +248,11 @@
 				}
 			};
 			// date related
-			self.openCalendar = function($event){
+			self.openCalendar = function($event, opened){
 			    $event.preventDefault();
 			    $event.stopPropagation();
 			    
-			    $scope.opened = true;
+			    $scope[opened] = true;
 			};
 		}])
 		.filter('convertGender', function(){
@@ -272,7 +289,7 @@
 		.directive('toView', function(){
 			return function(scope, ele){
 				ele.bind('click', function(){
-					var id = angular.element(ele)[0].getAttribute('id');
+					var id = ele[0].getAttribute('id');
 					document.location.href = '${urlPrefix}/view/' + id;
 				});
 			};

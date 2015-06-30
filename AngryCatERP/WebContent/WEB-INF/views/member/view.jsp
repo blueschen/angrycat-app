@@ -41,7 +41,7 @@
 
 <div class="container-fluid">
 
-<form class="form-horizontal">
+<form class="form-horizontal" name="memberForm">
 	<div class="control-group">
  		<div class="controls my-control-label">
  			<label class="control-label label-important">
@@ -81,7 +81,8 @@
  			<label class="control-label label-important" for="idNo">
  				身分證字號
  			</label>
- 			<input type="text" ng-model="mainCtrl.member.idNo" id="idNo"/>
+ 			<input type="text" ng-model="mainCtrl.member.idNo" id="idNo" name="idNo" required/>
+ 			<span ng-show="memberForm.idNo.$error.required">必填</span>
  		</div>
  	</div>
  	<div class="control-group">
@@ -89,7 +90,8 @@
  			<label class="control-label label-important" for="email">
  				電子信箱
  			</label>
- 			<input type="text" ng-model="mainCtrl.member.email" id="email"/>
+ 			<input type="email" ng-model="mainCtrl.member.email" id="email" name="email"/>
+ 			<span ng-show="memberForm.email.$invalid">email格式不正確</span>
  		</div>
  	</div>
  	<div class="control-group">
@@ -156,12 +158,13 @@
  			<textarea ng-model="mainCtrl.member.note" id="note" rows="5" cols="30"></textarea>
  		</div>
  	</div>
+ 	<div class="control-group">
+ 		<input type="button" value="{{mainCtrl.member.id | saveOrModify}}" ng-click="mainCtrl.save()" class="btn btn-default" ng-disabled="memberForm.$invalid"/>
+		<input type="button" value="關閉" onclick="document.location.href='${urlPrefix}/list'" class="btn btn-default"/>	
+ 	</div>
 </form>
 
-<form class="form-inline">
-<input type="button" value="{{mainCtrl.member.id | saveOrModify}}" ng-click="mainCtrl.save()" class="btn btn-default"/>
-<input type="button" value="關閉" onclick="document.location.href='${urlPrefix}/list'" class="btn btn-default"/>	
-</form>	
+	
 
 </div>
 <script type="text/javascript">
@@ -207,7 +210,6 @@
     					month = (d.getMonth()+1),
     					date = d.getDate(),
     					time = year + '-' + (month > 9 ? month : ('0' + month)) + '-' + (date > 9 ? date : ('0' + date));
-    				console.log('ori time value: ' + value);
       				return time;
     			});
     		}
