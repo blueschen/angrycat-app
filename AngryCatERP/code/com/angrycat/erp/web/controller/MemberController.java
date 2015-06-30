@@ -45,6 +45,7 @@ public class MemberController {
 			.addWhere(ConditionFactory.putStr(rootAliasWith+"idNo LIKE :pIdNo", MatchMode.START))
 			.addWhere(ConditionFactory.putStr(rootAliasWith+"fbNickname LIKE :pFbNickname", MatchMode.START))
 			.addWhere(ConditionFactory.putStr(rootAliasWith+"mobile LIKE :pMobile", MatchMode.START))
+			.addWhere(ConditionFactory.putBoolean(rootAliasWith+"important = :pImportant"))
 		;
 	}
 	

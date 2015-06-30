@@ -183,7 +183,10 @@ public class CrudBaseService<T, R> extends ConditionalQuery<T> implements CrudSe
 					result = new Date(dateFormatFS.parse(str).getTime());
 				}else if(clz == Timestamp.class){
 					result = new Timestamp(timeFormatFS.parse(str).getTime());
-				} 
+				}else if(clz == Boolean.class){
+					result = Boolean.parseBoolean(str);
+					System.out.println("Boolean val: " + str);
+				}
 			}	
 		}catch(Throwable e){
 			throw new RuntimeException(e);
@@ -308,7 +311,7 @@ public class CrudBaseService<T, R> extends ConditionalQuery<T> implements CrudSe
 	public T findById(String id){
 		List<T> list = 
 		executeSession(s->{
-			return s.createQuery("FROM " + root.getName() + " p WHERE p.id = ?").setString(0, id).list();
+			return s.createQuery("FROM " + root.getName() + " p WHERE p.id = :id").setString("id", id).list();
 		});
 		return list.size() > 0 ? list.get(0) : null;
 	}

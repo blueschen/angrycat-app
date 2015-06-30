@@ -137,7 +137,7 @@
  	<div class="control-group">
  		<div class="controls my-control-label">
  			<label class="control-label label-important" for="toVipDate">
- 				轉VIP日期	
+ 				轉VIP日期
  			</label>
  			<input type="text"
 				ng-model="mainCtrl.member.toVipDate"

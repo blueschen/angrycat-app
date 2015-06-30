@@ -102,12 +102,25 @@
  			<input type="text" ng-model="mainCtrl.conditionConfig.conds.condition_pFbNickname" id="pFbNickname">
  		</div>
  	</div>
- 	 	 <div class="control-group">
+ 	<div class="control-group">
  		<div class="controls">
  			<label class="control-label label-important" for="pMobile" >
  				電話
  			</label>
  			<input type="text" ng-model="mainCtrl.conditionConfig.conds.condition_pMobile" id="pMobile">
+ 		</div>
+ 	</div>
+ 	<div class="control-group">
+ 		<div class="controls">
+			<label class="control-label" for="pImportant">
+ 				VIP
+ 			</label>
+ 			<select 
+				ng-model="mainCtrl.conditionConfig.conds.condition_pImportant" 
+				ng-options="v.value as v.label for v in mainCtrl.VIPs"
+				id="pImportant">
+				<option value="">==請選擇==</option>	
+			</select>
  		</div>
  	</div>
  </form>
@@ -171,20 +184,96 @@
 				}
 			};
 		}])
+		.factory('MemberService', ['$http', function($http){
+			var queryAllUrl = '${urlPrefix}/queryAll.json',
+				queryByCondsUrl = '${urlPrefix}/queryCondtional.json',
+				deleteItemsUrl = '${urlPrefix}/deleteItems.json';
+			return {
+				queryAll: function(){
+					return $http.get(queryAllUrl);
+				},
+				queryByConds: function(conds){
+					return $http.post(queryByCondsUrl, conds);
+				},
+				clearConds: function(config){
+					if(config && config.conds){
+						for(var cond in config.conds){
+							if(cond.indexOf('condition_') == 0){
+								config.conds[cond] = null;
+							}
+						}
+					}
+				},
+				validateBeforeDelete: function(eleName){
+					var ids = document.getElementsByName(eleName);
+					if(!ids){
+						alert('沒有可刪除的項目');
+						return false;
+					}
+					var isChecked = false;
+					
+					if(ids.length == undefined){
+						isChecked = ids.checked;
+					}else{
+						for(var i = 0; i < ids.length; i++){
+							if(ids[i].checked){
+								isChecked = true;
+							}
+						}
+					}
+					if(!isChecked){
+						alert('請勾選要刪除的項目');
+						return false;
+					}
+					return true;
+				},
+				deleteItems: function(eleName){
+					var ids = document.getElementsByName(eleName),
+						checkedItems = [];
+					for(var i = 0; i < ids.length; i++){
+						if(ids[i].checked){
+							checkedItems.push(ids[i].value);
+						}
+					}
+					return $http.post(deleteItemsUrl, checkedItems);
+				},
+				isCheckAll: function($event, eleName){
+					var isChecked = $event.target.checked,
+					ids = document.getElementsByName(eleName);
+				
+					if(ids){
+						if(ids.length == undefined){
+							ids.checked = isChecked;
+						}else{
+							for(var i = 0; i < ids.length; i++){
+								var item = ids[i];
+								item.checked = isChecked;
+							}
+						}
+					}
+				},
+				openCalendar: function($event, opened, $scope){
+				    $event.preventDefault();
+				    $event.stopPropagation();
+				    
+				    $scope[opened] = true;
+				}
+				
+				
+			};
+		}])
 		.config(['$httpProvider', function($httpProvider){
 			$httpProvider.defaults.headers.common['X-Requested-With'] = 'XMLHttpRequest'; // to tell server this is a ajax request
 			$httpProvider.interceptors.push('AuthInterceptor');
 		}])
-		.controller('MainCtrl', ['$log', '$http', '$scope', function($log, $http, $scope){
+		.controller('MainCtrl', ['$log', '$scope', 'MemberService', function($log, $scope, MemberService){
 			
-			var self = this,
-				queryAll = '${urlPrefix}/queryAll.json',
-				queryCondtional = '${urlPrefix}/queryCondtional.json',
-				deleteItems = '${urlPrefix}/deleteItems.json';
+			var self = this;
 				
 			self.genders = [{label: '男', value: 0}, {label: '女', value: 1}];
+			self.VIPs = [{label: '是', value: true}, {label: '否', value: false}];
 			
-			$http.get(queryAll)
+			MemberService.queryAll()
 				.then(function(response){
 					self.conditionConfig = response.data;
 					$log.log("getting: " + JSON.stringify(response.data));
@@ -193,7 +282,7 @@
 				});
 
 			self.query = function(){
-				$http.post(queryCondtional, self.conditionConfig)
+				MemberService.queryByConds(self.conditionConfig)
 				.then(function(response){
 					$log.log('successfully return: ' + JSON.stringify(response.data));
 					self.conditionConfig = response.data;
@@ -205,69 +294,28 @@
 				self.query();
 			}
 			self.clear = function(){
-				var config = self.conditionConfig;
-				if(config && config.conds){
-					for(var cond in config.conds){
-						if(cond.indexOf('condition_') == 0){
-							config.conds[cond] = null;
-						}
-					}
-				}
+				MemberService.clearConds(self.conditionConfig);
 			};
 			self.deleteItems = function(){
-				var ids = document.getElementsByName('ids');
-				if(!ids){
-					alert('沒有可刪除的項目');
+				var eleName = 'ids';
+				if(!MemberService.validateBeforeDelete(eleName)){
 					return;
 				}
-				var isChecked = false,
-					checkedItems = [];
-				
-				if(ids.length == undefined){
-					isChecked = ids.checked;
-				}else{
-					for(var i = 0; i < ids.length; i++){
-						if(ids[i].checked){
-							isChecked = true;
-							checkedItems.push(ids[i].value);
-						}
-					}
-				}
-				if(!isChecked){
-					alert('請勾選要刪除的項目');
-					return;
-				}
-				
-				$http.post(deleteItems, checkedItems)
+				MemberService.deleteItems(eleName)
 				.then(function(response){
 					$log.log('successfully return: ' + JSON.stringify(response.data));
 					self.conditionConfig = response.data;
-					alert('成功刪除: ' + checkedItems.length + '筆');
+					alert('刪除成功');
 				},function(errResponse){
 					$log.log('failed!!!!!' + JSON.stringify(errResponse));
 				});
 			};
 			self.isCheckAll = function($event){
-				var isChecked = $event.target.checked,
-					ids = document.getElementsByName('ids');
-				
-				if(ids){
-					if(ids.length == undefined){
-						ids.checked = isChecked;
-					}else{
-						for(var i = 0; i < ids.length; i++){
-							var item = ids[i];
-							item.checked = isChecked;
-						}
-					}
-				}
+				MemberService.isCheckAll($event, 'ids');
 			};
 			// date related
 			self.openCalendar = function($event, opened){
-			    $event.preventDefault();
-			    $event.stopPropagation();
-			    
-			    $scope[opened] = true;
+				MemberService.openCalendar($event, opened, $scope);
 			};
 		}])
 		.filter('convertGender', function(){

@@ -72,12 +72,6 @@ public class SecurityFilter implements Filter {
 	
 	private boolean isAjax(HttpServletRequest request){
 		String requestedWithHeader = request.getHeader("X-Requested-With");
-		Enumeration<String> e = request.getHeaderNames();
-		while(e.hasMoreElements()){
-			String name = e.nextElement();
-			String header = request.getHeader(name);
-			System.out.println("header: " + header);
-		}
 		return "XMLHttpRequest".equals(requestedWithHeader);
 	}
 	

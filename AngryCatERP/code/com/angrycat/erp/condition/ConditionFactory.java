@@ -135,6 +135,16 @@ public class ConditionFactory implements Serializable {
 		expression.setValue(val);
 		return expression;
 	}
+	public static SimpleExpression putBoolean(String expr){
+		SimpleExpression expression = findSimpleExpression(expr);
+		expression.setType(Boolean.class);
+		return expression;
+	}
+	public static SimpleExpression putBoolean(String expr, Boolean val){
+		SimpleExpression expression = putBoolean(expr);
+		expression.setValue(val);
+		return expression;
+	}
 	public static SimpleExpression putInList(String expr){
 		SimpleExpression expression = findSimpleExpression(expr);
 		expression.setType(List.class);
