@@ -26,6 +26,7 @@ import org.springframework.stereotype.Service;
 import com.angrycat.erp.condition.ConditionConfigurable;
 import com.angrycat.erp.condition.Order;
 import com.angrycat.erp.condition.SimpleExpression;
+import com.angrycat.erp.query.ConditionalQuery;
 import com.angrycat.erp.query.HibernateQueryExecutable;
 import com.angrycat.erp.query.PageNavigator;
 import com.angrycat.erp.query.QueryConfigurable;
@@ -34,16 +35,14 @@ import com.angrycat.erp.web.component.ConditionConfig;
 
 @Service
 @Scope("prototype")
-public class CrudBaseService<T, R> implements CrudService<T, R> {
+public class CrudBaseService<T, R> extends ConditionalQuery<T> implements CrudService<T, R> {
 
 	/**
 	 * 
 	 */
 	private static final long serialVersionUID = -8528962281827660052L;
 
-	private SessionFactory sf;
 	private LocalSessionFactoryBean lsfb;
-	private HibernateQueryExecutable<T> hqe;
 	private Class<R> root;
 	
 	public static final String DEFAULT_ROOT_ALIAS = "p";
@@ -59,14 +58,14 @@ public class CrudBaseService<T, R> implements CrudService<T, R> {
 	private DateFormat timeFormatFS = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
 	
 	@Autowired
-	public CrudBaseService(LocalSessionFactoryBean lsfb, HibernateQueryExecutable<T> hqe){
+	public CrudBaseService(LocalSessionFactoryBean lsfb){
+		super(lsfb.getObject());
 		this.lsfb = lsfb;
-		this.sf = lsfb.getObject();
-		this.hqe = hqe;
 	}
 	
-	public CrudBaseService(LocalSessionFactoryBean lsfb, HibernateQueryExecutable<T> hqe, Class<R> root){
-		this(lsfb, hqe);
+	public CrudBaseService(LocalSessionFactoryBean lsfb, Class<R> root){
+		super(lsfb.getObject());
+		this.lsfb = lsfb;
 		this.root = root;
 	}
 
@@ -77,93 +76,6 @@ public class CrudBaseService<T, R> implements CrudService<T, R> {
 	public void setRootAndInitDefault(Class<R> root){
 		setRoot(root);
 		init();
-	}
-	
-	@Override
-	public List<T> executeQueryList() {
-		return hqe.executeQueryList();
-	}
-
-	@Override
-	public List<T> executeQueryPageable() {
-		return hqe.executeQueryPageable();
-	}
-
-	@Override
-	public QueryConfigurable addOrder(Order order) {
-		return hqe.addOrder(order);
-	}
-
-	@Override
-	public void addRequestParam(String key, Object val) {
-		hqe.addRequestParam(key, val);
-	}
-
-	@Override
-	public QueryConfigurable addSelect(String select) {
-		return hqe.addSelect(select);
-	}
-
-	@Override
-	public QueryConfigurable addWhere(ConditionConfigurable where) {
-		return hqe.addWhere(where);
-	}
-
-	@Override
-	public QueryConfigurable addWhereFilterable(ConditionConfigurable c,
-			Predicate<QueryConfigurable> p) {
-		return hqe.addWhereFilterable(c, p);
-	}
-
-	@Override
-	public QueryConfigurable createAssociationAlias(String associationPath, String alias, String on) {
-		return hqe.createAssociationAlias(associationPath, alias, on);
-	}
-
-	@Override
-	public QueryConfigurable createAssociationAliasFilterable(String associationPath, String alias, String on, Predicate<QueryConfigurable> filterStrategy) {
-		return hqe.createAssociationAliasFilterable(associationPath, alias, on, filterStrategy);
-	}
-
-	@Override
-	public QueryConfigurable createFromAlias(String target, String alias) {
-		return hqe.createFromAlias(target, alias);
-	}
-
-	@Override
-	public Object getRequestParam(String key) {
-		return hqe.getRequestParam(key);
-	}
-
-	@Override
-	public Map<String, SimpleExpression> getSimpleExpressions() {
-		return hqe.getSimpleExpressions();
-	}
-
-	@Override
-	public QueryGenerator toQueryGenerator() {
-		return hqe.toQueryGenerator();
-	}
-	
-	@Override
-	public int getCurrentPage() {
-		return hqe.getCurrentPage();
-	}
-	@Override
-	public void setCurrentPage(int currentPage) {
-		hqe.setCurrentPage(currentPage);
-	}
-	@Override
-	public int getCountPerPage() {
-		return hqe.getCountPerPage();
-	}
-	@Override
-	public void setCountPerPage(int countPerPage) {
-		hqe.setCountPerPage(countPerPage);
-	}
-	@Override
-	public PageNavigator getPageNavigator() {
-		return hqe.getPageNavigator();
 	}
 	
 	/**
@@ -235,11 +147,6 @@ public class CrudBaseService<T, R> implements CrudService<T, R> {
 		// sorting
 		conds.put(ORDER_TYPE, null);
 		return cc;
-	}
-	
-	@Override
-	public void addOrderAfterClear(Order order) {
-		hqe.addOrderAfterClear(order);
 	}
 	
 	protected Object parseSimpleExprValueType(Class<?>clz, Object val){
@@ -355,18 +262,10 @@ public class CrudBaseService<T, R> implements CrudService<T, R> {
 				deleteCount = currentCount;
 				System.out.println("delete successfully: " + deleteCount + " ...");
 			}
-			List<T> r = hqe.executeQueryPageable(s);
+			List<T> r = executeQueryPageable(s);
 			System.out.println("executeQueryPageableAfterDelete found resting count: " + r.size());
 			return r;
 		});
-	}
-	
-	SessionFactory getSessionFactory(){
-		return this.sf;
-	}
-	
-	HibernateQueryExecutable<T> getHibernateQueryExecutable(){
-		return this.hqe;
 	}
 	
 	/**
@@ -378,7 +277,7 @@ public class CrudBaseService<T, R> implements CrudService<T, R> {
 		Session s = null;
 		List<T> resultset = Collections.emptyList();
 		try{
-			s = sf.openSession();
+			s = openSession();
 			resultset = execution.apply(s);
 		}catch(Throwable e){
 			e.printStackTrace();
@@ -394,7 +293,7 @@ public class CrudBaseService<T, R> implements CrudService<T, R> {
 		Transaction tx = null;
 		R r = null;
 		try{
-			s = sf.openSession();
+			s = openSession();
 			tx = s.beginTransaction();
 			
 			for(Object o : obj){
@@ -421,5 +320,17 @@ public class CrudBaseService<T, R> implements CrudService<T, R> {
 			return s.createQuery("FROM " + root.getName() + " p WHERE p.id = ?").setString(0, id).list();
 		});
 		return list.size() > 0 ? list.get(0) : null;
+	}
+	
+	private SessionFactory getSessionFactory(){
+		return lsfb.getObject();
+	}
+	
+	private Session openSession(){
+		return getSessionFactory().openSession();
+	}
+	
+	private Session currentSession(){
+		return getSessionFactory().getCurrentSession();
 	}
 }
