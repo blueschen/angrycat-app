@@ -248,9 +248,7 @@ public class QueryConfig implements QueryConfigurable {
 			.filter(s->!s.isIgnored())
 			.collect(Collectors.toList());
 		Map<String, Object> namedParams = new HashMap<>();
-		System.out.println("list count: " + list.size());
 		list.forEach(s->{
-			System.out.println("s.getId(): " + s.getId() + ", s.getFormattedValue(): " + s.getFormattedValue());
 			namedParams.put(s.getId(), s.getFormattedValue());
 		});
 //				list
