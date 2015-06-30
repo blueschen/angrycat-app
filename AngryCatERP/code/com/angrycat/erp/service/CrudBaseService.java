@@ -326,11 +326,11 @@ public class CrudBaseService<T, R> extends ConditionalQuery<T> implements CrudSe
 		return lsfb.getObject();
 	}
 	
-	private Session openSession(){
+	Session openSession(){
 		return getSessionFactory().openSession();
 	}
 	
-	private Session currentSession(){
+	Session currentSession(){
 		return getSessionFactory().getCurrentSession();
 	}
 }

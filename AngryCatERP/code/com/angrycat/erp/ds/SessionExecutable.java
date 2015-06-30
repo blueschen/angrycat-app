@@ -11,18 +11,23 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Scope;
 import org.springframework.orm.hibernate4.LocalSessionFactoryBean;
 import org.springframework.stereotype.Component;
+import org.springframework.transaction.annotation.Transactional;
 
 @Component
 @Scope("prototype")
-public class SessionExecutable<T> {
+public class SessionExecutable<T> implements Test<T>{
+	private LocalSessionFactoryBean lsfb;
+	
 	@Autowired
-	private LocalSessionFactoryBean sf;
+	public SessionExecutable(LocalSessionFactoryBean lsfb){
+		this.lsfb = lsfb;
+	}
 	
 	public void executeTXSession(Consumer<Session> consumer){
 		Session s = null;
 		Transaction tx = null;
 		try{
-			s = sf.getObject().openSession();
+			s = lsfb.getObject().openSession();
 			tx = s.beginTransaction();
 			
 			consumer.accept(s);
@@ -43,7 +48,7 @@ public class SessionExecutable<T> {
 		Session s = null;
 		List<T> results = Collections.emptyList();
 		try{
-			s = sf.getObject().openSession();
+			s = lsfb.getObject().openSession();
 			results = func.apply(s);
 		}catch(Throwable e){
 			throw new RuntimeException(e);
@@ -51,5 +56,11 @@ public class SessionExecutable<T> {
 			s.close();
 		}
 		return results;
+	}
+	
+	@Transactional
+	public void executeTransaction(Consumer<Session>consumer){
+		Session s = lsfb.getObject().getCurrentSession();
+		consumer.accept(s);
 	}
 }

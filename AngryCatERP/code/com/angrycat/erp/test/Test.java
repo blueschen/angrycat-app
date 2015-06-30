@@ -4,7 +4,6 @@ import java.sql.Date;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.Iterator;
-import java.util.Locale;
 import java.util.function.Consumer;
 
 import org.hibernate.Session;
@@ -12,17 +11,22 @@ import org.hibernate.SessionFactory;
 import org.springframework.context.annotation.AnnotationConfigApplicationContext;
 import org.springframework.orm.hibernate4.LocalSessionFactoryBean;
 
+import com.angrycat.erp.ds.SessionExecutable;
 import com.angrycat.erp.initialize.config.RootConfig;
 import com.angrycat.erp.model.Member;
 import com.angrycat.erp.model.Parameter;
 import com.angrycat.erp.model.ParameterCategory;
+import com.angrycat.erp.security.User;
+import com.angrycat.erp.service.ParameterCrudService;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 public class Test {
 	public static void main(String[]args){
 //		testInsertParameterToDB();
-		testInsertAngryCatMemberToDB();
-		testDateParse();
+//		testInsertAngryCatMemberToDB();
+//		testDateParse();
+//		testInitParameterCrudService();
+		testInitSessionExecutable();
 	}
 	
 	public static void executeSession(Consumer<Session> c){
@@ -116,5 +120,24 @@ public class Test {
 		}catch(Throwable e){
 			e.printStackTrace();
 		}
+	}
+	
+	public static void testInitParameterCrudService(){
+		AnnotationConfigApplicationContext acac = new AnnotationConfigApplicationContext(RootConfig.class);
+		
+		ParameterCrudService p = acac.getBean(ParameterCrudService.class);
+		p.saveOrMerge(null);
+		
+		acac.close();
+	}
+	
+	public static void testInitSessionExecutable(){
+		AnnotationConfigApplicationContext acac = new AnnotationConfigApplicationContext(RootConfig.class);
+		com.angrycat.erp.ds.Test<User> se = acac.getBean(com.angrycat.erp.ds.Test.class);
+		se.executeTransaction(s->{
+			Long count = (Long)s.createQuery("SELECT COUNT(u) FROM " + User.class.getName() + " u").uniqueResult();
+			System.out.println("user count: " + count.intValue());
+		});
+		acac.close();
 	}
 }

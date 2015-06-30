@@ -22,7 +22,7 @@ import com.angrycat.erp.query.QueryConfigurable;
 
 @Configuration
 @ComponentScan(basePackages={"com.angrycat.erp.service", "com.angrycat.erp.excel", "com.angrycat.erp.ds"})
-@EnableTransactionManagement
+@EnableTransactionManagement(proxyTargetClass=true)
 public class RootConfig {
 	@Bean
 	public DataSource dataSource(){
