@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="UTF-8"?>
+    <Configuration status="debug" name="RoutingTest">
+      <Properties>
+        <Property name="routingfilename">target/rolling1/rollingtest-$${sd:type}.log</Property>
+        <Property name="localfilename">testlog4j-$${date:yyyy-MM-dd}.log</Property>
+      </Properties>
+      <ThresholdFilter level="debug"/>
+     
+      <Appenders>
+        <Console name="STDOUT">
+          <PatternLayout pattern="%m%n"/>
+        </Console>
+        <List name="List">
+          <ThresholdFilter level="debug"/>
+        </List>
+        <Routing name="Routing">
+          <Routes pattern="$${sd:type}">
+            <Route>
+              <RollingFile name="Rolling-${sd:type}" fileName="${routingfilename}"
+                           filePattern="target/rolling1/test1-${sd:type}.%i.log.gz">
+                <PatternLayout>
+                  <pattern>%d %p %c{1.} [%t] %m%n</pattern>
+                </PatternLayout>
+                <SizeBasedTriggeringPolicy size="500" />
+              </RollingFile>
+            </Route>
+            <Route ref="STDOUT" key="Audit"/>
+            <Route ref="List" key="Service"/>
+          </Routes>
+        </Routing>
+        <File name="File1" fileName="${localfilename}" bufferedIO="true" immediateFlush="true">
+    		<PatternLayout>
+      			<pattern>%d %p %C{1.} [%t] %m%n</pattern>
+    		</PatternLayout>
+  		</File>
+      </Appenders>
+     
+      <Loggers>
+        <Logger name="EventLogger" level="info" additivity="false">
+          <AppenderRef ref="File1"/>
+        </Logger>
+     
+        <Root level="error">
+          <AppenderRef ref="STDOUT"/>
+        </Root>
+      </Loggers>
+     
+    </Configuration>
