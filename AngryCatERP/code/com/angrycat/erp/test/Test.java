@@ -13,11 +13,15 @@ import org.springframework.aop.support.AopUtils;
 import org.springframework.context.annotation.AnnotationConfigApplicationContext;
 import org.springframework.orm.hibernate4.LocalSessionFactoryBean;
 
+import com.angrycat.erp.condition.ConditionFactory;
+import com.angrycat.erp.condition.MatchMode;
 import com.angrycat.erp.ds.SessionExecutable;
 import com.angrycat.erp.initialize.config.RootConfig;
 import com.angrycat.erp.model.Member;
 import com.angrycat.erp.model.Parameter;
 import com.angrycat.erp.model.ParameterCategory;
+import com.angrycat.erp.query.QueryConfig;
+import com.angrycat.erp.query.QueryGenerator;
 import com.angrycat.erp.security.User;
 import com.angrycat.erp.service.ParameterCrudService;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -28,7 +32,8 @@ public class Test {
 //		testInsertAngryCatMemberToDB();
 //		testDateParse();
 //		testInitParameterCrudService();
-		testInitSessionExecutable();
+//		testInitSessionExecutable();
+		testStrCaseInsensitive();
 	}
 	
 	public static void executeSession(Consumer<Session> c){
@@ -154,5 +159,18 @@ public class Test {
 			throw new RuntimeException(e);
 		}
 		return t;
+	}
+	
+	public static void testStrCaseInsensitive(){
+		QueryConfig qc = new QueryConfig();
+		qc.createFromAlias("Member", "p")
+		.addSelect("p")
+		.addWhere(ConditionFactory.putStr("p.name LIKE :pName", MatchMode.START, "Bob"))
+		.addWhere(ConditionFactory.putStrCaseInsensitive("p.nameEng LIKE :pNameEng", MatchMode.END, "John"));
+		QueryGenerator qg = qc.toQueryGenerator();
+		System.out.println(qg.toCompleteStr());
+		qg.getParams().forEach((k,v)->{
+			System.out.println("param " + k + ", value: " + v);
+		});
 	}
 }

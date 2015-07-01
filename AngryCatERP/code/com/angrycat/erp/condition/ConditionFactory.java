@@ -177,8 +177,18 @@ public class ConditionFactory implements Serializable {
 		LikeExpression like = newLikeExpression(propertyName, operator, namedParam, matchMode);
 		return like;
 	}
+	public static LikeExpression putStrCaseInsensitive(String expr, MatchMode matchMode){
+		LikeExpression like = putStr(expr, matchMode);
+		like.setCaseInsensitive(true);
+		return like;
+	}
 	public static LikeExpression putStr(String expr, MatchMode matchMode, String val){
 		LikeExpression like = putStr(expr, matchMode);
+		like.setValue(val);
+		return like;
+	}
+	public static LikeExpression putStrCaseInsensitive(String expr, MatchMode matchMode, String val){
+		LikeExpression like = putStrCaseInsensitive(expr, matchMode);
 		like.setValue(val);
 		return like;
 	}

@@ -5,6 +5,7 @@ package com.angrycat.erp.condition;
  *
  */
 public class LikeExpression extends SimpleExpression {
+	private boolean caseInsensitive;
 
 	/**
 	 * 
@@ -19,9 +20,26 @@ public class LikeExpression extends SimpleExpression {
 	public void setMatchMode(MatchMode matchMode) {
 		this.matchMode = matchMode;
 	}
+	public boolean isCaseInsensitive() {
+		return caseInsensitive;
+	}
+	public void setCaseInsensitive(boolean caseInsensitive) {
+		this.caseInsensitive = caseInsensitive;
+	}
 	@Override
 	public Object getFormattedValue(){
-		return matchMode.transformer().apply(this);
+		String temp = (String)getValue();
+		if(caseInsensitive){
+			temp = temp.toLowerCase();
+		}
+		return matchMode.transformer(temp);
 	}
-
+	@Override
+	public String toSqlString() {
+		String tempProperty = getPropertyName();
+		if(caseInsensitive){
+			tempProperty = "lower("+tempProperty+")";
+		}
+		return tempProperty + " " + getOperator() + " (:" + getId() + ")";
+	}
 }
