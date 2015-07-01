@@ -104,7 +104,8 @@
 				datepicker-popup="yyyy-MM-dd"
 				is-open="opened1"
 				readonly="readonly"
-				id="birthday"/>
+				id="birthday"
+				name="birthday"/>
 			<span>
 				<button type="button" class="btn btn-default" ng-click="mainCtrl.openCalendar($event, 'opened1')"><i class="glyphicon glyphicon-calendar"></i></button>
 			</span>        
@@ -144,7 +145,8 @@
 				datepicker-popup="yyyy-MM-dd"
 				is-open="opened2"
 				readonly="readonly"
-				id="toVipDate">
+				id="toVipDate"
+				name="toVipDate">
 			<span>
 				<button type="button" class="btn btn-default" ng-click="mainCtrl.openCalendar($event, 'opened2')"><i class="glyphicon glyphicon-calendar"></i></button>
 			</span>
@@ -159,7 +161,7 @@
  		</div>
  	</div>
  	<div class="control-group">
- 		<input type="button" value="{{mainCtrl.member.id | saveOrModify}}" ng-click="mainCtrl.save()" class="btn btn-default" ng-disabled="memberForm.$invalid"/>
+ 		<input type="button" value="{{mainCtrl.member.id | saveOrModify}}" ng-click="mainCtrl.save()" class="btn btn-default" ng-disabled="memberForm.$invalid && !memberForm.$error.date"/>
 		<input type="button" value="關閉" onclick="document.location.href='${urlPrefix}/list'" class="btn btn-default"/>	
  	</div>
 </form>

@@ -6,6 +6,11 @@ import java.text.SimpleDateFormat;
 import java.util.Iterator;
 import java.util.function.Consumer;
 
+import org.apache.commons.lang3.builder.RecursiveToStringStyle;
+import org.apache.commons.lang3.builder.ReflectionToStringBuilder;
+import org.apache.commons.lang3.builder.ToStringStyle;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.hibernate.Session;
 import org.hibernate.SessionFactory;
 import org.springframework.aop.framework.Advised;
@@ -33,7 +38,9 @@ public class Test {
 //		testDateParse();
 //		testInitParameterCrudService();
 //		testInitSessionExecutable();
-		testStrCaseInsensitive();
+//		testStrCaseInsensitive();
+//		testReflectionToStringBuilder();
+		testLog4j();
 	}
 	
 	public static void executeSession(Consumer<Session> c){
@@ -156,7 +163,7 @@ public class Test {
 				t = (T)proxy;
 			}
 		}catch(Throwable e){
-			throw new RuntimeException(e);
+			throw new RuntimeException(e); 
 		}
 		return t;
 	}
@@ -172,5 +179,24 @@ public class Test {
 		qg.getParams().forEach((k,v)->{
 			System.out.println("param " + k + ", value: " + v);
 		});
+	}
+	
+	public static void testReflectionToStringBuilder(){
+		QueryConfig qc = new QueryConfig();
+		qc.createFromAlias("Member", "p")
+		.addSelect("p")
+		.addWhere(ConditionFactory.putStr("p.name LIKE :pName", MatchMode.START, "Bob"))
+		.addWhere(ConditionFactory.putStrCaseInsensitive("p.nameEng LIKE :pNameEng", MatchMode.END, "John"));
+		
+		System.out.println(new ReflectionToStringBuilder(qc, new RecursiveToStringStyle()).toString());
+		System.out.println("================");
+		System.out.println(ReflectionToStringBuilder.toString(qc, ToStringStyle.MULTI_LINE_STYLE));
+		
+		
+	}
+	
+	public static void testLog4j(){
+		Logger l = LogManager.getLogger("EventLogger");
+		l.info("feereregeerrer");
 	}
 }
