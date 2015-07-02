@@ -114,6 +114,12 @@
 			<artifactId>hibernate-validator</artifactId>
 			<version>${hibernate.validator.version}</version>
 		</dependency>
+		<dependency>
+			<groupId>org.hibernate</groupId>
+			<artifactId>hibernate-c3p0</artifactId>
+			<version>${hibernate.version}</version>
+		</dependency>
+		
 
 		<!-- Jackson -->
 		<dependency>
@@ -159,7 +165,16 @@
 			<artifactId>log4j-web</artifactId>
 			<version>${log4j.version}</version>
 		</dependency>
+		
+		<dependency>
+			<groupId>com.mchange</groupId>
+			<artifactId>c3p0</artifactId>
+			<version>0.9.5.1</version>
+		</dependency>
+		
 	</dependencies>
+	
+	
 	
 	<build>
 		<finalName>AngryCatERP</finalName>

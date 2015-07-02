@@ -180,7 +180,7 @@
 					if(responseRejection.status == 401){
 						document.location.href = '${pageContext.request.contextPath}/login.jsp';
 					}
-					return $q.reject(responseRejection);
+					return $q.reject(responseRejection); // make sure to trigger error handler in the next promise
 				}
 			};
 		}])
