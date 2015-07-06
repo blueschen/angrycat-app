@@ -1,5 +1,6 @@
 package com.angrycat.erp.test;
 
+import java.sql.Timestamp;
 import java.util.Iterator;
 import java.util.List;
 import java.util.function.Consumer;
@@ -9,6 +10,9 @@ import org.springframework.context.annotation.AnnotationConfigApplicationContext
 import org.springframework.orm.hibernate4.LocalSessionFactoryBean;
 
 import com.angrycat.erp.initialize.config.RootConfig;
+import com.angrycat.erp.model.DataChangeLog;
+import com.angrycat.erp.model.DataChangeLogDetail;
+import com.angrycat.erp.model.Member;
 import com.angrycat.erp.security.Group;
 import com.angrycat.erp.security.Role;
 import com.angrycat.erp.security.RoleConstants;
@@ -20,8 +24,20 @@ public class DBTest {
 	public static void main(String[]args){
 //		insertSecurityAll();
 //		insertSecurity();
-		testRole();
+//		testRole();
+//		selectTest();
+		testInsertDataChangeLog();
 	}
+	
+	public static void selectTest(){
+		executeSession(s->{
+			Long count = (Long)s.createQuery("SELECT COUNT(*) FROM " + Member.class.getName()).uniqueResult();
+			
+			System.out.println("member count: " + count);
+			
+		});
+	}
+	
 	public static void insertSecurity(){
 		executeSession(s->{
 			int roleCount = 10;
@@ -202,6 +218,33 @@ public class DBTest {
 		
 	}
 	
+	
+	public static void testInsertDataChangeLog(){
+		executeSession(s->{
+			
+			for(int i = 0; i < 3; i++){
+				DataChangeLog dcl = new DataChangeLog();
+				dcl.setDocId("docId" + i);
+				dcl.setDocType("docType" + i);
+				dcl.setLogTime(new Timestamp(System.currentTimeMillis()));
+				dcl.setUserId("userId"+i);
+				dcl.setUserName("userName" + i);
+				
+				for(int j = 0; j <5; j++){
+					dcl.getDetails().add(new DataChangeLogDetail("fieldName"+j, "originalContent"+j, "changedContent"+j));
+				}
+				
+				s.save(dcl);
+			}
+			s.flush();
+			s.clear();
+			
+			
+			
+			
+		});
+	}
+	
 	public static void executeSession(Consumer<Session>c){
 		AnnotationConfigApplicationContext acac = new AnnotationConfigApplicationContext(RootConfig.class);
 		Session s = null;
@@ -218,4 +261,6 @@ public class DBTest {
 			acac.close();
 		}
 	}
+	
+	
 }
