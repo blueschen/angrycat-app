@@ -4,10 +4,6 @@ import java.util.List;
 
 import javax.annotation.PostConstruct;
 
-import org.apache.commons.lang3.builder.ReflectionToStringBuilder;
-import org.apache.commons.lang3.builder.ToStringStyle;
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Scope;
@@ -26,13 +22,13 @@ import com.angrycat.erp.condition.ConditionFactory;
 import com.angrycat.erp.condition.MatchMode;
 import com.angrycat.erp.model.Member;
 import com.angrycat.erp.service.CrudBaseService;
+import com.angrycat.erp.web.WebUtils;
 import com.angrycat.erp.web.component.ConditionConfig;
 
 @Controller
 @RequestMapping(value="/member")
 @Scope("session")
 public class MemberController {
-	private static final Logger logger = LogManager.getLogger();
 	@Autowired
 	@Qualifier("crudBaseService")
 	private CrudBaseService<Member, Member> memberCrudService;
@@ -52,6 +48,7 @@ public class MemberController {
 			.addWhere(ConditionFactory.putStr(rootAliasWith+"mobile LIKE :pMobile", MatchMode.START))
 			.addWhere(ConditionFactory.putBoolean(rootAliasWith+"important = :pImportant"))
 		;
+		memberCrudService.setUser(WebUtils.getSessionUser());
 	}
 	
 	@RequestMapping(value="/list", method=RequestMethod.GET)

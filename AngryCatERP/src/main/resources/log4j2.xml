@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="UTF-8"?>
+    <Configuration status="debug" name="AngryCatERP"  monitorInterval="30">
+      <Properties>
+        <Property name="localfilename">testlog4j-$${date:yyyy-MM-dd}.log</Property>
+        <Property name="crudfilename">${sys:catalina.home}/logs/crud-$${date:yyyy-MM-dd}.log</Property>
+        <Property name="deletefilename">${sys:catalina.home}/logs/delete-$${date:yyyy-MM-dd}.log</Property>
+      </Properties>
+      <ThresholdFilter level="debug"/>
+     
+      <Appenders>
+        <Console name="STDOUT">
+          <PatternLayout pattern="%m%n"/>
+        </Console>
+        <File name="File1" fileName="${localfilename}" bufferedIO="true" immediateFlush="true">
+    		<PatternLayout>
+      			<pattern>%d %p %C{1.} [%t] %m%n</pattern>
+    		</PatternLayout>
+  		</File>
+  		<File name="CrudFile" fileName="${crudfilename}" bufferedIO="true" immediateFlush="true">
+    		<PatternLayout>
+      			<pattern>%d %p %C{1.} [%t] %m%n</pattern>
+    		</PatternLayout>
+  		</File>
+  		<File name="DeleteFile" fileName="${deletefilename}" bufferedIO="true" immediateFlush="true">
+    		<PatternLayout>
+      			<pattern>%d %p %C{1.} [%t] %m%n</pattern>
+    		</PatternLayout>
+  		</File>
+      </Appenders>
+     
+      <Loggers>
+        <Logger name="EventLogger" level="info" additivity="false">
+          <AppenderRef ref="File1"/>
+        </Logger>
+     	<Logger name="com.angrycat.erp.crud" level="info" additivity="false">
+          <AppenderRef ref="CrudFile"/>
+        </Logger>
+             	<Logger name="com.angrycat.erp.crud.delete" level="info" additivity="false">
+          <AppenderRef ref="DeleteFile"/>
+        </Logger>
+        <Root level="error">
+          <AppenderRef ref="STDOUT"/>
+        </Root>
+      </Loggers>
+     
+    </Configuration>

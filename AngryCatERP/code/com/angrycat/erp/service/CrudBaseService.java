@@ -25,8 +25,11 @@ import org.springframework.transaction.annotation.Transactional;
 
 import com.angrycat.erp.condition.Order;
 import com.angrycat.erp.condition.SimpleExpression;
+import com.angrycat.erp.log.ActionLogger;
 import com.angrycat.erp.query.ConditionalQuery;
 import com.angrycat.erp.query.QueryGenerator;
+import com.angrycat.erp.security.User;
+import com.angrycat.erp.security.extend.UserInfo;
 import com.angrycat.erp.web.component.ConditionConfig;
 
 @Service
@@ -37,7 +40,7 @@ public class CrudBaseService<T, R> extends ConditionalQuery<T> implements CrudSe
 	 * 
 	 */
 	private static final long serialVersionUID = -8528962281827660052L;
-
+	
 	private LocalSessionFactoryBean lsfb;
 	private Class<R> root;
 	
@@ -52,6 +55,8 @@ public class CrudBaseService<T, R> extends ConditionalQuery<T> implements CrudSe
 	
 	private DateFormat dateFormatFS = new SimpleDateFormat("yyyy-MM-dd");
 	private DateFormat timeFormatFS = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+	
+	private User user;
 	
 	@Autowired
 	public CrudBaseService(LocalSessionFactoryBean lsfb){
@@ -72,6 +77,10 @@ public class CrudBaseService<T, R> extends ConditionalQuery<T> implements CrudSe
 	public void setRootAndInitDefault(Class<R> root){
 		setRoot(root);
 		init();
+	}
+	
+	public void setUser(User user){
+		this.user = user;
 	}
 	
 	/**
@@ -252,7 +261,9 @@ public class CrudBaseService<T, R> extends ConditionalQuery<T> implements CrudSe
 							s.flush();
 							s.clear();
 						}
-						s.delete(results.get()[0]);
+						Object obj = results.get()[0];
+						ActionLogger.logDelete(obj, defaultUserIfNotExisted());
+						s.delete(obj);
 					}
 					tx.commit();
 				}catch(Throwable e){
@@ -326,5 +337,18 @@ public class CrudBaseService<T, R> extends ConditionalQuery<T> implements CrudSe
 	
 	Session currentSession(){
 		return getSessionFactory().getCurrentSession();
+	}
+	
+	private User defaultUserIfNotExisted(){
+		User u = user;
+		if(u == null){
+			String defaultName = "NotProvided";
+			u = new User();
+			u.setUserId(defaultName);
+			UserInfo info = new UserInfo();
+			info.setName(defaultName);
+			u.setInfo(info);
+		}
+		return u;
 	}
 }

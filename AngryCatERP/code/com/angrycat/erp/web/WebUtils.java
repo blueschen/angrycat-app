@@ -6,7 +6,6 @@ import org.springframework.web.context.request.RequestContextHolder;
 import org.springframework.web.context.request.ServletRequestAttributes;
 
 import com.angrycat.erp.security.User;
-import com.fasterxml.jackson.databind.ObjectMapper;
 
 public final class WebUtils {
 	public static final String SESSION_USER = "sessionUser";
@@ -15,7 +14,11 @@ public final class WebUtils {
 		return hs;
 	}
 	public static User getSessionUser(){
-		User user = (User)currentSession().getAttribute(SESSION_USER);
+		User user = null;
+		HttpSession hs = currentSession();
+		if(hs != null){
+			user = (User)hs.getAttribute(SESSION_USER);
+		}
 		return user;
 	}
 }

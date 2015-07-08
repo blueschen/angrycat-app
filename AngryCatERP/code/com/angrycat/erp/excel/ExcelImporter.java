@@ -83,7 +83,7 @@ public class ExcelImporter {
 			Sheet sheet = wb.getSheetAt(0);
 			totalCount = sheet.getLastRowNum();
 			
-			se.executeTXSession(s->{
+			se.executeTransaction(s->{
 				Iterator<Row> itr = sheet.iterator();
 				
 				while(itr.hasNext()){

@@ -37,7 +37,6 @@ public class SessionExecutable<T> implements Test<T>{
 			throw new RuntimeException(e);
 		}finally{
 			if(tx != null && !tx.wasCommitted()){
-				System.out.println("rollback");
 				tx.rollback();
 			}
 			s.close();
