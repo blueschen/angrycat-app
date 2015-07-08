@@ -135,7 +135,7 @@
 		
 <table class="table table-bordered table-hover table-condense">
 	<tr>
-		<td><input type="checkbox" id="allItems" ng-click="mainCtrl.isCheckAll($event)"></td>
+		<td><input type="checkbox" id="allItems" ng-click="mainCtrl.checkOrUncheckAll($event)"></td>
 		<td>身分證字號</td>
 		<td>姓名</td>
 		<td>FB暱稱</td>
@@ -187,7 +187,26 @@
 		.factory('MemberService', ['$http', function($http){
 			var queryAllUrl = '${urlPrefix}/queryAll.json',
 				queryByCondsUrl = '${urlPrefix}/queryCondtional.json',
-				deleteItemsUrl = '${urlPrefix}/deleteItems.json';
+				deleteItemsUrl = '${urlPrefix}/deleteItems.json',
+				idCheckName = 'ids',
+				getCheckedItems = function(){
+					var ids = document.getElementsByName(idCheckName),
+						checkedItems = [];
+					if(!ids){
+						return checkedItems;
+					}
+					if(ids.length == undefined && ids.checked){// check one
+						checkedItems.push(ids);
+					}else{// check one more
+						for(var i = 0; i < ids.length; i++){
+							if(ids[i].checked){
+								checkedItems.push(ids[i].value);
+							}
+						}
+					}
+					return checkedItems;
+				};
+				
 			return {
 				queryAll: function(){
 					return $http.get(queryAllUrl);
@@ -204,42 +223,24 @@
 						}
 					}
 				},
-				validateBeforeDelete: function(eleName){
-					var ids = document.getElementsByName(eleName);
-					if(!ids){
-						alert('沒有可刪除的項目');
+				getCheckedItems: getCheckedItems,
+				validateBeforeDelete: function(checkedItems){
+					
+					if(checkedItems.length == 0){
+						alert('請勾選要刪除的項目');
 						return false;
 					}
-					var isChecked = false;
-					
-					if(ids.length == undefined){
-						isChecked = ids.checked;
-					}else{
-						for(var i = 0; i < ids.length; i++){
-							if(ids[i].checked){
-								isChecked = true;
-							}
-						}
-					}
-					if(!isChecked){
-						alert('請勾選要刪除的項目');
+					if(!confirm('確定刪除?')){
 						return false;
 					}
 					return true;
 				},
-				deleteItems: function(eleName){
-					var ids = document.getElementsByName(eleName),
-						checkedItems = [];
-					for(var i = 0; i < ids.length; i++){
-						if(ids[i].checked){
-							checkedItems.push(ids[i].value);
-						}
-					}
+				deleteItems: function(checkedItems){
 					return $http.post(deleteItemsUrl, checkedItems);
 				},
-				isCheckAll: function($event, eleName){
+				checkOrUncheckAll: function($event){
 					var isChecked = $event.target.checked,
-					ids = document.getElementsByName(eleName);
+						ids = document.getElementsByName(idCheckName);
 				
 					if(ids){
 						if(ids.length == undefined){
@@ -297,21 +298,21 @@
 				MemberService.clearConds(self.conditionConfig);
 			};
 			self.deleteItems = function(){
-				var eleName = 'ids';
-				if(!MemberService.validateBeforeDelete(eleName)){
+				var checkedItems = MemberService.getCheckedItems();
+				if(!MemberService.validateBeforeDelete(checkedItems)){
 					return;
 				}
-				MemberService.deleteItems(eleName)
+				MemberService.deleteItems(checkedItems)
 				.then(function(response){
 					$log.log('successfully return: ' + JSON.stringify(response.data));
 					self.conditionConfig = response.data;
-					alert('刪除成功');
+					alert('刪除成功' + checkedItems.length + '筆');
 				},function(errResponse){
 					$log.log('failed!!!!!' + JSON.stringify(errResponse));
 				});
 			};
-			self.isCheckAll = function($event){
-				MemberService.isCheckAll($event, 'ids');
+			self.checkOrUncheckAll = function($event){
+				MemberService.checkOrUncheckAll($event);
 			};
 			// date related
 			self.openCalendar = function($event, opened){
