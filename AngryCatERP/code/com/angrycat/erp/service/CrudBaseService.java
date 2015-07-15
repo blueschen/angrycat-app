@@ -139,9 +139,6 @@ public class CrudBaseService<T, R> extends ConditionalQuery<T> implements CrudSe
 		Map<String, Object> conds = cc.getConds();
 		// simpleExpression
 		getSimpleExpressions().forEach((id,v)->{
-			if(v.getType() == Date.class){
-				System.out.println("simple express val: " + v.getValue());
-			}
 			conds.put(SIMPLE_EXPRESSION_PREFIEX + id, v.getValue());
 		});
 		// paging

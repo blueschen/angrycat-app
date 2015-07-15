@@ -128,7 +128,7 @@ public class ExcelImporter {
 				}
 				
 				idNo = idNo.toUpperCase();
-				Number num = (Number)s.createQuery("SELECT COUNT(m) FROM " + Member.class.getName() + " m WHERE m.idNo = ?").setString(0, idNo).uniqueResult();
+				Number num = (Number)s.createQuery("SELECT COUNT(m) FROM " + Member.class.getName() + " m WHERE m.idNo = :idNo").setString("idNo", idNo).uniqueResult();
 				int count = num.intValue();
 				if(count > 0){
 					msg.put(IDNO_DUPLICATE+rowNum, rowNum);
@@ -162,9 +162,8 @@ public class ExcelImporter {
 			tx.rollback();
 			String stackTrace = ExceptionUtils.getStackTrace(e);
 			logWarn.put("errorMsg", stackTrace);
-			throw new RuntimeException(e);
 		}finally{
-			sfw.closeSession(s, tx);
+			s.close();
 		}
 		if(!logWarn.isEmpty()){
 			return logWarn;
@@ -226,7 +225,11 @@ public class ExcelImporter {
 	
 	String parseStrVal(Row row, int columnIndex){
 		String result = null;
-		String v = row.getCell(columnIndex).getStringCellValue();
+		Cell cell = row.getCell(columnIndex);
+		if(cell == null){
+			return null;
+		}
+		String v = cell.getStringCellValue();
 		if(StringUtils.isNotBlank(v)){
 			result = StringUtils.trim(v);
 		}
@@ -236,6 +239,9 @@ public class ExcelImporter {
 	java.util.Date parseDateVal(Row row, int columnIndex){
 		java.util.Date date = null;
 		Cell cell = row.getCell(columnIndex);
+		if(cell == null){
+			return null;
+		}
 		int type = cell.getCellType();
 		try{
 			if(type == Cell.CELL_TYPE_NUMERIC){
@@ -256,13 +262,20 @@ public class ExcelImporter {
 		return d != null ? new java.sql.Date(d.getTime()) : null; 
 	}
 	
-	double parseNumericVal(Row row, int columnIndex){
-		double d = row.getCell(columnIndex).getNumericCellValue();
+	Double parseNumericVal(Row row, int columnIndex){
+		Cell cell = row.getCell(columnIndex);
+		if(cell == null){
+			return null;
+		}
+		double d = cell.getNumericCellValue();
 		return d;
 	}
 	
 	String parseNumericOrStr(Row row, int columnIndex){
 		Cell cell = row.getCell(columnIndex);
+		if(cell == null){
+			return null;
+		}
 		int type = cell.getCellType();
 		String val = null;
 		if(type == Cell.CELL_TYPE_STRING){
@@ -275,7 +288,10 @@ public class ExcelImporter {
 	}
 	
 	Date parseNumericToSqlDate(Row row ,int columnIndex){
-		double d = parseNumericVal(row, columnIndex);
+		Double d = parseNumericVal(row, columnIndex);
+		if(d == null){
+			return null;
+		}
 		
 		Calendar c = Calendar.getInstance();
 		c.set(Calendar.YEAR, 1900);
@@ -285,7 +301,7 @@ public class ExcelImporter {
 		c.set(Calendar.MINUTE, 0);
 		c.set(Calendar.SECOND, 0);
 		c.set(Calendar.MILLISECOND, 0);
-		c.add(Calendar.MILLISECOND, (int)d);
+		c.add(Calendar.MILLISECOND, d.intValue());
 		
 		Date date = new Date(c.getTimeInMillis());
 		

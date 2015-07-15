@@ -29,8 +29,10 @@ public class ExcelImporterTest {
 	}
 
 	public static void testImportMember(){
+		String memberSource = "E:\\angrycat_workitem\\member\\OHM Beads TW (AngryCat) 一般會員資料.xlsx";
+		String memberSample = "C:\\Users\\JerryLin\\Desktop\\member_sample.xlsx";
 		
-		try(FileInputStream fis = new FileInputStream("E:\\angrycat_workitem\\member\\OHM Beads TW (AngryCat) 一般會員資料.xlsx");){
+		try(FileInputStream fis = new FileInputStream(memberSample);){
 		byte[] data = IOUtils.toByteArray(fis);
 
 		AnnotationConfigApplicationContext acac = new AnnotationConfigApplicationContext(RootConfig.class);
