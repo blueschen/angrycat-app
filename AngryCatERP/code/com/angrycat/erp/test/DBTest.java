@@ -5,10 +5,13 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.function.Consumer;
 
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.hibernate.Session;
 import org.springframework.context.annotation.AnnotationConfigApplicationContext;
 import org.springframework.orm.hibernate4.LocalSessionFactoryBean;
 
+import com.angrycat.erp.component.SessionFactoryWrapper;
 import com.angrycat.erp.initialize.config.RootConfig;
 import com.angrycat.erp.model.DataChangeLog;
 import com.angrycat.erp.model.DataChangeLogDetail;
@@ -21,12 +24,14 @@ import com.angrycat.erp.security.extend.GroupInfo;
 import com.angrycat.erp.security.extend.UserInfo;
 
 public class DBTest {
+	
 	public static void main(String[]args){
 //		insertSecurityAll();
 //		insertSecurity();
 //		testRole();
 //		selectTest();
-		testInsertDataChangeLog();
+//		testInsertDataChangeLog();
+		testBatchSize();
 	}
 	
 	public static void selectTest(){
@@ -262,5 +267,10 @@ public class DBTest {
 		}
 	}
 	
-	
+	public static void testBatchSize(){
+		AnnotationConfigApplicationContext acac = new AnnotationConfigApplicationContext(RootConfig.class);
+		SessionFactoryWrapper sfw = acac.getBean(SessionFactoryWrapper.class);
+		System.out.println("batch size: " + sfw.getBatchSize());
+		acac.close();
+	}
 }

@@ -20,16 +20,12 @@ import org.springframework.orm.hibernate4.LocalSessionFactoryBean;
 
 import com.angrycat.erp.condition.ConditionFactory;
 import com.angrycat.erp.condition.MatchMode;
-import com.angrycat.erp.ds.SessionExecutable;
 import com.angrycat.erp.initialize.config.RootConfig;
 import com.angrycat.erp.model.Member;
 import com.angrycat.erp.model.Parameter;
 import com.angrycat.erp.model.ParameterCategory;
 import com.angrycat.erp.query.QueryConfig;
 import com.angrycat.erp.query.QueryGenerator;
-import com.angrycat.erp.security.User;
-import com.angrycat.erp.service.ParameterCrudService;
-import com.fasterxml.jackson.databind.ObjectMapper;
 
 public class Test {
 	public static void main(String[]args){
@@ -118,12 +114,6 @@ public class Test {
 		});
 	}
 	
-	public static void testConvertToJson(){
-		ObjectMapper om = new ObjectMapper();
-		
-		
-	}
-	
 	public static void testDateParse(){
 		String p = "EEE, d MMM yyyy HH:mm:ss Z";
 		String d = "Fri Jun 19 2015 08:00:00 GMT+0800";
@@ -134,24 +124,6 @@ public class Test {
 		}catch(Throwable e){
 			e.printStackTrace();
 		}
-	}
-	
-	public static void testInitParameterCrudService(){
-		AnnotationConfigApplicationContext acac = new AnnotationConfigApplicationContext(RootConfig.class);
-		
-		ParameterCrudService p = acac.getBean(ParameterCrudService.class);
-		p.saveOrMerge(null);
-		
-		acac.close();
-	}
-	
-	public static void testInitSessionExecutable(){
-		AnnotationConfigApplicationContext acac = new AnnotationConfigApplicationContext(RootConfig.class);
-		com.angrycat.erp.ds.Test<User> se = acac.getBean(com.angrycat.erp.ds.Test.class);
-	
-		SessionExecutable<User> u = getProxyTargetObject(se);
-		u.add();
-		acac.close();
 	}
 	
 	public static <T>T getProxyTargetObject(Object proxy){

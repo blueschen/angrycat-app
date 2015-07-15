@@ -1,6 +1,7 @@
 package com.angrycat.erp.web.controller;
 
 import java.util.List;
+import java.util.Map;
 
 import javax.annotation.PostConstruct;
 
@@ -14,12 +15,14 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
+import org.springframework.web.bind.annotation.RequestPart;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.ResponseStatus;
 
 import com.angrycat.erp.common.CommonUtil;
 import com.angrycat.erp.condition.ConditionFactory;
 import com.angrycat.erp.condition.MatchMode;
+import com.angrycat.erp.excel.ExcelImporter;
 import com.angrycat.erp.model.Member;
 import com.angrycat.erp.service.CrudBaseService;
 import com.angrycat.erp.web.WebUtils;
@@ -32,6 +35,9 @@ public class MemberController {
 	@Autowired
 	@Qualifier("crudBaseService")
 	private CrudBaseService<Member, Member> memberCrudService;
+	
+	@Autowired
+	private ExcelImporter excelImporter;
 	
 	@PostConstruct
 	public void init(){
@@ -62,9 +68,7 @@ public class MemberController {
 			headers="Accept=*/*")
 	@ResponseStatus(HttpStatus.OK)
 	public @ResponseBody ConditionConfig<Member> queryAll(){
-		List<Member> results = memberCrudService.executeQueryPageable();
-		ConditionConfig<Member> cc = memberCrudService.getConditionConfig();
-		cc.setResults(results);
+		ConditionConfig<Member> cc = memberCrudService.executeQueryPageableAndGenCondtitions();
 		return cc;
 	}
 	
@@ -102,6 +106,20 @@ public class MemberController {
 			headers="Accept=*/*")
 	public @ResponseBody Member saveOrMerge(@RequestBody Member member){
 		return memberCrudService.saveOrMerge(member);
+	}
+	
+	@RequestMapping(
+			value="/uploadExcel", 
+			method=RequestMethod.POST, 
+			produces={"application/xml", "application/json"},
+			headers="Accept=*/*")
+	public @ResponseBody ConditionConfig<Member> uploadExcel(
+		@RequestPart("uploadExcelFile") byte[] uploadExcelFile){
+		Map<String, String> msg = excelImporter.persist(uploadExcelFile);
+		ConditionConfig<Member> cc = memberCrudService.executeQueryPageableAndGenCondtitions();
+		cc.getMsgs().clear();
+		cc.getMsgs().putAll(msg);
+		return cc;
 	}
 	
 }

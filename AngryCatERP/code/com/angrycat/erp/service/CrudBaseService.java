@@ -9,20 +9,18 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.function.Consumer;
-import java.util.function.Function;
 
 import org.apache.commons.lang3.StringUtils;
 import org.hibernate.ScrollMode;
 import org.hibernate.ScrollableResults;
 import org.hibernate.Session;
-import org.hibernate.SessionFactory;
 import org.hibernate.Transaction;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Scope;
-import org.springframework.orm.hibernate4.LocalSessionFactoryBean;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.angrycat.erp.component.SessionFactoryWrapper;
 import com.angrycat.erp.condition.Order;
 import com.angrycat.erp.condition.SimpleExpression;
 import com.angrycat.erp.log.ActionLogger;
@@ -41,11 +39,10 @@ public class CrudBaseService<T, R> extends ConditionalQuery<T> implements CrudSe
 	 */
 	private static final long serialVersionUID = -8528962281827660052L;
 	
-	private LocalSessionFactoryBean lsfb;
+	private SessionFactoryWrapper sfw;
 	private Class<R> root;
 	
 	public static final String DEFAULT_ROOT_ALIAS = "p";
-	final int DEFAULT_BATCH_SIZE = 100;
 	
 	public static final String SIMPLE_EXPRESSION_PREFIEX	= "condition_";
 	public static final String CURRENT_PAGE					= "currentPage";
@@ -59,14 +56,14 @@ public class CrudBaseService<T, R> extends ConditionalQuery<T> implements CrudSe
 	private User user;
 	
 	@Autowired
-	public CrudBaseService(LocalSessionFactoryBean lsfb){
-		super(lsfb.getObject());
-		this.lsfb = lsfb;
+	public CrudBaseService(SessionFactoryWrapper sfw){
+		super(sfw.getSessionFactory());
+		this.sfw = sfw;
 	}
 	
-	public CrudBaseService(LocalSessionFactoryBean lsfb, Class<R> root){
-		super(lsfb.getObject());
-		this.lsfb = lsfb;
+	public CrudBaseService(SessionFactoryWrapper sfw, Class<R> root){
+		this(sfw);
+		this.sfw = sfw;
 		this.root = root;
 	}
 
@@ -220,7 +217,13 @@ public class CrudBaseService<T, R> extends ConditionalQuery<T> implements CrudSe
 	
 	@Override
 	public ConditionConfig<T> executeQueryPageable(ConditionConfig<T> conditionConfig){
-		copyConditionConfig(conditionConfig);
+		if(conditionConfig != null){
+			copyConditionConfig(conditionConfig);
+		}
+		return executeQueryPageableAndGenCondtitions();
+	}
+	
+	public ConditionConfig<T> executeQueryPageableAndGenCondtitions(){
 		List<T> results = executeQueryPageable();
 		ConditionConfig<T> cc = getConditionConfig();
 		cc.setResults(results);
@@ -234,80 +237,56 @@ public class CrudBaseService<T, R> extends ConditionalQuery<T> implements CrudSe
 	 * @return
 	 */
 	public List<T> executeQueryPageableAfterDelete(Consumer<Session> beforeDelete, List<String> ids){
-		return executeSession(s->{
-			int deleteCount = 0;
-			String batchSizeStr = lsfb.getConfiguration().getProperty("hibernate.jdbc.batch_size");
-			if(ids != null && !ids.isEmpty()){
-				if(beforeDelete!=null){
-					beforeDelete.accept(s);
-				}
-				
-				QueryGenerator qg = toQueryGenerator();
-				String alias = qg.getRootAlias();
-				String from = qg.getFrom();
-				String id = "id";
-				
-				int currentCount = 0;
-				int batchSize = StringUtils.isNumeric(batchSizeStr) ? Integer.parseInt(batchSizeStr) : DEFAULT_BATCH_SIZE;
-				
-				Transaction tx = s.beginTransaction();
-				String queryAll = "SELECT " + alias +" FROM " + from + " WHERE " + alias + "." + id + " IN (:ids)";
-				ScrollableResults results = 
-					s.createQuery(queryAll).setParameterList("ids", ids).scroll(ScrollMode.FORWARD_ONLY);
-				try{
-					while(results.next()){
-						currentCount++;
-						if(currentCount % batchSize == 0){
-							s.flush();
-							s.clear();
-						}
-						Object obj = results.get()[0];
-						ActionLogger.logDelete(obj, defaultUserIfNotExisted());
-						s.delete(obj);
-					}
-					tx.commit();
-				}catch(Throwable e){
-					e.printStackTrace();
-					tx.rollback();
-				}finally{
-					
-				}
 
-				deleteCount = currentCount;
-				System.out.println("delete successfully: " + deleteCount + " ...");
+		Session s = sfw.openSession();
+		List<T> r = Collections.emptyList();
+		if(ids != null && !ids.isEmpty()){
+			if(beforeDelete!=null){
+				beforeDelete.accept(s);
 			}
-			List<T> r = executeQueryPageable(s);
-			System.out.println("executeQueryPageableAfterDelete found resting count: " + r.size());
-			return r;
-		});
-	}
-	
-	/**
-	 * abstracting session execute boilerplate code to avoid duplicate
-	 * @param execution
-	 * @return
-	 */
-	List<T> executeSession(Function<Session, List<T>> execution){
-		Session s = null;
-		List<T> resultset = Collections.emptyList();
-		try{
-			s = openSession();
-			resultset = execution.apply(s);
-		}catch(Throwable e){
-			e.printStackTrace();
-		}finally{
-			s.close();
+			
+			QueryGenerator qg = toQueryGenerator();
+			String alias = qg.getRootAlias();
+			String from = qg.getFrom();
+			String id = "id";
+			
+			int currentCount = 0;
+			int batchSize = sfw.getBatchSize();
+			
+			Transaction tx = s.beginTransaction();
+			String queryAll = "SELECT " + alias +" FROM " + from + " WHERE " + alias + "." + id + " IN (:ids)";
+			ScrollableResults results = 
+				s.createQuery(queryAll).setParameterList("ids", ids).scroll(ScrollMode.FORWARD_ONLY);
+			try{
+				while(results.next()){
+					currentCount++;
+					if(currentCount % batchSize == 0){
+						s.flush();
+						s.clear();
+					}
+					Object obj = results.get()[0];
+					ActionLogger.logDelete(obj, defaultUserIfNotExisted());
+					s.delete(obj);
+				}
+				tx.commit();
+			}catch(Throwable e){
+				tx.rollback();
+				throw new RuntimeException(e);
+			}finally{
+				r = executeQueryPageable(s);
+				sfw.closeSession(s, tx);
+			}
 		}
-		return resultset;
+		return r;
+	
 	}
 
 	@Transactional
 	@Override
 	public R saveOrMerge(Object...obj){
-		Session s = currentSession();
+		Session s = sfw.currentSession();
 		R r = null;
-		
-		
+				
 		for(Object o : obj){
 			s.saveOrUpdate(o);
 			s.flush();
@@ -327,18 +306,6 @@ public class CrudBaseService<T, R> extends ConditionalQuery<T> implements CrudSe
 		return list.size() > 0 ? list.get(0) : null;
 	}
 	
-	private SessionFactory getSessionFactory(){
-		return lsfb.getObject();
-	}
-	
-	Session openSession(){
-		return getSessionFactory().openSession();
-	}
-	
-	Session currentSession(){
-		return getSessionFactory().getCurrentSession();
-	}
-	
 	private User defaultUserIfNotExisted(){
 		User u = user;
 		if(u == null){
@@ -350,5 +317,9 @@ public class CrudBaseService<T, R> extends ConditionalQuery<T> implements CrudSe
 			u.setInfo(info);
 		}
 		return u;
+	}
+	
+	SessionFactoryWrapper getSessionFactoryWrapper(){
+		return sfw;
 	}
 }

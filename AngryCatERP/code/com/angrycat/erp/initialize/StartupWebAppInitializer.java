@@ -1,5 +1,8 @@
 package com.angrycat.erp.initialize;
 
+import javax.servlet.MultipartConfigElement;
+import javax.servlet.ServletRegistration.Dynamic;
+
 import org.springframework.web.servlet.support.AbstractAnnotationConfigDispatcherServletInitializer;
 
 import com.angrycat.erp.initialize.config.RootConfig;
@@ -23,4 +26,10 @@ public class StartupWebAppInitializer extends
 		return new String[]{"/"};
 	}
 
+	@Override
+	protected void customizeRegistration(Dynamic registration){
+		String serverRoot = System.getProperty("catalina.home");
+		String uploadTemp = serverRoot + "/uploads/tmp";
+		registration.setMultipartConfig(new MultipartConfigElement(uploadTemp, 2097152, 4194304, 0));
+	}
 }

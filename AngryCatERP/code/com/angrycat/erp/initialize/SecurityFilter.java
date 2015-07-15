@@ -1,7 +1,6 @@
 package com.angrycat.erp.initialize;
 
 import java.io.IOException;
-import java.util.Enumeration;
 import java.util.HashSet;
 import java.util.Set;
 

@@ -2,6 +2,7 @@ package com.angrycat.erp.web.component;
 
 import java.io.Serializable;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -21,6 +22,8 @@ public class ConditionConfig<T> implements Serializable {
 	private PageNavigator pageNavigator;
 	private Map<String, Object> conds = new LinkedHashMap<>();
 	private List<T> results = Collections.emptyList();
+	private Map<String, String> msgs = new HashMap<>();
+	
 	@XmlAttribute
 	public PageNavigator getPageNavigator() {
 		return pageNavigator;
@@ -41,5 +44,12 @@ public class ConditionConfig<T> implements Serializable {
 	}
 	public void setResults(List<T> results) {
 		this.results = results;
+	}
+	@XmlAttribute
+	public Map<String, String> getMsgs() {
+		return msgs;
+	}
+	public void setMsgs(Map<String, String> msgs) {
+		this.msgs = msgs;
 	}
 }

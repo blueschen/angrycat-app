@@ -130,6 +130,10 @@
  	<input type="button" value="清除" ng-click="mainCtrl.clear()" class="btn btn-default"/>
  	<input type="button" value="刪除" ng-click="mainCtrl.deleteItems()" class="btn btn-default"/>
  	<input type="button" value="新增" onclick="document.location.href = '${urlPrefix}/add';" class="btn btn-default"/>
+ 	<label class="btn btn-default" for="uploadMember">
+ 		<input type="file" onchange="angular.element(this).scope().uploadExcel(this.files)" accept=".xlsx" id="uploadMember" style="display:none;"/>
+ 		上傳會員檔案
+ 	</label>
  </form>	
 		
 		
@@ -263,11 +267,23 @@
 				
 			};
 		}])
+		.service('FileUploadService', ['$http', function($http){
+			this.uploadExcel = function(file){
+				var uploadUrl = '${urlPrefix}/uploadExcel';
+				var fd = new FormData(); // FormData just support IE 10+
+				fd.append('uploadExcelFile', file);
+				
+				return $http.post(uploadUrl, fd, {
+					transformRequest: angular.identity,
+					headers: {'Content-Type': undefined}
+				});
+			};
+		}])
 		.config(['$httpProvider', function($httpProvider){
 			$httpProvider.defaults.headers.common['X-Requested-With'] = 'XMLHttpRequest'; // to tell server this is a ajax request
 			$httpProvider.interceptors.push('AuthInterceptor');
 		}])
-		.controller('MainCtrl', ['$log', '$scope', 'MemberService', function($log, $scope, MemberService){
+		.controller('MainCtrl', ['$log', '$scope', 'MemberService', 'FileUploadService', function($log, $scope, MemberService, FileUploadService){
 			
 			var self = this;
 				
@@ -318,18 +334,44 @@
 			self.openCalendar = function($event, opened){
 				MemberService.openCalendar($event, opened, $scope);
 			};
+			$scope.uploadExcel = function(files){
+				FileUploadService.uploadExcel(files[0])
+				.then(function(response){
+					self.conditionConfig = response.data;
+					var msgs = self.conditionConfig.msgs;
+					if(msgs){
+						var msg = '';
+						if(msgs.errorMsg){
+							msg = msgs.errorMsg;
+						}
+						if(msgs.warnMsg){
+							msg = msgs.warnMsg;
+						}
+						if(msgs.infoMsg){
+							msg = msgs.infoMsg;
+						}
+						if(msg){
+							if(confirm('是否顯示匯入訊息')){
+								alert(msg);
+							}
+						}
+					}
+				},function(errResponse){
+					$log.log('upload failed: ' + JSON.stringify(errResponse));
+				});
+			}
 		}])
-		.filter('convertGender', function(){
+		.filter('convertGender', [function(){
 			return function(input){
 				return input==0?'男':'女';
 			}
-		})
-		.filter('convertBoolean', function(){
+		}])
+		.filter('convertBoolean', [function(){
 			return function(input){
 				return input?'是':'否';
 			}
-		})
-		.directive('datepickerPopup', function () {
+		}])
+		.directive('datepickerPopup', [function () {
   			function link(scope, element, attrs, ngModel) {
     			// View -> Model
     			ngModel.$parsers.push(function (value) {
@@ -349,15 +391,15 @@
     			require: 'ngModel',
     			link: link
   			};
-		})
-		.directive('toView', function(){
+		}])
+		.directive('toView', [function(){
 			return function(scope, ele){
 				ele.bind('click', function(){
 					var id = ele[0].getAttribute('id');
 					document.location.href = '${urlPrefix}/view/' + id;
 				});
 			};
-		});
+		}]);
 </script>
 
 </body>

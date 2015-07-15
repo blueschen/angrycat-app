@@ -135,7 +135,7 @@ public class ConditionalQuery<T> extends QueryConfig implements
 	 * @param execution
 	 * @return
 	 */
-	private List<T> executeSession(Function<Session, List<T>> execution){
+	protected List<T> executeSession(Function<Session, List<T>> execution){
 		Session s = null;
 		List<T> resultset = Collections.emptyList();
 		try{

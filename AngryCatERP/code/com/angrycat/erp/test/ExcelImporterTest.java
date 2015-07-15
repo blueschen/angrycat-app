@@ -1,13 +1,12 @@
 package com.angrycat.erp.test;
 
 import java.io.FileInputStream;
-import java.util.Collections;
 import java.util.List;
 
 import org.apache.poi.util.IOUtils;
 import org.springframework.context.annotation.AnnotationConfigApplicationContext;
 
-import com.angrycat.erp.ds.SessionExecutable;
+import com.angrycat.erp.component.SessionFactoryWrapper;
 import com.angrycat.erp.excel.ExcelImporter;
 import com.angrycat.erp.initialize.config.RootConfig;
 import com.angrycat.erp.model.Member;
@@ -36,11 +35,11 @@ public class ExcelImporterTest {
 
 		AnnotationConfigApplicationContext acac = new AnnotationConfigApplicationContext(RootConfig.class);
 		ExcelImporter ei = acac.getBean(ExcelImporter.class);
-		SessionExecutable<Member> se = acac.getBean(SessionExecutable.class);
+		SessionFactoryWrapper sfw = acac.getBean(SessionFactoryWrapper.class);
 			
 		ei.persist(data);
 		
-		se.executeQuerySession(s->{
+		sfw.executeSession(s->{
 			List<Member> results = s.createQuery("FROM " + Member.class.getName() + " m").list();
 			System.out.println("results size: " + results.size());
 			return results;

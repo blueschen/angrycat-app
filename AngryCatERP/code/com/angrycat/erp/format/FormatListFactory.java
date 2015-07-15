@@ -22,7 +22,7 @@ public class FormatListFactory {
 		return list == null ? Collections.emptyList() : list;
 	}
 	
-	public static List<ObjectFormat> ofMemberForDeleteLog(){
+	private static List<ObjectFormat> ofMemberForDeleteLog(){
 		List<ObjectFormat> f = new LinkedList<>();
 		
 		f.add(new PropertyFormat("姓名", "name"));

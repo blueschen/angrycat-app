@@ -8,13 +8,12 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.support.ReloadableResourceBundleMessageSource;
-import org.springframework.core.io.FileSystemResource;
 import org.springframework.http.MediaType;
 import org.springframework.validation.Validator;
 import org.springframework.validation.beanvalidation.LocalValidatorFactoryBean;
 import org.springframework.web.accept.ContentNegotiationManagerFactoryBean;
 import org.springframework.web.multipart.MultipartResolver;
-import org.springframework.web.multipart.commons.CommonsMultipartResolver;
+import org.springframework.web.multipart.support.StandardServletMultipartResolver;
 import org.springframework.web.servlet.ViewResolver;
 import org.springframework.web.servlet.config.annotation.DefaultServletHandlerConfigurer;
 import org.springframework.web.servlet.config.annotation.EnableWebMvc;
@@ -83,11 +82,16 @@ public class WebConfig extends WebMvcConfigurerAdapter {
 	 */
 	@Bean
 	public MultipartResolver multipartResolver() throws IOException{
-		CommonsMultipartResolver multipartResolver = new CommonsMultipartResolver();
-		multipartResolver.setUploadTempDir(new FileSystemResource("/tmp/uploads"));
-		multipartResolver.setMaxUploadSize(2097152); // 2M
-		multipartResolver.setMaxInMemorySize(0);
-		return new CommonsMultipartResolver();
+//		CommonsMultipartResolver multipartResolver = new CommonsMultipartResolver();
+//				
+//		String serverRoot = System.getProperty("catalina.home");
+//		String uploadTemp = serverRoot + "/uploads/tmp";
+//		multipartResolver.setUploadTempDir(new FileSystemResource(uploadTemp));
+//		multipartResolver.setMaxUploadSize(2097152); // 2M
+//		multipartResolver.setMaxInMemorySize(0);
+		
+		StandardServletMultipartResolver multipartResolver = new StandardServletMultipartResolver();
+		return multipartResolver;
 	}
 	
 	@Bean

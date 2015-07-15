@@ -2,8 +2,10 @@ package com.angrycat.erp.initialize.config;
 
 import java.util.Properties;
 
+import javax.annotation.PostConstruct;
 import javax.sql.DataSource;
 
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
@@ -19,11 +21,19 @@ import com.mchange.v2.c3p0.ComboPooledDataSource;
 
 @Configuration
 @PropertySource("classpath:/application.properties")
-@ComponentScan(basePackages={"com.angrycat.erp.service", "com.angrycat.erp.excel", "com.angrycat.erp.ds"})
+@ComponentScan(basePackages={"com.angrycat.erp.service", "com.angrycat.erp.excel", "com.angrycat.erp.ds", "com.angrycat.erp.component"})
 @EnableTransactionManagement(proxyTargetClass=true)
 public class RootConfig {
 	@Autowired
 	private Environment env;
+	
+	@PostConstruct
+	public void init(){
+		String serverRoot = System.getProperty("catalina.home");
+		if(StringUtils.isNotBlank(serverRoot)){
+			System.setProperty("catalina.home", "C:/dts/apache-tomcat-8.0.23");
+		}
+	}
 	
 	@Bean
 	public DataSource dataSource(){
@@ -62,7 +72,7 @@ public class RootConfig {
 		sfb.setPackagesToScan("com.angrycat.erp.model", "com.angrycat.erp.security");
 		Properties props = new Properties();
 		props.setProperty("hibernate.dialect", "org.hibernate.dialect.MySQLDialect");
-		props.setProperty("hibernate.show_sql", "true");
+		props.setProperty("hibernate.show_sql", "false");
 		props.setProperty("hibernate.jdbc.batch_size", "100");
 		sfb.setHibernateProperties(props);
 		return sfb;
