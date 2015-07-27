@@ -29,7 +29,7 @@
 		<div class="control-group">
 			<label class="control-label" for="userId">帳號</label>
 			<div class="controls">
-				<input type="text" id="userId" ng-model="mainCtrl.user.userId" name="userId" required/>
+				<input type="text" id="userId" ng-model="mainCtrl.user.userId" name="userId" required autofocus/>
 				<span ng-show="loginForm.userId.$error.required">必填</span>
 			</div>
 		</div>
