@@ -6,137 +6,144 @@
 
 <c:set value="member" var="modelName"/>
 <c:set value="${pageContext.request.contextPath}/${modelName}" var="urlPrefix"/>
-
+<!DOCTYPE html>
 <html ng-app="angryCatMemberListApp">
 <head>
 	<meta content="width=device-width, initial-scale=1.0" name="viewport">
 	<title><s:message code="model.name.member"/></title>
 	
-	<script type="text/javascript" src='<c:url value="/jquery/2.1.1/jquery.min.js"/>'></script>
-	<script type="text/javascript" src='<c:url value="/angularjs/1.3.16/angular.js"/>'></script>
-	<script type="text/javascript" src='<c:url value="/angularjs/ui-bootstrap-tpls-0.13.0.min.js"/>'></script>
-	
 	<link rel="stylesheet" href='<c:url value="/angularjs/bootstrap/3.1.1/css/bootstrap.css"/>'/>
 	<link rel="stylesheet" href='<c:url value="/angularjs/bootstrap/3.1.1/css/bootstrap-theme.css"/>'/>
 	<link rel="stylesheet" href='<c:url value="/angularjs/bootstrap/3.1.1/css/bootstrap-responsive.css"/>'/>
 	
-	<style type="text/css">		
-		label {
-  			display: inline-block;
-  			font-size: 18px;
-		}
-	</style>
 </head>
 <body ng-controller="MainCtrl as mainCtrl">
- 
- <h1>Hello <s:message code="model.name.${modelName}"/>!</h1>
- 
+  
+<div class="container">
 
- 
-<div class="container-fluid">
+<div class="jumbotron">
+<h4>Hello <s:message code="model.name.${modelName}"/>!</h4>
+</div>
 
 <form class="form-horizontal">
- 	<div class="control-group">
- 		<div class="controls">
- 			<label class="control-label label-important" for="pName" >
- 				姓名
- 			</label>
- 			<input type="text" ng-model="mainCtrl.conditionConfig.conds.condition_pName" id="pName">
+ 	<div class="form-group">
+		<label class="col-sm-2 control-label" for="pName" >
+ 			姓名
+ 		</label>
+ 		<div class="col-sm-6">
+ 			<input type="text" ng-model="mainCtrl.conditionConfig.conds.condition_pName" id="pName" class="form-control">
  		</div>
  	</div>
- 	<div class="control-group">
- 		<div class="controls">
-			<label class="control-label" for="pGender">
- 				性別
- 			</label>
+ 	<div class="form-group">
+		<label class="col-sm-2 control-label" for="pGender">
+ 			性別
+ 		</label>
+ 		<div class="col-sm-6">
  			<select 
 				ng-model="mainCtrl.conditionConfig.conds.condition_pGender" 
 				ng-options="g.value as g.label for g in mainCtrl.genders"
-				id="pGender">
+				id="pGender"
+				 class="form-control">
 				<option value="">==請選擇==</option>	
 			</select>
  		</div>
  	</div>
- 	<div class="control-group">
- 		<div class="controls">
-
- 			<label class="control-label" for="pBirthdayStart">
- 				出生年月日
- 			</label>
-				<input 
+ 	<div class="form-group">
+ 		<label class="col-sm-2 control-label" for="pBirthdayStart">
+ 			出生起迄日
+		</label>
+		<div class="col-sm-3">
+			<p class="input-group">
+					<input 
 					type="text" 
 					ng-model="mainCtrl.conditionConfig.conds.condition_pBirthdayStart"
 					datepicker-popup="yyyy-MM-dd"
 					is-open="pBirthdayStart"
 					readonly="readonly"
-					id="pBirthdayStart">
-				<span>
+					id="pBirthdayStart"
+					class="form-control">
+				<span class="input-group-btn">
                 	<button type="button" class="btn btn-default" ng-click="mainCtrl.openCalendar($event, 'pBirthdayStart')"><i class="glyphicon glyphicon-calendar"></i></button>
             	</span>
-            	~
-            	<input 
-					type="text" 
+			</p>
+		</div>
+		<div class="col-sm-3">
+        	<p class="input-group">
+            	<input type="text" 
 					ng-model="mainCtrl.conditionConfig.conds.condition_pBirthdayEnd"
 					datepicker-popup="yyyy-MM-dd"
 					is-open="pBirthdayEnd"
 					readonly="readonly"
-					id="pBirthdayEnd">
-				<span>
-                	<button type="button" class="btn btn-default" ng-click="mainCtrl.openCalendar($event, 'pBirthdayEnd')"><i class="glyphicon glyphicon-calendar"></i></button>
+					id="pBirthdayEnd"
+					class="form-control">
+				<span class="input-group-btn">
+					<button type="button" class="btn btn-default" ng-click="mainCtrl.openCalendar($event, 'pBirthdayEnd')"><i class="glyphicon glyphicon-calendar"></i></button>
             	</span>
+			</p>
+		</div>
+ 	</div>
+ 	<div class="form-group">
+ 	 	<label class="col-sm-2 control-label" for="pIdNo" >
+ 			身分證字號
+ 		</label>
+ 		<div class="col-sm-6">
+ 			<input type="text" ng-model="mainCtrl.conditionConfig.conds.condition_pIdNo" id="pIdNo" class="form-control">
  		</div>
  	</div>
- 	 <div class="control-group">
- 		<div class="controls">
- 			<label class="control-label label-important" for="pIdNo" >
- 				身分證字號
- 			</label>
- 			<input type="text" ng-model="mainCtrl.conditionConfig.conds.condition_pIdNo" id="pIdNo">
+ 	<div class="form-group">
+ 		 <label class="col-sm-2 control-label" for="pFbNickname" >
+ 			FB暱稱
+ 		</label>
+ 		<div class="col-sm-6">
+ 			<input type="text" ng-model="mainCtrl.conditionConfig.conds.condition_pFbNickname" id="pFbNickname" class="form-control">
  		</div>
  	</div>
- 	 	 <div class="control-group">
- 		<div class="controls">
- 			<label class="control-label label-important" for="pFbNickname" >
- 				FB暱稱
- 			</label>
- 			<input type="text" ng-model="mainCtrl.conditionConfig.conds.condition_pFbNickname" id="pFbNickname">
+ 	<div class="form-group">
+ 		<label class="col-sm-2 control-label" for="pMobile" >
+ 			電話
+ 		</label>
+ 		<div class="col-sm-6">
+ 			<input type="text" ng-model="mainCtrl.conditionConfig.conds.condition_pMobile" id="pMobile" class="form-control">
  		</div>
  	</div>
- 	<div class="control-group">
- 		<div class="controls">
- 			<label class="control-label label-important" for="pMobile" >
- 				電話
- 			</label>
- 			<input type="text" ng-model="mainCtrl.conditionConfig.conds.condition_pMobile" id="pMobile">
- 		</div>
- 	</div>
- 	<div class="control-group">
- 		<div class="controls">
-			<label class="control-label" for="pImportant">
- 				VIP
- 			</label>
+ 	<div class="form-group">
+ 		<label class="col-sm-2 control-label" for="pImportant">
+ 			VIP
+ 		</label>
+ 		<div class="col-sm-6">
  			<select 
 				ng-model="mainCtrl.conditionConfig.conds.condition_pImportant" 
 				ng-options="v.value as v.label for v in mainCtrl.VIPs"
-				id="pImportant">
+				id="pImportant"
+				class="form-control">
 				<option value="">==請選擇==</option>	
 			</select>
  		</div>
  	</div>
  </form>
  
- <form class="form-inline">
- 	<input type="button" value="查詢" ng-click="mainCtrl.query()" class="btn btn-default"/>
- 	<input type="button" value="清除" ng-click="mainCtrl.clear()" class="btn btn-default"/>
- 	<input type="button" value="刪除" ng-click="mainCtrl.deleteItems()" class="btn btn-default"/>
- 	<input type="button" value="新增" onclick="document.location.href = '${urlPrefix}/add';" class="btn btn-default"/>
- 	<label class="btn btn-default" for="uploadMember">
- 		<input type="file" onchange="angular.element(this).scope().uploadExcel(this.files)" accept=".xlsx" id="uploadMember" style="display:none;"/>
- 		上傳會員檔案
- 	</label>
- </form>	
-		
-		
+ <div class="btn-toolbar" role="toolbar">
+ 	<div class="btn-group" role="group">
+ 		<input type="button" value="查詢" ng-click="mainCtrl.query()" class="btn btn-default"/>
+ 	</div>
+ 	<div class="btn-group" role="group">
+ 		<input type="button" value="清除" ng-click="mainCtrl.clear()" class="btn btn-default"/>
+ 	</div>
+ 	<div class="btn-group" role="group">
+ 		<input type="button" value="刪除" ng-click="mainCtrl.deleteItems()" class="btn btn-default"/>
+ 	</div>
+ 	<div class="btn-group" role="group">
+ 		<input type="button" value="新增" onclick="document.location.href = '${urlPrefix}/add';" class="btn btn-default"/>
+ 	</div>
+ 	<div class="btn-group" role="group">
+		<label class="btn btn-default" for="uploadMember">
+ 			<input type="file" onchange="angular.element(this).scope().uploadExcel(this.files)" accept=".xlsx" id="uploadMember" style="display:none;"/>
+ 			上傳會員檔案
+ 		</label>
+ 	</div>
+ </div>
+
+<div class="table-responsive">		
 <table class="table table-bordered table-hover table-condense">
 	<tr>
 		<td><input type="checkbox" id="allItems" ng-click="mainCtrl.checkOrUncheckAll($event)"></td>
@@ -162,7 +169,8 @@
 		<td>{{result.postalCode}}</td>
 		<td id="{{result.id}}" to-view><span><i class="glyphicon glyphicon-file"></i></span></td>
 	</tr>
-</table>		
+</table>
+</div>		
 		<pagination 
 			total-items="mainCtrl.conditionConfig.pageNavigator.totalCount" 
 			ng-model="mainCtrl.conditionConfig.conds.currentPage" 
@@ -176,6 +184,11 @@
 			boundary-links="true"></pagination>
 	
 </div>
+
+	
+	<script type="text/javascript" src='<c:url value="/jquery/2.1.1/jquery.min.js"/>'></script>
+	<script type="text/javascript" src='<c:url value="/angularjs/1.4.3/angular.js"/>'></script>
+	<script type="text/javascript" src='<c:url value="/angularjs/ui-bootstrap-tpls-0.13.0.min.js"/>'></script>
 <script type="text/javascript">
 	angular.module('angryCatMemberListApp', ['ui.bootstrap'])
 		.factory('AuthInterceptor', ['$q', function($q){
