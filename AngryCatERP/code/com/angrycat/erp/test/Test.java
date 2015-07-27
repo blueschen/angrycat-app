@@ -16,6 +16,7 @@ import org.hibernate.SessionFactory;
 import org.springframework.aop.framework.Advised;
 import org.springframework.aop.support.AopUtils;
 import org.springframework.context.annotation.AnnotationConfigApplicationContext;
+import org.springframework.http.MediaType;
 import org.springframework.orm.hibernate4.LocalSessionFactoryBean;
 
 import com.angrycat.erp.condition.ConditionFactory;
@@ -36,7 +37,8 @@ public class Test {
 //		testInitSessionExecutable();
 //		testStrCaseInsensitive();
 //		testReflectionToStringBuilder();
-		testLog4j();
+//		testLog4j();
+		testMediaType();
 	}
 	
 	public static void executeSession(Consumer<Session> c){
@@ -170,5 +172,9 @@ public class Test {
 	public static void testLog4j(){
 		Logger l = LogManager.getLogger("EventLogger");
 		l.info("feereregeerrer");
+	}
+	
+	public static void testMediaType(){
+		System.out.println(MediaType.MULTIPART_FORM_DATA);
 	}
 }

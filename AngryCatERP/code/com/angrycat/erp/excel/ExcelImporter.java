@@ -31,8 +31,6 @@ import java.util.stream.Collectors;
 
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.exception.ExceptionUtils;
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
 import org.apache.poi.ss.usermodel.Cell;
 import org.apache.poi.ss.usermodel.Row;
 import org.apache.poi.ss.usermodel.Sheet;
@@ -45,13 +43,12 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
 
-import com.angrycat.erp.model.Member;
 import com.angrycat.erp.component.SessionFactoryWrapper;
+import com.angrycat.erp.model.Member;
 
 @Component
 @Scope("prototype")
 public class ExcelImporter {
-	private static final Logger logger = LogManager.getLogger();
 	@Autowired
 	@Qualifier("sessionFactoryWrapper")
 	private SessionFactoryWrapper sfw;
@@ -162,6 +159,7 @@ public class ExcelImporter {
 			tx.rollback();
 			String stackTrace = ExceptionUtils.getStackTrace(e);
 			logWarn.put("errorMsg", stackTrace);
+			System.out.println(stackTrace);
 		}finally{
 			s.close();
 		}
@@ -172,8 +170,8 @@ public class ExcelImporter {
 		String infoTotalCount = "總筆數: " + totalCount;
 		String infoImportCount = "實際匯入筆數: " + (totalCount - msg.size());
 		
-		logger.info(infoTotalCount);
-		logger.info(infoImportCount);
+		System.out.println(infoTotalCount);
+		System.out.println(infoImportCount);
 		
 		String warning = "";
 		String warnAboutIdNoNotExisted = "";
@@ -182,13 +180,13 @@ public class ExcelImporter {
 		List<Integer> idNoNotExisted = findMsgRowNums(msg, IDNO_NOT_EXISTED);
 		if(!idNoNotExisted.isEmpty()){
 			warnAboutIdNoNotExisted = "身分證字號不存在共"+idNoNotExisted.size()+"筆\n行數:" + StringUtils.join(idNoNotExisted, "、");
-			logger.info(warnAboutIdNoNotExisted);
+			System.out.println(warnAboutIdNoNotExisted);
 			warning += (warnAboutIdNoNotExisted + "\n");
 		}
 		List<Integer> idDuplicate = findMsgRowNums(msg, IDNO_DUPLICATE);
 		if(!idDuplicate.isEmpty()){
 			warnAboutIdNoDuplicate = "身分證字號重複共"+idDuplicate.size()+"筆\n行數:" + StringUtils.join(idDuplicate, "、");
-			logger.info(warnAboutIdNoDuplicate);
+			System.out.println(warnAboutIdNoDuplicate);
 			warning += (warnAboutIdNoDuplicate + "\n");
 		}
 		

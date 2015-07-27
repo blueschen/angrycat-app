@@ -18,6 +18,12 @@ public class Member {
 	@Transient
 	public static final int GENDER_FEMALE = 1;
 	
+	/**
+	 * 滿特定金額(???)延續一次VIP優惠，可累加
+	 * VIP折扣優惠一年一次
+	 * 會員優惠只能在生日當月使用，過期無效
+	 * 如果"轉VIP起始日"當年會員生日已過，就從下一年度開始計算
+	 */
 	private String id;
 	private boolean important;
 	private String name;
@@ -25,13 +31,15 @@ public class Member {
 	private String fbNickname;
 	private int gender;
 	private String idNo;
-	private Date birthday;
+	private Date birthday; 
 	private String email;
 	private String mobile;
 	private String postalCode;
 	private String address;
-	private Date toVipDate;
+	private Date toVipDate; // 轉VIP起始日
+	private Date toVipEndDate; // VIP到期日
 	private String note;
+	private Date vipDiscountUseDate; // 如果該年是VIP會員，該年VIP優惠使用時間。因為優惠一年只有一次，這是紀錄會員成為VIP那年是否用掉優惠。
 	
 	@Id
 	@Column(name="id")
@@ -133,5 +141,19 @@ public class Member {
 	}
 	public void setFbNickname(String fbNickname) {
 		this.fbNickname = fbNickname;
+	}
+	@Column(name="vipDiscountUseDate")
+	public Date getVipDiscountUseDate() {
+		return vipDiscountUseDate;
+	}
+	public void setVipDiscountUseDate(Date vipDiscountUseDate) {
+		this.vipDiscountUseDate = vipDiscountUseDate;
+	}
+	@Column(name="toVipEndDate")
+	public Date getToVipEndDate() {
+		return toVipEndDate;
+	}
+	public void setToVipEndDate(Date toVipEndDate) {
+		this.toVipEndDate = toVipEndDate;
 	}
 }

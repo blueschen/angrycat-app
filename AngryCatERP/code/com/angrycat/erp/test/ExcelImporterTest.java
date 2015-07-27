@@ -29,15 +29,20 @@ public class ExcelImporterTest {
 	}
 
 	public static void testImportMember(){
-		String memberSource = "E:\\angrycat_workitem\\member\\OHM Beads TW (AngryCat) 一般會員資料.xlsx";
+		String memberSource = "E:\\angrycat_workitem\\member\\OHMLIY List_20150720.xlsx";
 		String memberSample = "C:\\Users\\JerryLin\\Desktop\\member_sample.xlsx";
 		
-		try(FileInputStream fis = new FileInputStream(memberSample);){
+		try(FileInputStream fis = new FileInputStream(memberSource);){
 		byte[] data = IOUtils.toByteArray(fis);
 
 		AnnotationConfigApplicationContext acac = new AnnotationConfigApplicationContext(RootConfig.class);
 		ExcelImporter ei = acac.getBean(ExcelImporter.class);
 		SessionFactoryWrapper sfw = acac.getBean(SessionFactoryWrapper.class);
+		
+		sfw.executeTransaction(s->{
+			int deleteCount = s.createQuery("DELETE FROM " + Member.class.getName()).executeUpdate();
+			System.out.println("success delete " + deleteCount);
+		});
 			
 		ei.persist(data);
 		

@@ -22,6 +22,7 @@ public class FileDownloadController {
 	
 	private static final int BUFFER_SIZE = 4096;
 	
+	// ref. http://www.codejava.net/frameworks/spring/spring-mvc-sample-application-for-downloading-files
 	@RequestMapping(value="/file", method=RequestMethod.GET)
 	public void downloadFile(
 		HttpServletRequest request,

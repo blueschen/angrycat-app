@@ -80,4 +80,20 @@ public class SessionFactoryWrapper {
 		}
 		return results;
 	}
+	
+	public void executeTransaction(Consumer<Session> c){
+		Session s = null;
+		Transaction tx = null;
+		try{
+			s = openSession();
+			tx = s.beginTransaction();
+			c.accept(s);
+			tx.commit();
+		}catch(Throwable e){
+			tx.rollback();
+			throw new RuntimeException(e);
+		}finally{
+			s.close();
+		}
+	}
 }
