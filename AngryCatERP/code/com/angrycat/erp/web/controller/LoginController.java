@@ -25,7 +25,7 @@ public class LoginController {
 	@Qualifier("crudBaseService")
 	private CrudBaseService<User, User> loginCrudService;
 	
-	@RequestMapping(value="/login", method={RequestMethod.GET})
+	@RequestMapping(value="/login", method={RequestMethod.POST})
 	public String login(
 		@RequestParam("userId")String userId,
 		@RequestParam("password")String password,
