@@ -37,7 +37,7 @@
 			</div>
 		</div>
 		<div class="form-group">
-			<div class="col-sm-6 col-sm-push-2">
+			<div class="col-sm-6 col-sm-offset-2">
 				<button type="submit" class="btn btn-default" ng-disabled="loginForm.$invalid">登入</button>
 			</div>
 		</div>
