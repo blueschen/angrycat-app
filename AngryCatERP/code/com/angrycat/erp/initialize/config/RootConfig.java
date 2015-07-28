@@ -35,7 +35,7 @@ public class RootConfig {
 		}
 	}
 	
-	@Bean
+	@Bean(destroyMethod="close")
 	public DataSource dataSource(){
 		// works!!
 //		DriverManagerDataSource ds = new DriverManagerDataSource();
