@@ -185,8 +185,6 @@
 	
 </div>
 
-	
-	<script type="text/javascript" src='<c:url value="/jquery/2.1.1/jquery.min.js"/>'></script>
 	<script type="text/javascript" src='<c:url value="/angularjs/1.4.3/angular.js"/>'></script>
 	<script type="text/javascript" src='<c:url value="/angularjs/ui-bootstrap-tpls-0.13.0.min.js"/>'></script>
 <script type="text/javascript">
@@ -200,6 +198,10 @@
 					return $q.reject(responseRejection); // make sure to trigger error handler in the next promise
 				}
 			};
+		}])
+		.config(['$httpProvider', function($httpProvider){
+			$httpProvider.defaults.headers.common['X-Requested-With'] = 'XMLHttpRequest'; // to tell server this is a ajax request
+			$httpProvider.interceptors.push('AuthInterceptor');
 		}])
 		.factory('MemberService', ['$http', function($http){
 			var queryAllUrl = '${urlPrefix}/queryAll.json',
@@ -291,10 +293,6 @@
 					headers: {'Content-Type': undefined}
 				});
 			};
-		}])
-		.config(['$httpProvider', function($httpProvider){
-			$httpProvider.defaults.headers.common['X-Requested-With'] = 'XMLHttpRequest'; // to tell server this is a ajax request
-			$httpProvider.interceptors.push('AuthInterceptor');
 		}])
 		.controller('MainCtrl', ['$log', '$scope', 'MemberService', 'FileUploadService', function($log, $scope, MemberService, FileUploadService){
 			
