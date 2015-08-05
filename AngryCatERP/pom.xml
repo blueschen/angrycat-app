@@ -39,7 +39,7 @@
 		<dependency>
 			<groupId>org.mariadb.jdbc</groupId>
 			<artifactId>mariadb-java-client</artifactId>
-			<version>1.1.8</version>
+			<version>1.2.0</version>
 		</dependency>
 
 		<!-- Spring -->
@@ -167,10 +167,16 @@
 			<version>${log4j.version}</version>
 		</dependency>
 		
+		<!-- c3p0 connection pool -->
 		<dependency>
 			<groupId>com.mchange</groupId>
 			<artifactId>c3p0</artifactId>
 			<version>0.9.5.1</version>
+		</dependency>
+		<dependency>
+			<groupId>com.mchange</groupId>
+			<artifactId>mchange-commons-java</artifactId>
+			<version>0.2.10</version>
 		</dependency>
 		
 	</dependencies>

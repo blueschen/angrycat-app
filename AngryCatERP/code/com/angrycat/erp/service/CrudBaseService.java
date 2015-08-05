@@ -8,6 +8,7 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
+import java.util.function.BiFunction;
 import java.util.function.Consumer;
 
 import org.apache.commons.lang3.StringUtils;
@@ -79,6 +80,21 @@ public class CrudBaseService<T, R> extends ConditionalQuery<T> implements CrudSe
 	public void setUser(User user){
 		this.user = user;
 	}
+	
+	@Transactional
+	public <F>F executeScrollableQuery(BiFunction<ScrollableResults, SessionFactoryWrapper, F> executeLogic){
+		Session s = sfw.currentSession();
+		
+		QueryGenerator gen = toQueryGenerator();
+		String hql = gen.toCompleteStr();
+		Map<String, Object> params = gen.getParams();
+		
+		ScrollableResults rs = s.createQuery(hql).setProperties(params).scroll(ScrollMode.FORWARD_ONLY);
+		F target = executeLogic.apply(rs, sfw);
+		
+		return target;
+	}
+	
 	
 	/**
 	 * copy condition configurations, currently there are four types:<br>
@@ -271,7 +287,7 @@ public class CrudBaseService<T, R> extends ConditionalQuery<T> implements CrudSe
 				throw new RuntimeException(e);
 			}finally{
 				r = executeQueryPageable(s);
-				sfw.closeSession(s, tx);
+				s.close();
 			}
 		}
 		return r;

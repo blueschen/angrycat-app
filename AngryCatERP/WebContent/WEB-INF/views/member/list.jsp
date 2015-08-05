@@ -16,6 +16,9 @@
 	<link rel="stylesheet" href='<c:url value="/angularjs/bootstrap/3.1.1/css/bootstrap-theme.css"/>'/>
 	<link rel="stylesheet" href='<c:url value="/angularjs/bootstrap/3.1.1/css/bootstrap-responsive.css"/>'/>
 	
+	<script type="text/javascript" src='<c:url value="/angularjs/1.4.3/angular.min.js"/>'></script>
+	<script type="text/javascript" src='<c:url value="/angularjs/ui-bootstrap-tpls-0.13.0.min.js"/>'></script>
+	
 </head>
 <body ng-controller="MainCtrl as mainCtrl">
   
@@ -185,8 +188,6 @@
 	
 </div>
 
-	<script type="text/javascript" src='<c:url value="/angularjs/1.4.3/angular.js"/>'></script>
-	<script type="text/javascript" src='<c:url value="/angularjs/ui-bootstrap-tpls-0.13.0.min.js"/>'></script>
 <script type="text/javascript">
 	angular.module('angryCatMemberListApp', ['ui.bootstrap'])
 		.factory('AuthInterceptor', ['$q', function($q){

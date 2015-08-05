@@ -58,6 +58,7 @@ public class RootConfig {
 		ds.setJdbcUrl(env.getProperty("jdbc.url"));
 		ds.setUser(env.getProperty("jdbc.username"));
 		ds.setPassword(env.getProperty("jdbc.password"));
+		ds.setInitialPoolSize(5);
 		ds.setMinPoolSize(5);
 		ds.setMaxPoolSize(20);
 		ds.setMaxStatements(50);

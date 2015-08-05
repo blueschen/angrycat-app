@@ -38,7 +38,10 @@ public class Test {
 //		testStrCaseInsensitive();
 //		testReflectionToStringBuilder();
 //		testLog4j();
-		testMediaType();
+//		testMediaType();
+		int i = 0;
+		System.out.println(i++);
+		System.out.println(i++);
 	}
 	
 	public static void executeSession(Consumer<Session> c){

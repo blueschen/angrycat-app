@@ -18,6 +18,9 @@
 <link rel="stylesheet" href='<c:url value="/angularjs/bootstrap/3.1.1/css/bootstrap-theme.css"/>'/>
 <link rel="stylesheet" href='<c:url value="/angularjs/bootstrap/3.1.1/css/bootstrap-responsive.css"/>'/>
 
+<script type="text/javascript" src='<c:url value="/angularjs/1.3.16/angular.min.js"/>'></script>
+<script type="text/javascript" src='<c:url value="/angularjs/ui-bootstrap-tpls-0.13.0.min.js"/>'></script>
+
 </head>
 <body ng-controller="MainCtrl as mainCtrl">
 
@@ -43,10 +46,6 @@
 		</div>
 	</form>
 </div>
-
-<script type="text/javascript" src='<c:url value="/jquery/2.1.1/jquery.min.js"/>'></script>
-<script type="text/javascript" src='<c:url value="/angularjs/1.3.16/angular.js"/>'></script>
-<script type="text/javascript" src='<c:url value="/angularjs/ui-bootstrap-tpls-0.13.0.min.js"/>'></script>
 
 <script type="text/javascript">
 	angular.module('loginApp',['ui.bootstrap'])
