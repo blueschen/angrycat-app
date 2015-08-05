@@ -8,6 +8,7 @@ import java.util.function.Function;
 import org.apache.commons.lang3.StringUtils;
 import org.hibernate.Session;
 import org.hibernate.SessionFactory;
+import org.hibernate.StatelessSession;
 import org.hibernate.Transaction;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -38,6 +39,10 @@ public class SessionFactoryWrapper {
 	
 	public Session openSession(){
 		return getSessionFactory().openSession();
+	}
+	
+	public StatelessSession openStatelessSession(){
+		return getSessionFactory().openStatelessSession();
 	}
 	
 	public void closeSession(Session s, Transaction tx){
