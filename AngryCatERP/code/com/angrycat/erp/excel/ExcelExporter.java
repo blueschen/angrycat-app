@@ -70,8 +70,7 @@ public class ExcelExporter {
 					Cell cell = firstRow.createCell(i);
 					cell.setCellValue(f.getName());
 				}
-				
-				
+								
 				int batchSize = sfw.getBatchSize();
 				Session s = sfw.currentSession();
 				int currentCount = 0;
@@ -90,7 +89,7 @@ public class ExcelExporter {
 				}
 				wb.write(fos);
 				boolean tempDeleted = wb.dispose();
-				System.out.println("temp deleted: " + tempDeleted);
+				System.out.println("SXSSFWorkbook temp " + (tempDeleted ? "" : "NOT") + " deleted");
 			}catch(Throwable t){
 				throw new RuntimeException(t);
 			}			
