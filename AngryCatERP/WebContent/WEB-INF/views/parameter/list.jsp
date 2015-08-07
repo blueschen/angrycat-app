@@ -8,10 +8,10 @@
 <head>
 <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
 <title>eeeee</title>
-<link rel="stylesheet" href='<c:url value="/angularjs/bootstrap/3.1.1/css/bootstrap.css"/>'/>
-<link rel="stylesheet" href='<c:url value="/angularjs/bootstrap/3.1.1/css/bootstrap-theme.css"/>'/>
-<script type="text/javascript" src='<c:url value="/angularjs/1.3.16/angular.js"/>'></script>
-<script type="text/javascript" src='<c:url value="/angularjs/ui-bootstrap-tpls-0.13.0.min.js"/>'></script>
+<link rel="stylesheet" href='<c:url value="/vendor/bootstrap/3.1.1/css/bootstrap.css"/>'/>
+<link rel="stylesheet" href='<c:url value="/vendor/bootstrap/3.1.1/css/bootstrap-theme.css"/>'/>
+<script type="text/javascript" src='<c:url value="/vendor/angularjs/1.4.3/angular.min.js"/>'></script>
+<script type="text/javascript" src='<c:url value="/vendor/angular-bootstrap/ui-bootstrap-tpls-0.13.0.min.js"/>'></script>
 </head>
 <body ng-controller="MainCtrl as mainCtrl">
     

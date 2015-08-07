@@ -12,13 +12,12 @@
 <meta content="width=device-width, initial-scale=1.0" name="viewport">
 <title><s:message code="model.name.${modelName}"/></title>
 
-<script type="text/javascript" src='<c:url value="/jquery/2.1.1/jquery.min.js"/>'></script>
-<script type="text/javascript" src='<c:url value="/angularjs/1.4.3/angular.js"/>'></script>
-<script type="text/javascript" src='<c:url value="/angularjs/ui-bootstrap-tpls-0.13.0.min.js"/>'></script>
+<script type="text/javascript" src='<c:url value="/vendor/angularjs/1.4.3/angular.min.js"/>'></script>
+<script type="text/javascript" src='<c:url value="/vendor/angular-bootstrap/ui-bootstrap-tpls-0.13.0.min.js"/>'></script>
 
-<link rel="stylesheet" href='<c:url value="/angularjs/bootstrap/3.1.1/css/bootstrap.css"/>'/>
-<link rel="stylesheet" href='<c:url value="/angularjs/bootstrap/3.1.1/css/bootstrap-theme.css"/>'/>
-<link rel="stylesheet" href='<c:url value="/angularjs/bootstrap/3.1.1/css/bootstrap-responsive.css"/>'/>
+<link rel="stylesheet" href='<c:url value="/vendor/bootstrap/3.1.1/css/bootstrap.css"/>'/>
+<link rel="stylesheet" href='<c:url value="/vendor/bootstrap/3.1.1/css/bootstrap-theme.css"/>'/>
+<link rel="stylesheet" href='<c:url value="/vendor/bootstrap/3.1.1/css/bootstrap-responsive.css"/>'/>
 
 </head>
 <body ng-controller="MainCtrl as mainCtrl">

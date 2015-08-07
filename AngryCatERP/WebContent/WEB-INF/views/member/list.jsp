@@ -12,12 +12,20 @@
 	<meta content="width=device-width, initial-scale=1.0" name="viewport">
 	<title><s:message code="model.name.member"/></title>
 	
-	<link rel="stylesheet" href='<c:url value="/angularjs/bootstrap/3.1.1/css/bootstrap.css"/>'/>
-	<link rel="stylesheet" href='<c:url value="/angularjs/bootstrap/3.1.1/css/bootstrap-theme.css"/>'/>
-	<link rel="stylesheet" href='<c:url value="/angularjs/bootstrap/3.1.1/css/bootstrap-responsive.css"/>'/>
+	<link rel="stylesheet" href='<c:url value="/vendor/bootstrap/3.1.1/css/bootstrap.css"/>'/>
+	<link rel="stylesheet" href='<c:url value="/vendor/bootstrap/3.1.1/css/bootstrap-theme.css"/>'/>
+	<link rel="stylesheet" href='<c:url value="/vendor/bootstrap/3.1.1/css/bootstrap-responsive.css"/>'/>
+	<link rel="stylesheet" href='<c:url value="/common/spinner/spinner.css"/>'/>
 	
-	<script type="text/javascript" src='<c:url value="/angularjs/1.4.3/angular.min.js"/>'></script>
-	<script type="text/javascript" src='<c:url value="/angularjs/ui-bootstrap-tpls-0.13.0.min.js"/>'></script>
+	<script type="text/javascript">
+		<%@ include file="/vendor/angularjs/1.4.3/angular.min.js" %>
+		<%@ include file="/vendor/angular-bootstrap/ui-bootstrap-tpls-0.13.0.min.js" %>
+		<%@ include file="/common/datepicker/datepicker-service.js" %>
+		<%@ include file="/common/datepicker/datepicker-directive.js" %>
+		<%@ include file="/common/spinner/spinner-service.js" %>
+		<%@ include file="/common/fileupload/fileupload-service.js" %>
+		<%@ include file="/common/fileupload/fileupload-ajax-directive.js" %>
+	</script>
 	
 </head>
 <body ng-controller="MainCtrl as mainCtrl">
@@ -56,33 +64,18 @@
  			出生起迄日
 		</label>
 		<div class="col-sm-3">
-			<p class="input-group">
-					<input 
-					type="text" 
-					ng-model="mainCtrl.conditionConfig.conds.condition_pBirthdayStart"
-					datepicker-popup="yyyy-MM-dd"
-					is-open="pBirthdayStart"
-					readonly="readonly"
-					id="pBirthdayStart"
-					class="form-control">
-				<span class="input-group-btn">
-                	<button type="button" class="btn btn-default" ng-click="mainCtrl.openCalendar($event, 'pBirthdayStart')"><i class="glyphicon glyphicon-calendar"></i></button>
-            	</span>
-			</p>
+			<datepicker-input 
+				datepicker-id="pBirthdayStart" 
+				erp-model-name="mainCtrl.conditionConfig.conds.condition_pBirthdayStart"
+				format="yyyy-MM-dd">
+			</datepicker-input>
 		</div>
 		<div class="col-sm-3">
-        	<p class="input-group">
-            	<input type="text" 
-					ng-model="mainCtrl.conditionConfig.conds.condition_pBirthdayEnd"
-					datepicker-popup="yyyy-MM-dd"
-					is-open="pBirthdayEnd"
-					readonly="readonly"
-					id="pBirthdayEnd"
-					class="form-control">
-				<span class="input-group-btn">
-					<button type="button" class="btn btn-default" ng-click="mainCtrl.openCalendar($event, 'pBirthdayEnd')"><i class="glyphicon glyphicon-calendar"></i></button>
-            	</span>
-			</p>
+			<datepicker-input 
+				datepicker-id="pBirthdayEnd" 
+				erp-model-name="mainCtrl.conditionConfig.conds.condition_pBirthdayEnd"
+				format="yyyy-MM-dd">
+			</datepicker-input>
 		</div>
  	</div>
  	<div class="form-group">
@@ -139,10 +132,12 @@
  		<input type="button" value="新增" onclick="document.location.href = '${urlPrefix}/add';" class="btn btn-default"/>
  	</div>
  	<div class="btn-group" role="group">
-		<label class="btn btn-default" for="uploadMember">
- 			<input type="file" onchange="angular.element(this).scope().uploadExcel(this.files)" accept=".xlsx" id="uploadMember" style="display:none;"/>
- 			上傳會員檔案
- 		</label>
+ 		<erp-file-ajax-btn file-id="uploadMember" btn="上傳會員檔案" accept-type=".xlsx" input-name="uploadExcelFile" request-url="${urlPrefix}/uploadExcel">
+			<erp-file-ajax-callback></erp-file-ajax-callback>
+		</erp-file-ajax-btn>
+ 	</div>
+ 	<div class="btn-group" role="group">
+ 		<button ng-click="mainCtrl.copyCondition()" class="btn btn-default">下載會員檔案</button>
  	</div>
  </div>
 
@@ -189,7 +184,7 @@
 </div>
 
 <script type="text/javascript">
-	angular.module('angryCatMemberListApp', ['ui.bootstrap'])
+	angular.module('angryCatMemberListApp', ['ui.bootstrap','erp.datepicker.service', 'erp.datepicker.directive', 'erp.fileupload.ajax.directive'])
 		.factory('AuthInterceptor', ['$q', function($q){
 			return {
 				responseError: function(responseRejection){
@@ -208,6 +203,8 @@
 			var queryAllUrl = '${urlPrefix}/queryAll.json',
 				queryByCondsUrl = '${urlPrefix}/queryCondtional.json',
 				deleteItemsUrl = '${urlPrefix}/deleteItems.json',
+				copyConditionUrl = '${urlPrefix}/copyCondition.json',
+				downloadExcelUrl = '${urlPrefix}/downloadExcel.json',
 				idCheckName = 'ids',
 				getCheckedItems = function(){
 					var ids = document.getElementsByName(idCheckName),
@@ -258,6 +255,10 @@
 				deleteItems: function(checkedItems){
 					return $http.post(deleteItemsUrl, checkedItems);
 				},
+				copyCondition: function(conds){
+					var promise = $http.post(copyConditionUrl, conds);
+					return promise;
+				},
 				checkOrUncheckAll: function($event){
 					var isChecked = $event.target.checked,
 						ids = document.getElementsByName(idCheckName);
@@ -272,31 +273,10 @@
 							}
 						}
 					}
-				},
-				openCalendar: function($event, opened, $scope){
-				    $event.preventDefault();
-				    $event.stopPropagation();
-				    
-				    $scope[opened] = true;
-				}
-				
-				
+				}				
 			};
 		}])
-		.service('FileUploadService', ['$http', function($http){
-			this.uploadExcel = function(file){
-				var uploadUrl = '${urlPrefix}/uploadExcel';
-				var fd = new FormData(); // FormData just support IE 10+
-				fd.append('uploadExcelFile', file);
-				
-				return $http.post(uploadUrl, fd, {
-					transformRequest: angular.identity,
-					headers: {'Content-Type': undefined}
-				});
-			};
-		}])
-		.controller('MainCtrl', ['$log', '$scope', 'MemberService', 'FileUploadService', function($log, $scope, MemberService, FileUploadService){
-			
+		.controller('MainCtrl', ['$log', '$scope', 'MemberService', '$window', function($log, $scope, MemberService, $window){			
 			var self = this;
 				
 			self.genders = [{label: '男', value: 0}, {label: '女', value: 1}];
@@ -339,39 +319,15 @@
 					$log.log('failed!!!!!' + JSON.stringify(errResponse));
 				});
 			};
+			self.copyCondition = function(){
+				MemberService.copyCondition(self.conditionConfig)
+					.then(function(){
+						$window.location.href = '${urlPrefix}/downloadExcel';
+					});
+			};
 			self.checkOrUncheckAll = function($event){
 				MemberService.checkOrUncheckAll($event);
 			};
-			// date related
-			self.openCalendar = function($event, opened){
-				MemberService.openCalendar($event, opened, $scope);
-			};
-			$scope.uploadExcel = function(files){
-				FileUploadService.uploadExcel(files[0])
-				.then(function(response){
-					self.conditionConfig = response.data;
-					var msgs = self.conditionConfig.msgs;
-					if(msgs){
-						var msg = '';
-						if(msgs.errorMsg){
-							msg = msgs.errorMsg;
-						}
-						if(msgs.warnMsg){
-							msg = msgs.warnMsg;
-						}
-						if(msgs.infoMsg){
-							msg = msgs.infoMsg;
-						}
-						if(msg){
-							if(confirm('是否顯示匯入訊息')){
-								alert(msg);
-							}
-						}
-					}
-				},function(errResponse){
-					$log.log('upload failed: ' + JSON.stringify(errResponse));
-				});
-			}
 		}])
 		.filter('convertGender', [function(){
 			return function(input){
@@ -383,33 +339,46 @@
 				return input?'是':'否';
 			}
 		}])
-		.directive('datepickerPopup', [function () {
-  			function link(scope, element, attrs, ngModel) {
-    			// View -> Model
-    			ngModel.$parsers.push(function (value) {
-    				if(!value){
-    					return null;
-    				}
-    				var d = new Date(Date.parse(value)),
-    					year = d.getFullYear(),
-    					month = (d.getMonth()+1),
-    					date = d.getDate(),
-    					time = year + '-' + (month > 9 ? month : ('0' + month)) + '-' + (date > 9 ? date : ('0' + date));
-      				return time;
-    			});
-    		}
-  			return {
-    			restrict: 'A',
-    			require: 'ngModel',
-    			link: link
-  			};
-		}])
 		.directive('toView', [function(){
 			return function(scope, ele){
 				ele.bind('click', function(){
 					var id = ele[0].getAttribute('id');
 					document.location.href = '${urlPrefix}/view/' + id;
 				});
+			};
+		}])
+		.directive('erpFileAjaxCallback', ['$log', function($log){
+			return {
+				restrict: 'E',
+				link: function(scope, element, attrs){
+					var ck = scope.fileChangeCtrl.callback;
+					if(ck){
+						ck.success = function(response){
+							if(scope.mainCtrl){
+								scope.mainCtrl.conditionConfig = response.data;
+								var msgs = scope.mainCtrl.conditionConfig.msgs;
+								if(msgs){
+									var msg = '';
+									if(msgs.errorMsg){
+										msg = msgs.errorMsg;
+									}
+									if(msgs.warnMsg){
+										msg = msgs.warnMsg;
+									}
+									if(msgs.infoMsg){
+										msg = msgs.infoMsg;
+									}
+									if(msg){
+										if(confirm('是否顯示匯入訊息')){
+											alert(msg);
+										}
+									}
+								}
+							}
+						};
+						ck.fail = function(errResponse){$log.log('upload failed: ' + JSON.stringify(errResponse));};
+					}
+				}
 			};
 		}]);
 </script>
