@@ -1,10 +1,17 @@
 package com.angrycat.erp.web.controller;
 
+import java.io.File;
+import java.io.FileInputStream;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 
 import javax.annotation.PostConstruct;
+import javax.servlet.ServletOutputStream;
+import javax.servlet.http.HttpServletResponse;
 
+import org.apache.commons.io.FileUtils;
+import org.apache.poi.util.IOUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Scope;
@@ -22,6 +29,7 @@ import org.springframework.web.bind.annotation.ResponseStatus;
 import com.angrycat.erp.common.CommonUtil;
 import com.angrycat.erp.condition.ConditionFactory;
 import com.angrycat.erp.condition.MatchMode;
+import com.angrycat.erp.excel.ExcelExporter;
 import com.angrycat.erp.excel.ExcelImporter;
 import com.angrycat.erp.model.Member;
 import com.angrycat.erp.service.CrudBaseService;
@@ -38,6 +46,9 @@ public class MemberController {
 	
 	@Autowired
 	private ExcelImporter excelImporter;
+	
+	@Autowired
+	private ExcelExporter excelExporter;
 	
 	@PostConstruct
 	public void init(){
@@ -120,6 +131,38 @@ public class MemberController {
 		cc.getMsgs().clear();
 		cc.getMsgs().putAll(msg);
 		return cc;
+	}
+	
+	
+	@RequestMapping(value="/copyCondition", method=RequestMethod.POST, produces={"application/xml", "application/json"})
+	public @ResponseBody Map<String, String> copyCondition(@RequestBody ConditionConfig<Member> conditionConfig){
+		memberCrudService.copyConditionConfig(conditionConfig);
+		return Collections.emptyMap();
+	}
+	
+	@RequestMapping(value="/downloadExcel", method={RequestMethod.POST, RequestMethod.GET})
+	public void downloadExcel(HttpServletResponse response){
+		File tempFile = excelExporter.execute(memberCrudService);
+		
+		try(FileInputStream fis = new FileInputStream(tempFile);){
+			
+			response.setContentType("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet");
+			response.setHeader("Pragma", "");
+			response.setHeader("cache-control", "");
+			response.setHeader("Content-Disposition", "attachment; filename=member.xlsx");
+			
+			ServletOutputStream sos = response.getOutputStream();
+			IOUtils.copy(fis, sos);
+			sos.close();
+		}catch(Throwable t){
+			throw new RuntimeException(t);
+		}finally{
+			try{
+				FileUtils.forceDelete(tempFile);
+			}catch(Throwable t){
+				throw new RuntimeException(t);
+			}
+		}
 	}
 	
 }
