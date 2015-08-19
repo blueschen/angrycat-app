@@ -10,6 +10,5 @@ public interface CrudService<T, R> extends QueryExecutable<T> {
 	public ConditionConfig<T> getConditionConfig();
 	public void copyConditionConfig(ConditionConfig<T> conditionConfig);
 	public ConditionConfig<T> executeQueryPageable(ConditionConfig<T> conditionConfig);
-	public R saveOrMerge(Object...obj);
 	public T findById(String id);
 }

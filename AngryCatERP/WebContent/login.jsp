@@ -21,27 +21,32 @@
 <link rel="stylesheet" href='<c:url value="/vendor/bootstrap/3.1.1/css/bootstrap-theme.css"/>'/>
 <link rel="stylesheet" href='<c:url value="/vendor/bootstrap/3.1.1/css/bootstrap-responsive.css"/>'/>
 
+<style type="text/css">
+	.align-middle{
+		margin-top:10%;
+	}
+</style>
 
 </head>
 <body ng-controller="MainCtrl as mainCtrl">
 
-<div class="container">
+<div class="container align-middle">
 	<alert ng-repeat="alert in alerts" type="{{alert.type}}" close="closeAlert($index)">{{alert.msg}}</alert>
 	<form class="form-horizontal" name="loginForm" action="${actionUrl}" method="POST">
 		<div class="form-group">
-			<label class="control-label col-sm-2" for="userId">帳號</label>
-			<div class="col-sm-6">
+			<label class="control-label col-sm-2 col-sm-offset-2" for="userId">帳號</label>
+			<div class="col-sm-4">
 				<input type="text" id="userId" ng-model="mainCtrl.user.userId" name="userId" required autofocus class="form-control" placeholder="帳號"/>
 			</div>
 		</div>
 		<div class="form-group">
-			<label class="control-label col-sm-2" for="password">密碼</label>
-			<div class="col-sm-6">
+			<label class="control-label col-sm-2 col-sm-offset-2" for="password">密碼</label>
+			<div class="col-sm-4">
 				<input type="password" id="password" ng-model="mainCtrl.user.password" name="password" required class="form-control" placeholder="密碼"/>
 			</div>
 		</div>
 		<div class="form-group">
-			<div class="col-sm-6 col-sm-offset-2">
+			<div class="col-sm-4 col-sm-offset-4">
 				<button type="submit" class="btn btn-default" ng-disabled="loginForm.$invalid">登入</button>
 			</div>
 		</div>

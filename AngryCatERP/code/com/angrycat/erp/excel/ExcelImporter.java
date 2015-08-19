@@ -1,17 +1,6 @@
 package com.angrycat.erp.excel;
 
-import static com.angrycat.erp.excel.ExcelColumn.Member.Facebook_姓名;
-import static com.angrycat.erp.excel.ExcelColumn.Member.Ohmliy_VIP;
-import static com.angrycat.erp.excel.ExcelColumn.Member.備註;
-import static com.angrycat.erp.excel.ExcelColumn.Member.出生年月日;
-import static com.angrycat.erp.excel.ExcelColumn.Member.地址;
-import static com.angrycat.erp.excel.ExcelColumn.Member.性別;
-import static com.angrycat.erp.excel.ExcelColumn.Member.真實姓名;
-import static com.angrycat.erp.excel.ExcelColumn.Member.聯絡電話;
-import static com.angrycat.erp.excel.ExcelColumn.Member.身份證字號;
-import static com.angrycat.erp.excel.ExcelColumn.Member.轉VIP日期;
-import static com.angrycat.erp.excel.ExcelColumn.Member.郵遞區號;
-import static com.angrycat.erp.excel.ExcelColumn.Member.電子信箱;
+import static com.angrycat.erp.excel.ExcelColumn.Member.*;
 
 import java.io.ByteArrayInputStream;
 import java.io.FileInputStream;
@@ -43,6 +32,8 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
 
+import com.angrycat.erp.businessrule.MemberVipDiscount;
+import com.angrycat.erp.businessrule.VipDiscountUseStatus;
 import com.angrycat.erp.component.SessionFactoryWrapper;
 import com.angrycat.erp.model.Member;
 
@@ -53,7 +44,9 @@ public class ExcelImporter {
 	@Qualifier("sessionFactoryWrapper")
 	private SessionFactoryWrapper sfw;
 	
-	
+	@Autowired
+	private MemberVipDiscount discount;
+		
 	public static void main(String[]args){
 		readAndWrite("C:\\angrycat_workitem\\OHM Beads TW (AngryCat) 一般會員資料.xlsx", "C:\\angrycat_workitem\\test.xlsx");
 	}
@@ -81,6 +74,7 @@ public class ExcelImporter {
 		
 		String IDNO_NOT_EXISTED = "idNoNotExisted";
 		String IDNO_DUPLICATE = "idNoDuplicate";
+		int VIP_MAX_YEAR = 2;
 		
 		Map<String, Integer> msg = new LinkedHashMap<>();
 		Map<String, String> logWarn = new HashMap<>();
@@ -118,6 +112,7 @@ public class ExcelImporter {
 				String address		= parseStrVal(row, 地址);
 				Date toVipDate		= parseSqlDateVal(row, 轉VIP日期);
 				String note			= parseStrVal(row, 備註);
+				String vipYear		= parseNumericOrStr(row, VIP延續);
 				
 				if(StringUtils.isBlank(idNo)){
 					msg.put(IDNO_NOT_EXISTED+rowNum, rowNum);
@@ -144,10 +139,27 @@ public class ExcelImporter {
 				m.setAddress(address);
 				m.setToVipDate(toVipDate);
 				m.setNote(note);
+								
+				s.save(m);
+				
+				if(m.getBirthday()!=null && m.getToVipDate()!=null){
+					int vipEffectiveYearCount = 0;
+					if(StringUtils.isBlank(vipYear)){
+						vipEffectiveYearCount = 1;
+					}else{
+						vipEffectiveYearCount = Integer.parseInt(vipYear);
+						if(vipEffectiveYearCount > VIP_MAX_YEAR){
+							vipEffectiveYearCount = VIP_MAX_YEAR;
+						}
+					}
+					m.setVipEffectiveYearCount(vipEffectiveYearCount);
+					discount.applyRule(m);
+					m.setImportant(true);
+				}
 				
 				s.save(m);
 				
-				if(++insertCount % 100 == batchSize){
+				if(++insertCount % batchSize == 0){
 					s.flush();
 					s.clear();
 				}

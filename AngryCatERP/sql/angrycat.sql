@@ -57,11 +57,12 @@ CREATE TABLE `member` (
   `email` varchar(100) COLLATE utf8_bin DEFAULT NULL,
   `tel` varchar(45) COLLATE utf8_bin DEFAULT NULL COMMENT '電話',
   `mobile` varchar(45) COLLATE utf8_bin DEFAULT NULL COMMENT '行動電話',
-  `postalCode` varchar(10) COLLATE utf8_bin DEFAULT NULL COMMENT '郵遞區號',
+  `postalCode` varchar(100) COLLATE utf8_bin DEFAULT NULL COMMENT '郵遞區號',
   `address` varchar(200) COLLATE utf8_bin DEFAULT NULL COMMENT '地址',
   `toVipDate` datetime DEFAULT NULL COMMENT '轉VIP日期',
   `note` varchar(45) COLLATE utf8_bin DEFAULT NULL COMMENT '備註',
   `fbNickname` varchar(200) COLLATE utf8_bin DEFAULT NULL COMMENT 'FB暱稱',
+  `toVipEndDate` datetime DEFAULT NULL COMMENT 'VIP到期日',
   PRIMARY KEY (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_bin COMMENT='OHM Beads TW (AngryCat) 一般會員資料';
 /*!40101 SET character_set_client = @saved_cs_client */;
@@ -74,6 +75,22 @@ LOCK TABLES `member` WRITE;
 /*!40000 ALTER TABLE `member` DISABLE KEYS */;
 /*!40000 ALTER TABLE `member` ENABLE KEYS */;
 UNLOCK TABLES;
+
+
+DROP TABLE IF EXISTS `vipdiscountdetail`;
+
+CREATE TABLE `vipdiscountdetail` (
+  `id` varchar(100) COLLATE utf8_bin NOT NULL COMMENT '資料表識別號',
+  `memberId` varchar(100) COLLATE utf8_bin NOT NULL COMMENT '對應會員主表關聯號',
+  `memberIdNo` varchar(100) COLLATE utf8_bin DEFAULT NULL COMMENT '會員編號(身分證字號)',
+  `effectiveStart` datetime NOT NULL COMMENT '會員有效期起日',
+  `effectiveEnd` datetime NOT NULL COMMENT '會員有效期迄日',
+  `discountUseDate` datetime DEFAULT NULL COMMENT '使用會員折扣日期',
+  `toVipDate` datetime DEFAULT NULL COMMENT '會員資格建立日(轉VIP日)',
+  PRIMARY KEY (`id`),
+  KEY `fk_memberId` (`memberId`),
+  CONSTRAINT `fk_memberId` FOREIGN KEY (`memberId`) REFERENCES `member` (`id`) ON DELETE CASCADE ON UPDATE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_bin;
 
 --
 -- Table structure for table `shr_allgroup`

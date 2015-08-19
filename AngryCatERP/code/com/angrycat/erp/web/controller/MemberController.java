@@ -11,6 +11,9 @@ import javax.servlet.ServletOutputStream;
 import javax.servlet.http.HttpServletResponse;
 
 import org.apache.commons.io.FileUtils;
+import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.builder.ReflectionToStringBuilder;
+import org.apache.commons.lang3.builder.ToStringStyle;
 import org.apache.poi.util.IOUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -26,6 +29,8 @@ import org.springframework.web.bind.annotation.RequestPart;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.ResponseStatus;
 
+import com.angrycat.erp.businessrule.MemberVipDiscount;
+import com.angrycat.erp.businessrule.VipDiscountUseStatus;
 import com.angrycat.erp.common.CommonUtil;
 import com.angrycat.erp.condition.ConditionFactory;
 import com.angrycat.erp.condition.MatchMode;
@@ -33,6 +38,7 @@ import com.angrycat.erp.excel.ExcelExporter;
 import com.angrycat.erp.excel.ExcelImporter;
 import com.angrycat.erp.model.Member;
 import com.angrycat.erp.service.CrudBaseService;
+import com.angrycat.erp.service.MergeBaseService;
 import com.angrycat.erp.web.WebUtils;
 import com.angrycat.erp.web.component.ConditionConfig;
 
@@ -45,10 +51,18 @@ public class MemberController {
 	private CrudBaseService<Member, Member> memberCrudService;
 	
 	@Autowired
+	private MergeBaseService<Member> memberMergeService;
+	
+	@Autowired
 	private ExcelImporter excelImporter;
 	
 	@Autowired
 	private ExcelExporter excelExporter;
+	
+	@Autowired
+	private MemberVipDiscount discount;
+	@Autowired
+	private VipDiscountUseStatus useStatus;
 	
 	@PostConstruct
 	public void init(){
@@ -70,6 +84,7 @@ public class MemberController {
 	
 	@RequestMapping(value="/list", method=RequestMethod.GET)
 	public String list(){
+		System.out.println("list.... ");
 		return "member/list";
 	}
 	
@@ -79,6 +94,7 @@ public class MemberController {
 			headers="Accept=*/*")
 	@ResponseStatus(HttpStatus.OK)
 	public @ResponseBody ConditionConfig<Member> queryAll(){
+		System.out.println("queryAll.... ");
 		ConditionConfig<Member> cc = memberCrudService.executeQueryPageableAndGenCondtitions();
 		return cc;
 	}
@@ -107,6 +123,10 @@ public class MemberController {
 			method=RequestMethod.GET)
 	public String view(@PathVariable("id")String id, Model model){
 		Member member = memberCrudService.findById(id);
+		System.out.println("call view id: " + id);
+		if(member!=null){
+			useStatus.applyRule(member);
+		}
 		String result = CommonUtil.parseToJson(member);
 		model.addAttribute("member", result);
 		return "member/view";
@@ -115,8 +135,9 @@ public class MemberController {
 			method=RequestMethod.POST,
 			produces={"application/xml", "application/json"},
 			headers="Accept=*/*")
-	public @ResponseBody Member saveOrMerge(@RequestBody Member member){
-		return memberCrudService.saveOrMerge(member);
+	public @ResponseBody Member saveOrMerge(@RequestBody Member member){	
+		Member m = memberMergeService.saveOrUpdate(member);
+		return m;
 	}
 	
 	@RequestMapping(
@@ -163,6 +184,13 @@ public class MemberController {
 				throw new RuntimeException(t);
 			}
 		}
+	}
+	
+	@RequestMapping(value="/updateMemberDiscount", method=RequestMethod.POST)
+	public @ResponseBody Member updateMemberDiscount(@RequestBody Member member){
+		discount.applyRule(member);
+		useStatus.applyRule(member);
+		return member;
 	}
 	
 }

@@ -52,6 +52,9 @@ public class SecurityFilter implements Filter {
 		allowPathStart.add("/angularjs/");
 		allowPathStart.add("/jquery/");
 		allowPathStart.add("/js/");
+		allowPathStart.add("/vendor/");
+		allowPathStart.add("/common/");
+		allowPathStart.add("/app/");
 		allowPathEqual.add("/login.jsp");
 		allowPathEqual.add("/login");
 	}

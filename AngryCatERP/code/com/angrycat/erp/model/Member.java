@@ -1,11 +1,17 @@
 package com.angrycat.erp.model;
 
 import java.sql.Date;
+import java.util.ArrayList;
+import java.util.List;
 
+import javax.persistence.CascadeType;
 import javax.persistence.Column;
 import javax.persistence.Entity;
+import javax.persistence.FetchType;
 import javax.persistence.GeneratedValue;
 import javax.persistence.Id;
+import javax.persistence.JoinColumn;
+import javax.persistence.OneToMany;
 import javax.persistence.Table;
 import javax.persistence.Transient;
 
@@ -18,12 +24,6 @@ public class Member {
 	@Transient
 	public static final int GENDER_FEMALE = 1;
 	
-	/**
-	 * 滿特定金額(???)延續一次VIP優惠，可累加
-	 * VIP折扣優惠一年一次
-	 * 會員優惠只能在生日當月使用，過期無效
-	 * 如果"轉VIP起始日"當年會員生日已過，就從下一年度開始計算
-	 */
 	private String id;
 	private boolean important;
 	private String name;
@@ -39,7 +39,8 @@ public class Member {
 	private Date toVipDate; // 轉VIP起始日
 	private Date toVipEndDate; // VIP到期日
 	private String note;
-	private Date vipDiscountUseDate; // 如果該年是VIP會員，該年VIP優惠使用時間。因為優惠一年只有一次，這是紀錄會員成為VIP那年是否用掉優惠。
+	private List<VipDiscountDetail> vipDiscountDetails = new ArrayList<>();
+	private int vipEffectiveYearCount;
 	
 	@Id
 	@Column(name="id")
@@ -142,18 +143,32 @@ public class Member {
 	public void setFbNickname(String fbNickname) {
 		this.fbNickname = fbNickname;
 	}
-	@Column(name="vipDiscountUseDate")
-	public Date getVipDiscountUseDate() {
-		return vipDiscountUseDate;
-	}
-	public void setVipDiscountUseDate(Date vipDiscountUseDate) {
-		this.vipDiscountUseDate = vipDiscountUseDate;
-	}
 	@Column(name="toVipEndDate")
 	public Date getToVipEndDate() {
 		return toVipEndDate;
 	}
 	public void setToVipEndDate(Date toVipEndDate) {
 		this.toVipEndDate = toVipEndDate;
+	}
+	@OneToMany(fetch=FetchType.EAGER, targetEntity=VipDiscountDetail.class, cascade=CascadeType.ALL, mappedBy="memberId")
+	public List<VipDiscountDetail> getVipDiscountDetails() {
+		return vipDiscountDetails;
+	}
+	public void setVipDiscountDetails(List<VipDiscountDetail> vipDiscountDetails) {
+		this.vipDiscountDetails = vipDiscountDetails;
+	}
+	@Transient
+	public int getVipEffectiveYearCount() {
+		if(vipEffectiveYearCount == 0 && vipDiscountDetails.size() > 0){
+			vipEffectiveYearCount 
+				= (int)vipDiscountDetails
+				.stream()
+				.filter(d->{return d.getToVipDate().equals(toVipDate);})// vip起日一致，才代表同一批折扣紀錄
+				.count();
+		}
+		return vipEffectiveYearCount;
+	}
+	public void setVipEffectiveYearCount(int vipEffectiveYearCount) {
+		this.vipEffectiveYearCount = vipEffectiveYearCount;
 	}
 }

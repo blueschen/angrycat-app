@@ -19,6 +19,7 @@ public class ExcelColumn {
 		public static final int 郵遞區號			= index++;
 		public static final int 地址				= index++;		
 		public static final int 備註				= index++;
+		public static final int VIP延續			= index++;
 		
 		public static final int COLUMN_COUNT	= index;
 		

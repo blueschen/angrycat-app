@@ -1,7 +1,4 @@
-/**
- * 
- */
-(function(){
+(function(){'use strict';
 	angular.module('erp.ajax.service', [])
 		.factory('AjaxService', ['$http', function($http){
 			return {
@@ -13,5 +10,5 @@
 				}
 			};
 		}]);
-})()
+})();
 	

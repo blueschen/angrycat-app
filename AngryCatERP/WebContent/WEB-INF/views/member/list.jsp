@@ -20,6 +20,7 @@
 	<script type="text/javascript">
 		<%@ include file="/vendor/angularjs/1.4.3/angular.min.js" %>
 		<%@ include file="/vendor/angular-bootstrap/ui-bootstrap-tpls-0.13.0.min.js" %>
+		<%@ include file="/common/date/date-service.js" %>
 		<%@ include file="/common/datepicker/datepicker-service.js" %>
 		<%@ include file="/common/datepicker/datepicker-directive.js" %>
 		<%@ include file="/common/spinner/spinner-service.js" %>
@@ -165,7 +166,7 @@
 		<td>{{result.important | convertBoolean}}</td>
 		<td>{{result.toVipDate}}</td>
 		<td>{{result.postalCode}}</td>
-		<td id="{{result.id}}" to-view><span><i class="glyphicon glyphicon-file"></i></span></td>
+		<td to-view="{{result.id}}"><span><i class="glyphicon glyphicon-file"></i></span></td>
 	</tr>
 </table>
 </div>		
@@ -340,10 +341,9 @@
 			}
 		}])
 		.directive('toView', [function(){
-			return function(scope, ele){
+			return function(scope, ele, attrs){
 				ele.bind('click', function(){
-					var id = ele[0].getAttribute('id');
-					document.location.href = '${urlPrefix}/view/' + id;
+					document.location.href = '${urlPrefix}/view/' + attrs.toView;
 				});
 			};
 		}])

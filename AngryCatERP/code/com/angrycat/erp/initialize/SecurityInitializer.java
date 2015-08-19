@@ -13,7 +13,6 @@ public class SecurityInitializer implements WebApplicationInitializer {
 		FilterRegistration.Dynamic securityFilter = 
 			servletContext.addFilter("securityFilter", SecurityFilter.class);
 		securityFilter.addMappingForUrlPatterns(null, false, "/*");
-		System.out.println("SecurityInitializer entering");
 	}
 
 }

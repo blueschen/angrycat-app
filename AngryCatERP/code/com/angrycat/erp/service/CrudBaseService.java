@@ -10,6 +10,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.function.BiFunction;
 import java.util.function.Consumer;
+import java.util.function.Function;
 
 import org.apache.commons.lang3.StringUtils;
 import org.hibernate.ScrollMode;
@@ -107,7 +108,6 @@ public class CrudBaseService<T, R> extends ConditionalQuery<T> implements CrudSe
 	public void copyConditionConfig(ConditionConfig<T> conditionConfig) {
 
 		Map<String, Object> conds = conditionConfig.getConds();
-		System.out.println("copyConditionConfig: ");
 		conds.forEach((k,v)->{
 			// simpleExpression
 			if(k.startsWith(SIMPLE_EXPRESSION_PREFIEX)){
@@ -204,7 +204,6 @@ public class CrudBaseService<T, R> extends ConditionalQuery<T> implements CrudSe
 					result = new Timestamp(timeFormatFS.parse(str).getTime());
 				}else if(clz == Boolean.class){
 					result = Boolean.parseBoolean(str);
-					System.out.println("Boolean val: " + str);
 				}
 			}	
 		}catch(Throwable e){
@@ -292,22 +291,6 @@ public class CrudBaseService<T, R> extends ConditionalQuery<T> implements CrudSe
 		}
 		return r;
 	
-	}
-
-	@Transactional
-	@Override
-	public R saveOrMerge(Object...obj){
-		Session s = sfw.currentSession();
-		R r = null;
-				
-		for(Object o : obj){
-			s.saveOrUpdate(o);
-			s.flush();
-			if(o.getClass() == root){
-				r = (R)o; 
-			}
-		}
-		return r;
 	}
 	
 	@Override

@@ -1,9 +1,6 @@
-/**
- * 
- */
 (function(){'use strict';
-	angular.module('erp.datepicker.directive', ['erp.datepicker.service'])
-		.directive('datepickerPopup', [function(){// to overwrite ui.bootstrap datepicker default return value
+	angular.module('erp.datepicker.directive', ['erp.date.service', 'erp.datepicker.service'])
+		.directive('datepickerPopup', ['DateService', function(DateService){// to overwrite ui.bootstrap datepicker default return value
   			function link(scope, element, attrs, ngModel) {
     			// View -> Model
     			ngModel.$parsers.push(function (value) {
@@ -11,10 +8,8 @@
     					return null;
     				}
     				var d = new Date(Date.parse(value)),
-    					year = d.getFullYear(),
-    					month = (d.getMonth()+1),
-    					date = d.getDate(),
-    					time = year + '-' + (month > 9 ? month : ('0' + month)) + '-' + (date > 9 ? date : ('0' + date));
+    					time = DateService.toDateString(d);
+    				alert('datepickerPopup directive triggered: ' + time);
       				return time;
     			});
     		}

@@ -1,14 +1,19 @@
 package com.angrycat.erp.test;
 
+import java.sql.Date;
 import java.sql.Timestamp;
 import java.util.Iterator;
 import java.util.List;
-import java.util.function.Consumer;
+import java.util.function.BiConsumer;
 
+import org.apache.commons.lang3.builder.ReflectionToStringBuilder;
+import org.apache.commons.lang3.builder.ToStringStyle;
 import org.hibernate.Session;
 import org.springframework.context.annotation.AnnotationConfigApplicationContext;
 import org.springframework.orm.hibernate4.LocalSessionFactoryBean;
 
+import com.angrycat.erp.businessrule.MemberVipDiscount;
+import com.angrycat.erp.businessrule.VipDiscountUseStatus;
 import com.angrycat.erp.component.SessionFactoryWrapper;
 import com.angrycat.erp.initialize.config.RootConfig;
 import com.angrycat.erp.model.DataChangeLog;
@@ -21,6 +26,7 @@ import com.angrycat.erp.security.User;
 import com.angrycat.erp.security.extend.GroupInfo;
 import com.angrycat.erp.security.extend.UserInfo;
 
+
 public class DBTest {
 	
 	public static void main(String[]args){
@@ -29,11 +35,12 @@ public class DBTest {
 //		testRole();
 //		selectTest();
 //		testInsertDataChangeLog();
-		testBatchSize();
+//		testBatchSize();
+		testInsertVipDiscoutnDetails();
 	}
 	
 	public static void selectTest(){
-		executeSession(s->{
+		executeSession((s, acac)->{
 			Long count = (Long)s.createQuery("SELECT COUNT(*) FROM " + Member.class.getName()).uniqueResult();
 			
 			System.out.println("member count: " + count);
@@ -42,7 +49,7 @@ public class DBTest {
 	}
 	
 	public static void insertSecurity(){
-		executeSession(s->{
+		executeSession((s, acac)->{
 			int roleCount = 10;
 			for(int i = 0; i < roleCount; i++){
 				Role role = new Role();
@@ -85,7 +92,7 @@ public class DBTest {
 	}
 	
 	public static void insertSecurityAll(){
-		executeSession(s->{
+		executeSession((s, acac)->{
 			Role role = new Role();
 			role.setName("User");
 			s.save(role);
@@ -199,7 +206,7 @@ public class DBTest {
 	}
 	
 	public static void testRole(){
-		executeSession(s->{
+		executeSession((s, acac)->{
 			Iterator<User> itr = s.createQuery("FROM " + User.class.getName() + " u WHERE u.userId = ?").setString(0, "root").iterate();
 			if(itr.hasNext()){
 				User u = itr.next();
@@ -223,7 +230,7 @@ public class DBTest {
 	
 	
 	public static void testInsertDataChangeLog(){
-		executeSession(s->{
+		executeSession((s, acac)->{
 			
 			for(int i = 0; i < 3; i++){
 				DataChangeLog dcl = new DataChangeLog();
@@ -248,12 +255,12 @@ public class DBTest {
 		});
 	}
 	
-	public static void executeSession(Consumer<Session>c){
+	public static void executeSession(BiConsumer<Session, AnnotationConfigApplicationContext>c){
 		AnnotationConfigApplicationContext acac = new AnnotationConfigApplicationContext(RootConfig.class);
 		Session s = null;
 		try{
 			s = acac.getBean(LocalSessionFactoryBean.class).getObject().openSession();
-			c.accept(s);
+			c.accept(s, acac);
 		}catch(Throwable e){
 			e.printStackTrace();
 		}finally{
@@ -270,5 +277,43 @@ public class DBTest {
 		SessionFactoryWrapper sfw = acac.getBean(SessionFactoryWrapper.class);
 		System.out.println("batch size: " + sfw.getBatchSize());
 		acac.close();
+	}
+	
+	public static void testInsertVipDiscoutnDetails(){
+		executeSession((s, acac)->{
+			List<Member> members = s.createCriteria(Member.class).list();
+			
+			Member m = members.get(0);
+			
+			s.evict(m);
+			
+			m.setToVipDate(new Date(System.currentTimeMillis()));
+			m.setVipEffectiveYearCount(2);
+			
+			MemberVipDiscount mvd = acac.getBean(MemberVipDiscount.class);
+			VipDiscountUseStatus vdus = acac.getBean(VipDiscountUseStatus.class);
+			
+			mvd.applyRule(m);
+			vdus.applyRule(m);
+			
+//			m.getVipDiscountDetails().forEach(d->{
+//				s.saveOrUpdate(d);
+//				s.flush();
+//			});
+			
+			System.out.println(ReflectionToStringBuilder.toString(m, ToStringStyle.MULTI_LINE_STYLE));
+			m.getVipDiscountDetails().stream().forEach(d->{
+				System.out.println(ReflectionToStringBuilder.toString(d, ToStringStyle.MULTI_LINE_STYLE));
+			});
+			
+			s.saveOrUpdate(m);
+			s.flush();
+			s.clear();
+		});
+		
+		
+		
+		
+		
 	}
 }

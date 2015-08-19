@@ -21,7 +21,7 @@ import com.mchange.v2.c3p0.ComboPooledDataSource;
 
 @Configuration
 @PropertySource("classpath:/application.properties")
-@ComponentScan(basePackages={"com.angrycat.erp.service", "com.angrycat.erp.excel", "com.angrycat.erp.ds", "com.angrycat.erp.component"})
+@ComponentScan(basePackages={"com.angrycat.erp.service", "com.angrycat.erp.excel", "com.angrycat.erp.ds", "com.angrycat.erp.component", "com.angrycat.erp.businessrule"})
 @EnableTransactionManagement(proxyTargetClass=true)
 public class RootConfig {
 	@Autowired
