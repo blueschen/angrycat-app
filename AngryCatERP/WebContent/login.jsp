@@ -3,23 +3,24 @@
 <%@ taglib uri="http://java.sun.com/jsp/jstl/core" prefix="c"%>
 <%@ taglib uri="http://www.springframework.org/tags/form" prefix="sf"%>
 <%@ taglib uri="http://www.springframework.org/tags" prefix="s"%>
-
-
-    
-<html ng-app="loginApp">
 <c:set value="login" var="modelName"/>
 <c:set value="${pageContext.request.contextPath}/${modelName}" var="actionUrl"/>
+
+<!DOCTYPE html>   
+<html ng-app="loginApp">
 <head>
-<meta content="width=device-width, initial-scale=1" name="viewport">
+<meta content="width=device-width, initial-scale=1.0" name="viewport">
 <title>登錄頁</title>
 
 
-<link rel="stylesheet" href='<c:url value="/vendor/bootstrap/3.1.1/css/bootstrap.css"/>' media="screen"/>
+<script type="text/javascript" src='<c:url value="/vendor/angularjs/1.4.3/angular.min.js"/>'></script>
+<script type="text/javascript" src='<c:url value="/vendor/angular-bootstrap/ui-bootstrap-tpls-0.13.0.min.js"/>'></script>
+
+
+<link rel="stylesheet" href='<c:url value="/vendor/bootstrap/3.1.1/css/bootstrap.css"/>'/>
 <link rel="stylesheet" href='<c:url value="/vendor/bootstrap/3.1.1/css/bootstrap-theme.css"/>'/>
 <link rel="stylesheet" href='<c:url value="/vendor/bootstrap/3.1.1/css/bootstrap-responsive.css"/>'/>
 
-<script type="text/javascript" src='<c:url value="/vendor/angularjs/1.4.3/angular.min.js"/>'></script>
-<script type="text/javascript" src='<c:url value="/vendor/angular-bootstrap/ui-bootstrap-tpls-0.13.0.min.js"/>'></script>
 
 </head>
 <body ng-controller="MainCtrl as mainCtrl">
