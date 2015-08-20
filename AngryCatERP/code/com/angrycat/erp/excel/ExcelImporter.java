@@ -152,7 +152,7 @@ public class ExcelImporter {
 							vipEffectiveYearCount = VIP_MAX_YEAR;
 						}
 					}
-					m.setVipEffectiveYearCount(vipEffectiveYearCount);
+					discount.setAddCount(vipEffectiveYearCount);
 					discount.applyRule(m);
 					m.setImportant(true);
 				}

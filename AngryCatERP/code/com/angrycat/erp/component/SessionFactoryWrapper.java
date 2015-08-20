@@ -101,4 +101,8 @@ public class SessionFactoryWrapper {
 			s.close();
 		}
 	}
+	
+	public void executeSaveOrUpdate(Consumer<Session> c){
+		executeTransaction(c);
+	}
 }

@@ -3,7 +3,7 @@ package com.angrycat.erp.businessrule;
 import java.io.Serializable;
 import java.sql.Date;
 import java.util.Calendar;
-import java.util.List;
+import java.util.Set;
 
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
@@ -15,10 +15,21 @@ import com.angrycat.erp.model.VipDiscountDetail;
 @Scope("prototype")
 public class VipDiscountUseStatus implements Serializable{
 	private static final long serialVersionUID = 4139654319192465971L;
+	
+	private Date today;
+	public Date getToday(){return this.today;}
+	public void setToday(Date today){this.today = today;}
+	public Date getTodayOrNew(){
+		Date current = today;
+		if(current == null){
+			current = new Date(System.currentTimeMillis());
+		}
+		return current;
+	}
 
 	private void applyRule(VipDiscountDetail d, Date birthday){
 		d.setAvailable(false);
-		Date today = new Date(System.currentTimeMillis());
+		Date today = getTodayOrNew();
 		int birthMonth = getMonth(birthday);
 		
 		if(d.getDiscountUseDate() != null){
@@ -36,7 +47,7 @@ public class VipDiscountUseStatus implements Serializable{
 	}
 	
 	public void applyRule(Member member){
-		List<VipDiscountDetail> details = member.getVipDiscountDetails();
+		Set<VipDiscountDetail> details = member.getVipDiscountDetails();
 		details.forEach(d->{
 			applyRule(d, member.getBirthday());
 		});

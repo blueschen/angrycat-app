@@ -9,7 +9,6 @@
     				}
     				var d = new Date(Date.parse(value)),
     					time = DateService.toDateString(d);
-    				alert('datepickerPopup directive triggered: ' + time);
       				return time;
     			});
     		}

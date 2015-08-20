@@ -283,12 +283,10 @@ public class DBTest {
 		executeSession((s, acac)->{
 			List<Member> members = s.createCriteria(Member.class).list();
 			
-			Member m = members.get(0);
-			
+			Member m = members.get(0);			
 			s.evict(m);
 			
 			m.setToVipDate(new Date(System.currentTimeMillis()));
-			m.setVipEffectiveYearCount(2);
 			
 			MemberVipDiscount mvd = acac.getBean(MemberVipDiscount.class);
 			VipDiscountUseStatus vdus = acac.getBean(VipDiscountUseStatus.class);
@@ -310,10 +308,5 @@ public class DBTest {
 			s.flush();
 			s.clear();
 		});
-		
-		
-		
-		
-		
 	}
 }

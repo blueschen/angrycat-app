@@ -1,8 +1,9 @@
 package com.angrycat.erp.model;
 
 import java.sql.Date;
-import java.util.ArrayList;
+import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Set;
 
 import javax.persistence.CascadeType;
 import javax.persistence.Column;
@@ -10,7 +11,6 @@ import javax.persistence.Entity;
 import javax.persistence.FetchType;
 import javax.persistence.GeneratedValue;
 import javax.persistence.Id;
-import javax.persistence.JoinColumn;
 import javax.persistence.OneToMany;
 import javax.persistence.Table;
 import javax.persistence.Transient;
@@ -39,8 +39,7 @@ public class Member {
 	private Date toVipDate; // 轉VIP起始日
 	private Date toVipEndDate; // VIP到期日
 	private String note;
-	private List<VipDiscountDetail> vipDiscountDetails = new ArrayList<>();
-	private int vipEffectiveYearCount;
+	private Set<VipDiscountDetail> vipDiscountDetails = new LinkedHashSet<>();
 	
 	@Id
 	@Column(name="id")
@@ -150,25 +149,11 @@ public class Member {
 	public void setToVipEndDate(Date toVipEndDate) {
 		this.toVipEndDate = toVipEndDate;
 	}
-	@OneToMany(fetch=FetchType.EAGER, targetEntity=VipDiscountDetail.class, cascade=CascadeType.ALL, mappedBy="memberId")
-	public List<VipDiscountDetail> getVipDiscountDetails() {
+	@OneToMany(fetch=FetchType.EAGER, targetEntity=VipDiscountDetail.class, cascade=CascadeType.ALL, mappedBy="memberId", orphanRemoval=true)
+	public Set<VipDiscountDetail> getVipDiscountDetails() {
 		return vipDiscountDetails;
 	}
-	public void setVipDiscountDetails(List<VipDiscountDetail> vipDiscountDetails) {
+	public void setVipDiscountDetails(Set<VipDiscountDetail> vipDiscountDetails) {
 		this.vipDiscountDetails = vipDiscountDetails;
-	}
-	@Transient
-	public int getVipEffectiveYearCount() {
-		if(vipEffectiveYearCount == 0 && vipDiscountDetails.size() > 0){
-			vipEffectiveYearCount 
-				= (int)vipDiscountDetails
-				.stream()
-				.filter(d->{return d.getToVipDate().equals(toVipDate);})// vip起日一致，才代表同一批折扣紀錄
-				.count();
-		}
-		return vipEffectiveYearCount;
-	}
-	public void setVipEffectiveYearCount(int vipEffectiveYearCount) {
-		this.vipEffectiveYearCount = vipEffectiveYearCount;
 	}
 }

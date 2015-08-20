@@ -200,6 +200,9 @@
 				<label for="discountUseDate{{$index}}">使用日期</label>
 				<input type="text" ng-model="detail.discountUseDate" class="form-control" readonly="readonly" id="discountUseDate{{$index}}"/>
 			</div>
+			<div class="form-group">
+				<button type="button" class="btn btn-default" ng-click="mainCtrl.removeDetail(detail)"><span class="glyphicon glyphicon-remove"></span></button>
+			</div>
 		</form>			
 </div>
 
@@ -242,25 +245,17 @@
 				if(!self.member){
 					self.member = {};
 				}
-				if(!self.member.vipEffectiveYearCount){
-					self.member.vipEffectiveYearCount = 0;
-				}
 				if(addCount >= ADD_COUNT_MAX){
 					alert('單筆消費VIP最大延續'+ADD_COUNT_MAX+'年，已超過上限!!');
 					return;
 				}
-				self.member.vipEffectiveYearCount++;
 				self.updateMemberDiscount(function(){
 					++addCount;
 				});
 			};
 			self.updateMemberDiscount = function(success, fail){
-				if(!self.member || !self.member.birthday || !self.member.toVipDate){
+				if(!self.member || !self.member.birthday){
 					return;
-				}
-				
-				if(!self.member.vipEffectiveYearCount || self.member.vipEffectiveYearCount == 0){
-					self.member.vipEffectiveYearCount = 1;
 				}
 				
 				AjaxService.post(updateMemberDiscountUrl, self.member)
@@ -282,6 +277,10 @@
 				}
 			}
 			self.useOptions = [{label: '可使用', value: '可使用'}, {label: '已用過', value: '已用過'}, {label: '已過期', value: '已過期'}, {label: '尚未到有效期限', value: '尚未到有效期限'}, {label: '尚未到可用期間', value: '尚未到可用期間'}];
+			self.removeDetail = function(detail){
+				var idx = self.member.vipDiscountDetails.indexOf(detail);
+				self.member.vipDiscountDetails.splice(idx, 1);
+			};
 		}])
 		.filter('saveOrModify', [function(){
 			return function(input){

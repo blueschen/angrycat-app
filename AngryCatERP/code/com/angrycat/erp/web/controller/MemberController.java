@@ -3,8 +3,10 @@ package com.angrycat.erp.web.controller;
 import java.io.File;
 import java.io.FileInputStream;
 import java.util.Collections;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import javax.annotation.PostConstruct;
 import javax.servlet.ServletOutputStream;
@@ -12,8 +14,6 @@ import javax.servlet.http.HttpServletResponse;
 
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.StringUtils;
-import org.apache.commons.lang3.builder.ReflectionToStringBuilder;
-import org.apache.commons.lang3.builder.ToStringStyle;
 import org.apache.poi.util.IOUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -32,13 +32,14 @@ import org.springframework.web.bind.annotation.ResponseStatus;
 import com.angrycat.erp.businessrule.MemberVipDiscount;
 import com.angrycat.erp.businessrule.VipDiscountUseStatus;
 import com.angrycat.erp.common.CommonUtil;
+import com.angrycat.erp.component.SessionFactoryWrapper;
 import com.angrycat.erp.condition.ConditionFactory;
 import com.angrycat.erp.condition.MatchMode;
 import com.angrycat.erp.excel.ExcelExporter;
 import com.angrycat.erp.excel.ExcelImporter;
 import com.angrycat.erp.model.Member;
+import com.angrycat.erp.model.VipDiscountDetail;
 import com.angrycat.erp.service.CrudBaseService;
-import com.angrycat.erp.service.MergeBaseService;
 import com.angrycat.erp.web.WebUtils;
 import com.angrycat.erp.web.component.ConditionConfig;
 
@@ -51,7 +52,7 @@ public class MemberController {
 	private CrudBaseService<Member, Member> memberCrudService;
 	
 	@Autowired
-	private MergeBaseService<Member> memberMergeService;
+	private SessionFactoryWrapper sfw;
 	
 	@Autowired
 	private ExcelImporter excelImporter;
@@ -95,7 +96,7 @@ public class MemberController {
 	@ResponseStatus(HttpStatus.OK)
 	public @ResponseBody ConditionConfig<Member> queryAll(){
 		System.out.println("queryAll.... ");
-		ConditionConfig<Member> cc = memberCrudService.executeQueryPageableAndGenCondtitions();
+		ConditionConfig<Member> cc = memberCrudService.genCondtitionsAfterExecuteQueryPageable();
 		return cc;
 	}
 	
@@ -135,9 +136,22 @@ public class MemberController {
 			method=RequestMethod.POST,
 			produces={"application/xml", "application/json"},
 			headers="Accept=*/*")
-	public @ResponseBody Member saveOrMerge(@RequestBody Member member){	
-		Member m = memberMergeService.saveOrUpdate(member);
-		return m;
+	public @ResponseBody Member saveOrMerge(@RequestBody Member member){
+		sfw.executeSaveOrUpdate(s->{
+			if(StringUtils.isBlank(member.getId()) && member.getVipDiscountDetails().size() > 0){
+				Set<VipDiscountDetail> detail = member.getVipDiscountDetails();
+				member.setVipDiscountDetails(new LinkedHashSet<VipDiscountDetail>());
+				s.save(member);
+				s.flush();
+				detail.stream().forEach(d->{
+					d.setMemberId(member.getId());
+				});
+				member.getVipDiscountDetails().addAll(detail);
+			}				
+			s.saveOrUpdate(member);
+			s.flush();
+		});
+		return member;
 	}
 	
 	@RequestMapping(
@@ -148,7 +162,7 @@ public class MemberController {
 	public @ResponseBody ConditionConfig<Member> uploadExcel(
 		@RequestPart("uploadExcelFile") byte[] uploadExcelFile){
 		Map<String, String> msg = excelImporter.persist(uploadExcelFile);
-		ConditionConfig<Member> cc = memberCrudService.executeQueryPageableAndGenCondtitions();
+		ConditionConfig<Member> cc = memberCrudService.genCondtitionsAfterExecuteQueryPageable();
 		cc.getMsgs().clear();
 		cc.getMsgs().putAll(msg);
 		return cc;

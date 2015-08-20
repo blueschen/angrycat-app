@@ -69,6 +69,12 @@ public class CrudBaseService<T, R> extends ConditionalQuery<T> implements CrudSe
 		this.root = root;
 	}
 
+	public void init() {
+		String rootAlias = DEFAULT_ROOT_ALIAS;
+		createFromAlias(root.getName(), rootAlias)
+		.addSelect(rootAlias);
+	}
+	
 	public void setRoot(Class<R> root){
 		this.root = root;
 	}
@@ -83,6 +89,7 @@ public class CrudBaseService<T, R> extends ConditionalQuery<T> implements CrudSe
 	}
 	
 	@Transactional
+	@Override
 	public <F>F executeScrollableQuery(BiFunction<ScrollableResults, SessionFactoryWrapper, F> executeLogic){
 		Session s = sfw.currentSession();
 		
@@ -213,12 +220,6 @@ public class CrudBaseService<T, R> extends ConditionalQuery<T> implements CrudSe
 		
 	}
 	
-	public void init() {
-		String rootAlias = DEFAULT_ROOT_ALIAS;
-		createFromAlias(root.getName(), rootAlias)
-		.addSelect(rootAlias);
-	}
-	
 	@Override
 	public ConditionConfig<T> executeQueryPageableAfterDelete(List<String> ids){
 		List<T> results = executeQueryPageableAfterDelete(null, ids);
@@ -232,10 +233,10 @@ public class CrudBaseService<T, R> extends ConditionalQuery<T> implements CrudSe
 		if(conditionConfig != null){
 			copyConditionConfig(conditionConfig);
 		}
-		return executeQueryPageableAndGenCondtitions();
+		return genCondtitionsAfterExecuteQueryPageable();
 	}
 	
-	public ConditionConfig<T> executeQueryPageableAndGenCondtitions(){
+	public ConditionConfig<T> genCondtitionsAfterExecuteQueryPageable(){
 		List<T> results = executeQueryPageable();
 		ConditionConfig<T> cc = getConditionConfig();
 		cc.setResults(results);
@@ -248,7 +249,7 @@ public class CrudBaseService<T, R> extends ConditionalQuery<T> implements CrudSe
 	 * @param ids
 	 * @return
 	 */
-	public List<T> executeQueryPageableAfterDelete(Consumer<Session> beforeDelete, List<String> ids){
+	protected List<T> executeQueryPageableAfterDelete(Consumer<Session> beforeDelete, List<String> ids){
 
 		Session s = sfw.openSession();
 		List<T> r = Collections.emptyList();
@@ -305,7 +306,7 @@ public class CrudBaseService<T, R> extends ConditionalQuery<T> implements CrudSe
 	private User defaultUserIfNotExisted(){
 		User u = user;
 		if(u == null){
-			String defaultName = "NotProvided";
+			String defaultName = "SomeBody";
 			u = new User();
 			u.setUserId(defaultName);
 			UserInfo info = new UserInfo();
@@ -315,7 +316,7 @@ public class CrudBaseService<T, R> extends ConditionalQuery<T> implements CrudSe
 		return u;
 	}
 	
-	SessionFactoryWrapper getSessionFactoryWrapper(){
+	protected SessionFactoryWrapper getSessionFactoryWrapper(){
 		return sfw;
 	}
 }
