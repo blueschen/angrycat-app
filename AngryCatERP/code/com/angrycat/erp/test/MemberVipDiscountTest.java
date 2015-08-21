@@ -14,7 +14,7 @@ import com.angrycat.erp.service.CrudBaseService;
 
 public class MemberVipDiscountTest extends BaseTest {
 	public static void main(String[]args){
-		testMemberAndDiscountDetailSaveAtTheSameTime();
+		testQueryDetailSort();
 	}
 	// unexpected results!!
 	public static void testQueryMemberVipDiscount(){
@@ -171,6 +171,18 @@ public class MemberVipDiscountTest extends BaseTest {
 			s.flush();
 			
 			
+		});
+	}
+	
+	public static void testQueryDetailSort(){
+		executeSession((s, acac)->{
+			List<Member> members = s.createQuery("SELECT DISTINCT(m) FROM " + Member.class.getName() + " m join m.vipDiscountDetails details WHERE size(details) > 3").list();
+			members.stream().forEach(m->{
+				System.out.println("member id: " + m.getId());
+				m.getVipDiscountDetails().stream().forEach(d->{
+					System.out.println("d id: " + d.getId());
+				});
+			});
 		});
 	}
 }

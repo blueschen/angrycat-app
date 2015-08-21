@@ -2,7 +2,6 @@ package com.angrycat.erp.model;
 
 import java.sql.Date;
 import java.util.LinkedHashSet;
-import java.util.List;
 import java.util.Set;
 
 import javax.persistence.CascadeType;
@@ -12,10 +11,12 @@ import javax.persistence.FetchType;
 import javax.persistence.GeneratedValue;
 import javax.persistence.Id;
 import javax.persistence.OneToMany;
+import javax.persistence.OrderBy;
 import javax.persistence.Table;
 import javax.persistence.Transient;
 
 import org.hibernate.annotations.GenericGenerator;
+
 @Entity
 @Table(name="member")
 public class Member {
@@ -150,6 +151,7 @@ public class Member {
 		this.toVipEndDate = toVipEndDate;
 	}
 	@OneToMany(fetch=FetchType.EAGER, targetEntity=VipDiscountDetail.class, cascade=CascadeType.ALL, mappedBy="memberId", orphanRemoval=true)
+	@OrderBy("id DESC")
 	public Set<VipDiscountDetail> getVipDiscountDetails() {
 		return vipDiscountDetails;
 	}

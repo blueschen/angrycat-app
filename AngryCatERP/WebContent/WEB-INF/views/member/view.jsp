@@ -19,6 +19,8 @@
 	<script type="text/javascript">
 		<%@ include file="/vendor/angularjs/1.4.3/angular.min.js" %>
 		<%@ include file="/vendor/angular-bootstrap/ui-bootstrap-tpls-0.13.0.min.js" %>
+		<%@ include file="/vendor/angular-strap/2.3.1/angular-strap.min.js" %>
+		<%@ include file="/vendor/angular-strap/2.3.1/angular-strap.tpl.min.js" %>
 		<%@ include file="/common/ajax/ajax-service.js" %>
 		<%@ include file="/common/date/date-service.js" %>
 		<%@ include file="/common/datepicker/datepicker-service.js" %>
@@ -200,7 +202,7 @@
 				<label for="discountUseDate{{$index}}">使用日期</label>
 				<input type="text" ng-model="detail.discountUseDate" class="form-control" readonly="readonly" id="discountUseDate{{$index}}"/>
 			</div>
-			<div class="form-group">
+			<div class="form-group" ng-show="mainCtrl.showRemoveBtn(detail)">
 				<button type="button" class="btn btn-default" ng-click="mainCtrl.removeDetail(detail)"><span class="glyphicon glyphicon-remove"></span></button>
 			</div>
 		</form>			
@@ -208,7 +210,7 @@
 
 </div>
 <script type="text/javascript">
-	angular.module('angryCatMemberViewApp', ['ui.bootstrap', 'erp.date.service', 'erp.datepicker.directive', 'erp.ajax.service'])
+	angular.module('angryCatMemberViewApp', ['ui.bootstrap', 'erp.date.service', 'erp.datepicker.directive', 'erp.ajax.service', 'mgcrea.ngStrap'])
 		.controller('MainCtrl', ['$scope', 'DateService', 'AjaxService', function($scope, DateService, AjaxService){
 			var self = this,
 				saveUrl = '${urlPrefix}/save.json',
@@ -255,6 +257,7 @@
 			};
 			self.updateMemberDiscount = function(success, fail){
 				if(!self.member || !self.member.birthday){
+					alert('生日必填');
 					return;
 				}
 				
@@ -281,6 +284,10 @@
 				var idx = self.member.vipDiscountDetails.indexOf(detail);
 				self.member.vipDiscountDetails.splice(idx, 1);
 			};
+			self.showRemoveBtn = function(detail){
+				var idx = self.member.vipDiscountDetails.indexOf(detail);
+				return idx == 0 && !detail.discountUseDate && new Date(detail.effectiveEnd) >= new Date();
+			}
 		}])
 		.filter('saveOrModify', [function(){
 			return function(input){
