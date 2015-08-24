@@ -1,14 +1,20 @@
 package com.angrycat.erp.businessrule;
 
+import static com.angrycat.erp.common.DatetimeUtil.addOneDayToFirstMinute;
+import static com.angrycat.erp.common.DatetimeUtil.addOneYearToLastMinute;
+import static com.angrycat.erp.common.DatetimeUtil.getFirstMinuteOfDay;
+import static com.angrycat.erp.common.DatetimeUtil.getLastDateOfMonth;
+
 import java.io.Serializable;
 import java.sql.Date;
 import java.util.Calendar;
+import java.util.LinkedList;
+import java.util.List;
 
 import org.apache.commons.lang3.time.DateUtils;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
 
-import static com.angrycat.erp.common.DatetimeUtil.*;
 import com.angrycat.erp.model.Member;
 import com.angrycat.erp.model.VipDiscountDetail;
 
@@ -19,6 +25,7 @@ public class MemberVipDiscount implements Serializable {
 	
 	private Date today;
 	private int addCount = 1;
+	private boolean toVipDateReset = true; // 如果為歷史資料，必須以原來的狀態新增，應當設為false；如果為新增資料，則須考量續會或不續會的問題，應當設為true
 	public Date getToday(){return this.today;}
 	public void setToday(Date today){this.today = today;}
 	public int getAddCount(){return this.addCount;}
@@ -30,7 +37,12 @@ public class MemberVipDiscount implements Serializable {
 		}
 		return current;
 	}
-	
+	public boolean isToVipDateReset() {
+		return toVipDateReset;
+	}
+	public void setToVipDateReset(boolean toVipDateReset) {
+		this.toVipDateReset = toVipDateReset;
+	}
 	public void applyRule(Member member){
 		addVipDetials(member);
 	}
@@ -49,7 +61,9 @@ public class MemberVipDiscount implements Serializable {
 			firstEffectiveStart = addOneDayToFirstMinute(member.getToVipEndDate());
 			firstEffectiveEnd = addOneYearToLastMinute(firstEffectiveStart);						
 		}else{
-			member.setToVipDate(getTodayOrNew()); // 如果不在VIP有效期間內，VIP有效起日應重設為當日
+			if(toVipDateReset){
+				member.setToVipDate(getTodayOrNew()); // 如果不在VIP有效期間內，VIP有效起日應重設為當日
+			}
 			member.setImportant(true);
 			Date toVipDate = member.getToVipDate();
 			Calendar toVip = DateUtils.toCalendar(toVipDate);
@@ -65,6 +79,14 @@ public class MemberVipDiscount implements Serializable {
 			}else{// toVipMonth > birthMonth
 				firstEffectiveEnd = getLastDateOfMonth(toVipYear+1, birthMonth);
 			}
+		}
+		
+		if(!(member.getVipDiscountDetails() instanceof LinkedList)){
+			List<VipDiscountDetail> details = member.getVipDiscountDetails();
+			member.setVipDiscountDetails(new LinkedList<>());
+			details.forEach(d->{
+				member.getVipDiscountDetails().add(d);
+			});
 		}
 		
 		Date currentEffectiveEnd = firstEffectiveEnd;
@@ -84,7 +106,7 @@ public class MemberVipDiscount implements Serializable {
 				detail.setEffectiveEnd(nextEffectiveEnd);
 				currentEffectiveEnd = nextEffectiveEnd;
 			}
-			member.getVipDiscountDetails().add(detail);
+			((LinkedList)member.getVipDiscountDetails()).addFirst(detail);
 		}
 		member.setToVipEndDate(currentEffectiveEnd);
 	}

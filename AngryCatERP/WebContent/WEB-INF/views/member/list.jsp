@@ -140,6 +140,9 @@
  	<div class="btn-group" role="group">
  		<button ng-click="mainCtrl.copyCondition()" class="btn btn-default">下載會員檔案</button>
  	</div>
+ 	<div class="btn-group" role="group">
+ 		<button ng-click="mainCtrl.downloadTemplate()" class="btn btn-default">下載範本</button>
+ 	</div>
  </div>
 
 <div class="table-responsive">		
@@ -156,7 +159,7 @@
 		<td>郵遞區號</td>
 		<td>內容</td>
 	</tr>
-	<tr ng-repeat="result in mainCtrl.conditionConfig.results" >
+	<tr ng-repeat="result in mainCtrl.conditionConfig.results">
 		<td><input type="checkbox" value="{{result.id}}" name="ids"></td>
 		<td>{{result.idNo}}</td>
 		<td>{{result.name}}</td>
@@ -166,7 +169,11 @@
 		<td>{{result.important | convertBoolean}}</td>
 		<td>{{result.toVipDate}}</td>
 		<td>{{result.postalCode}}</td>
-		<td to-view="{{result.id}}"><span><i class="glyphicon glyphicon-file"></i></span></td>
+		<td to-view="{{result.id}}">
+			<span>
+				<i class="glyphicon glyphicon-file"></i>	
+			</span>
+		</td>
 	</tr>
 </table>
 </div>		
@@ -205,7 +212,6 @@
 				queryByCondsUrl = '${urlPrefix}/queryCondtional.json',
 				deleteItemsUrl = '${urlPrefix}/deleteItems.json',
 				copyConditionUrl = '${urlPrefix}/copyCondition.json',
-				downloadExcelUrl = '${urlPrefix}/downloadExcel.json',
 				idCheckName = 'ids',
 				getCheckedItems = function(){
 					var ids = document.getElementsByName(idCheckName),
@@ -325,6 +331,9 @@
 					.then(function(){
 						$window.location.href = '${urlPrefix}/downloadExcel';
 					});
+			};
+			self.downloadTemplate = function(){
+				$window.location.href = '${urlPrefix}/downloadTemplate';
 			};
 			self.checkOrUncheckAll = function($event){
 				MemberService.checkOrUncheckAll($event);

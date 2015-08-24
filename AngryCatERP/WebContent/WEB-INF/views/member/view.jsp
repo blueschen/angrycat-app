@@ -16,17 +16,20 @@
 <link rel="stylesheet" href='<c:url value="/vendor/bootstrap/3.1.1/css/bootstrap-theme.css"/>'/>
 <link rel="stylesheet" href='<c:url value="/vendor/bootstrap/3.1.1/css/bootstrap-responsive.css"/>'/>
 
-	<script type="text/javascript">
+	<script type="text/javascript">		
 		<%@ include file="/vendor/angularjs/1.4.3/angular.min.js" %>
-		<%@ include file="/vendor/angular-bootstrap/ui-bootstrap-tpls-0.13.0.min.js" %>
-		<%@ include file="/vendor/angular-strap/2.3.1/angular-strap.min.js" %>
-		<%@ include file="/vendor/angular-strap/2.3.1/angular-strap.tpl.min.js" %>
+		<%@ include file="/vendor/angularjs/1.4.3/i18n/angular-locale_zh-tw.js" %>
 		<%@ include file="/common/ajax/ajax-service.js" %>
 		<%@ include file="/common/date/date-service.js" %>
-		<%@ include file="/common/datepicker/datepicker-service.js" %>
-		<%@ include file="/common/datepicker/datepicker-directive.js" %>
 	</script>
+	<script type="text/javascript" src="<c:url value="/vendor/angular-strap/2.3.1/angular-strap.min.js"/>"></script>
+	<script type="text/javascript" src="<c:url value="/vendor/angular-strap/2.3.1/angular-strap.tpl.min.js"/>"></script>
 
+	<style type="text/css">
+	.form-horizontal .control-label.text-left{
+    text-align: left;
+}
+	</style>
 </head>
 <body ng-controller="MainCtrl as mainCtrl">
 <input type="hidden" value="{{mainCtrl.member.id}}"/>
@@ -38,111 +41,114 @@
 	</div>
 <form class="form-horizontal" name="memberForm">
  	<div class="form-group">
- 		<label class="col-sm-2 control-label" for="birthday">
- 			出生年月日
- 		</label>
- 		<div class="col-sm-3">			
-			<p class="input-group">
-				<input type="text" 
-					ng-model="mainCtrl.member.birthday"
-					datepicker-popup="yyyy-MM-dd"
-					is-open="opened1"
-					readonly="readonly"
-					id="birthday"
-					name="birthday"
-					class="form-control"/>
-				<span class="input-group-btn">
-					<button type="button" class="btn btn-default" ng-click="mainCtrl.openCalendar($event, 'opened1')"><i class="glyphicon glyphicon-calendar"></i></button>
-				</span> 
-			</p>       
- 		</div>
- 		<label class="col-sm-2 control-label" for="toVipDate">
- 			轉VIP日期
- 		</label>
- 		<div class="col-sm-3">
- 			<p class="input-group">
-				<input type="text"
-					ng-model="mainCtrl.member.toVipDate"
-					datepicker-popup="yyyy-MM-dd"
-					is-open="opened2"
-					readonly="readonly"
-					id="toVipDate"
-					name="toVipDate"
-					class="form-control">
-				<span class="input-group-btn">
-					<button type="button" class="btn btn-default" ng-click="mainCtrl.openCalendar($event, 'opened2')"><i class="glyphicon glyphicon-calendar"></i></button>
-				</span>
- 			</p>
- 		</div>
+		<div class="form-group col-sm-5" ng-class="{'has-error': memberForm.birthday.$invalid}">
+ 			<label class="col-sm-5 control-label" for="birthday" >
+ 				出生年月日
+ 			</label>
+ 			<div class="col-sm-7">
+ 				<input id="birthday" 
+ 					class="form-control" 
+ 					ng-model="mainCtrl.member.birthday" 
+ 					name="birthday" 
+ 					bs-datepicker 
+ 					type="text" 
+ 					autoclose="1"
+ 					date-format="yyyy-MM-dd"
+ 					placeholder="yyyy-MM-dd">			      
+ 			</div>		
+		</div>
+		<div class="form-group col-sm-5">
+ 			<label class="col-sm-3 control-label">
+ 				性別
+ 			</label>
+			<div class="col-sm-7">
+				<label class="radio-inline">
+ 					<input type="radio" ng-value="0" ng-model="mainCtrl.member.gender" id="genderMale"/>男
+ 				</label>
+ 				<label class="radio-inline">
+ 					<input type="radio" ng-value="1" ng-model="mainCtrl.member.gender" id="genderFemale"/>女
+ 				</label>
+			</div>		
+		</div>
  	</div>
-
 	<div class="form-group">
-		<label class="col-sm-2 control-label">
- 			Ohm VIP
- 		</label>
- 		<div class="col-sm-3">
- 			<label class="radio-inline">
- 				<input type="radio" ng-value="true" ng-model="mainCtrl.member.important" id="importantYes"/>是
+		<div class="form-group col-sm-5">
+			<label class="col-sm-5 control-label">
+ 				Ohm VIP
  			</label>
- 			<label class="radio-inline">
- 				<input type="radio" ng-value="false" ng-model="mainCtrl.member.important" id="importantNo"/>否
+ 			<div class="col-sm-7">
+ 				<label class="radio-inline">
+ 					<input type="radio" ng-value="true" ng-model="mainCtrl.member.important" id="importantYes" ng-disabled="true"/>是
+ 				</label>
+ 				<label class="radio-inline">
+ 					<input type="radio" ng-value="false" ng-model="mainCtrl.member.important" id="importantNo" ng-disabled="true"/>否
+ 				</label>
+ 			</div>
+		</div>
+		<div class="form-group col-sm-5" ng-class="{'has-error': memberForm.toVipDate.$invalid}">
+ 			<label class="col-sm-3 control-label" for="toVipDate">
+ 				轉VIP日期
  			</label>
- 		</div>
- 		<label class="col-sm-2 control-label">
- 			性別
- 		</label>
-		<div class="col-sm-3">
-			<label class="radio-inline">
- 				<input type="radio" ng-value="0" ng-model="mainCtrl.member.gender" id="genderMale"/>男
- 			</label>
- 			<label class="radio-inline">
- 				<input type="radio" ng-value="1" ng-model="mainCtrl.member.gender" id="genderFemale"/>女
- 			</label>
+ 			<div class="col-sm-7">
+ 				<p class="form-control-static">
+ 				{{mainCtrl.member.toVipDate}}
+ 				</p>
+ 			</div>
 		</div>
  	</div>
  	<div class="form-group">
- 		<label class="col-sm-2 control-label" for="fbNickname">
- 			FB暱稱
- 		</label>
- 		<div class="col-sm-3">
- 			<input type="text" ng-model="mainCtrl.member.fbNickname" id="fbNickname" class="form-control"/>
+ 		<div class="form-group col-sm-5">
+			<label class="col-sm-5 control-label" for="fbNickname">
+ 				FB暱稱
+ 			</label>
+ 			<div class="col-sm-7">
+ 				<input type="text" ng-model="mainCtrl.member.fbNickname" id="fbNickname" class="form-control" autofocus/>
+ 			</div>
  		</div>
-		<label class="col-sm-2 control-label" for="name">
- 			姓名
- 		</label>
- 		<div class="col-sm-3">
- 			<input type="text" ng-model="mainCtrl.member.name" id="name" class="form-control"/>
- 		</div>
- 	</div>
- 	<div class="form-group">
- 		<label class="col-sm-2 control-label" for="idNo">
- 			身分證字號
- 		</label>
- 		<div class="col-sm-3">
- 			<input type="text" ng-model="mainCtrl.member.idNo" id="idNo" name="idNo" required  class="form-control"/>
- 			<span ng-show="memberForm.idNo.$error.required">必填</span>
- 		</div>
- 		<label class="col-sm-2 control-label" for="email">
- 			電子信箱
- 		</label>
- 		<div class="col-sm-3">
- 			<input type="email" ng-model="mainCtrl.member.email" id="email" name="email" class="form-control"/>
- 			<span ng-show="memberForm.email.$invalid">email格式不正確</span>
+ 		<div class="form-group col-sm-5">
+			<label class="col-sm-3 control-label" for="name">
+ 				姓名
+ 			</label>
+ 			<div class="col-sm-7">
+ 				<input type="text" ng-model="mainCtrl.member.name" id="name" class="form-control"/>
+ 			</div>
  		</div>
  	</div>
  	<div class="form-group">
- 		<label class="col-sm-2 control-label" for="mobile">
- 			聯絡電話	
- 		</label>
- 		<div class="col-sm-3">
- 			<input type="text" ng-model="mainCtrl.member.mobile" id="mobile" class="form-control"/>
+ 		<div class="form-group col-sm-5" ng-class="{'has-error': memberForm.idNo.$invalid}">
+ 			<label class="col-sm-5 control-label" for="idNo">
+ 				身分證字號
+ 			</label>
+ 			<div class="col-sm-7">
+ 				<input type="text" ng-model="mainCtrl.member.idNo" id="idNo" name="idNo" required  class="form-control"/>
+ 			</div> 		
  		</div>
- 		<label class="col-sm-2 control-label" for="postalCode">
- 			郵遞區號	
- 		</label>
- 		<div class="col-sm-3">
- 			<input type="text" ng-model="mainCtrl.member.postalCode" id="postalCode" class="form-control"/>
+ 		<div class="form-group col-sm-5">
+ 			<label class="col-sm-3 control-label" for="email">
+ 				電子信箱
+ 			</label>
+ 			<div class="col-sm-7">
+ 				<input type="text" ng-model="mainCtrl.member.email" id="email" name="email" class="form-control"/>
+ 			</div> 		
  		</div>
+ 	</div>
+ 	<div class="form-group">
+ 		<div class="form-group col-sm-5">
+			<label class="col-sm-5 control-label" for="mobile">
+ 				聯絡電話	
+ 			</label>
+ 			<div class="col-sm-7">
+ 				<input type="text" ng-model="mainCtrl.member.mobile" id="mobile" class="form-control"/>
+ 			</div>	
+ 		</div>
+		<div class="form-group col-sm-5">
+			<label class="col-sm-3 control-label" for="postalCode">
+ 				郵遞區號	
+ 			</label>
+ 			<div class="col-sm-7">
+ 				<input type="text" ng-model="mainCtrl.member.postalCode" id="postalCode" class="form-control"/>
+ 			</div>
+		</div>
  	</div>
  	<div class="form-group">
  		<label class="col-sm-2 control-label" for="address">
@@ -162,11 +168,11 @@
  	</div>
  	<div class="form-group">
  		<div class="col-sm-offset-3">
+ 			<input type="button" value="{{mainCtrl.member.id | saveOrModify}}" ng-click="mainCtrl.save()" class="btn btn-default" ng-disabled="memberForm.$invalid"/>
+ 			<input type="button" value="關閉" onclick="document.location.href='${urlPrefix}/list'" class="btn btn-default"/>
  			<button type="button" class="btn btn-default" ng-click="mainCtrl.addMemberDiscount()">
 				增加VIP紀錄
 			</button>
- 			<input type="button" value="{{mainCtrl.member.id | saveOrModify}}" ng-click="mainCtrl.save()" class="btn btn-default" ng-disabled="memberForm.$invalid && !memberForm.$error.date"/>
- 			<input type="button" value="關閉" onclick="document.location.href='${urlPrefix}/list'" class="btn btn-default"/>
  		</div>
  	</div>
 </form>
@@ -210,7 +216,7 @@
 
 </div>
 <script type="text/javascript">
-	angular.module('angryCatMemberViewApp', ['ui.bootstrap', 'erp.date.service', 'erp.datepicker.directive', 'erp.ajax.service', 'mgcrea.ngStrap'])
+	angular.module('angryCatMemberViewApp', ['erp.date.service', 'erp.ajax.service', 'mgcrea.ngStrap'])
 		.controller('MainCtrl', ['$scope', 'DateService', 'AjaxService', function($scope, DateService, AjaxService){
 			var self = this,
 				saveUrl = '${urlPrefix}/save.json',
@@ -235,13 +241,6 @@
 					function(errResponse){
 						alert(self.actionMsg(isNew)+'失敗，錯誤訊息: ' + JSON.stringify(errResponse));
 					});	
-			};
-			// date related
-			self.openCalendar = function($event, opened){
-			    $event.preventDefault();
-			    $event.stopPropagation();
-			    
-			    $scope[opened] = true;
 			};
 			self.addMemberDiscount = function(){
 				if(!self.member){
@@ -283,6 +282,14 @@
 			self.removeDetail = function(detail){
 				var idx = self.member.vipDiscountDetails.indexOf(detail);
 				self.member.vipDiscountDetails.splice(idx, 1);
+				if(self.member.vipDiscountDetails.length > 0){
+					self.member.toVipEndDate = self.member.vipDiscountDetails[0].effectiveEnd; 
+				}else{
+					self.member.toVipDate = null;
+					self.member.toVipEndDate = null;
+					self.member.important = false;
+				}
+				addCount--;
 			};
 			self.showRemoveBtn = function(detail){
 				var idx = self.member.vipDiscountDetails.indexOf(detail);

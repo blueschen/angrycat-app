@@ -1,7 +1,8 @@
 package com.angrycat.erp.model;
 
 import java.sql.Date;
-import java.util.LinkedHashSet;
+import java.util.LinkedList;
+import java.util.List;
 import java.util.Set;
 
 import javax.persistence.CascadeType;
@@ -40,7 +41,7 @@ public class Member {
 	private Date toVipDate; // 轉VIP起始日
 	private Date toVipEndDate; // VIP到期日
 	private String note;
-	private Set<VipDiscountDetail> vipDiscountDetails = new LinkedHashSet<>();
+	private List<VipDiscountDetail> vipDiscountDetails = new LinkedList<>();
 	
 	@Id
 	@Column(name="id")
@@ -150,12 +151,12 @@ public class Member {
 	public void setToVipEndDate(Date toVipEndDate) {
 		this.toVipEndDate = toVipEndDate;
 	}
-	@OneToMany(fetch=FetchType.EAGER, targetEntity=VipDiscountDetail.class, cascade=CascadeType.ALL, mappedBy="memberId", orphanRemoval=true)
-	@OrderBy("id DESC")
-	public Set<VipDiscountDetail> getVipDiscountDetails() {
+	@OneToMany(fetch=FetchType.LAZY, targetEntity=VipDiscountDetail.class, cascade=CascadeType.ALL, mappedBy="memberId", orphanRemoval=true)
+	@OrderBy("effectiveStart DESC")
+	public List<VipDiscountDetail> getVipDiscountDetails() {
 		return vipDiscountDetails;
 	}
-	public void setVipDiscountDetails(Set<VipDiscountDetail> vipDiscountDetails) {
+	public void setVipDiscountDetails(List<VipDiscountDetail> vipDiscountDetails) {
 		this.vipDiscountDetails = vipDiscountDetails;
 	}
 }

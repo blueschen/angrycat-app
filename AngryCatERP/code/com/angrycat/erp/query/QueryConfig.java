@@ -170,7 +170,14 @@ public class QueryConfig implements QueryConfigurable {
 		List<String> joinTargets = new ArrayList<>();
 		
 		// select
-		gen.setSelect(StringUtils.join(this.selects, ", "));
+		String select = "";
+		if(this.selects.isEmpty() && !froms.isEmpty()){
+			String alias = froms.entrySet().iterator().next().getKey();
+			select = "DISTINCT("+alias+")";
+		}else{
+			select = StringUtils.join(this.selects, ", ");
+		}
+		gen.setSelect(select);
 		
 		// from
 		froms.forEach((alias, from)->{			

@@ -1,6 +1,18 @@
 package com.angrycat.erp.excel;
 
-import static com.angrycat.erp.excel.ExcelColumn.Member.*;
+import static com.angrycat.erp.excel.ExcelColumn.Member.Facebook_姓名;
+import static com.angrycat.erp.excel.ExcelColumn.Member.Ohmliy_VIP;
+import static com.angrycat.erp.excel.ExcelColumn.Member.VIP延續;
+import static com.angrycat.erp.excel.ExcelColumn.Member.備註;
+import static com.angrycat.erp.excel.ExcelColumn.Member.出生年月日;
+import static com.angrycat.erp.excel.ExcelColumn.Member.地址;
+import static com.angrycat.erp.excel.ExcelColumn.Member.性別;
+import static com.angrycat.erp.excel.ExcelColumn.Member.真實姓名;
+import static com.angrycat.erp.excel.ExcelColumn.Member.聯絡電話;
+import static com.angrycat.erp.excel.ExcelColumn.Member.身份證字號;
+import static com.angrycat.erp.excel.ExcelColumn.Member.轉VIP日期;
+import static com.angrycat.erp.excel.ExcelColumn.Member.郵遞區號;
+import static com.angrycat.erp.excel.ExcelColumn.Member.電子信箱;
 
 import java.io.ByteArrayInputStream;
 import java.io.FileInputStream;
@@ -33,7 +45,6 @@ import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
 
 import com.angrycat.erp.businessrule.MemberVipDiscount;
-import com.angrycat.erp.businessrule.VipDiscountUseStatus;
 import com.angrycat.erp.component.SessionFactoryWrapper;
 import com.angrycat.erp.model.Member;
 
@@ -80,6 +91,7 @@ public class ExcelImporter {
 		Map<String, String> logWarn = new HashMap<>();
 		Session s = null;
 		Transaction tx = null;
+		discount.setToVipDateReset(false);
 		try{
 			ByteArrayInputStream bais = new ByteArrayInputStream(data);
 			Workbook wb = WorkbookFactory.create(bais);
@@ -127,7 +139,7 @@ public class ExcelImporter {
 					continue;
 				}
 				Member m = new Member();
-				m.setImportant("VIP".equals(VIP));
+				m.setImportant("VIP".equals(VIP) || "R-VIP".equals(VIP));
 				m.setFbNickname(fbNickname);
 				m.setName(name);
 				m.setGender("男".equals(gender) ? Member.GENDER_MALE : Member.GENDER_FEMALE);
@@ -195,12 +207,12 @@ public class ExcelImporter {
 			System.out.println(warnAboutIdNoNotExisted);
 			warning += (warnAboutIdNoNotExisted + "\n");
 		}
-		List<Integer> idDuplicate = findMsgRowNums(msg, IDNO_DUPLICATE);
-		if(!idDuplicate.isEmpty()){
-			warnAboutIdNoDuplicate = "身分證字號重複共"+idDuplicate.size()+"筆\n行數:" + StringUtils.join(idDuplicate, "、");
-			System.out.println(warnAboutIdNoDuplicate);
-			warning += (warnAboutIdNoDuplicate + "\n");
-		}
+//		List<Integer> idDuplicate = findMsgRowNums(msg, IDNO_DUPLICATE);
+//		if(!idDuplicate.isEmpty()){
+//			warnAboutIdNoDuplicate = "身分證字號重複共"+idDuplicate.size()+"筆\n行數:" + StringUtils.join(idDuplicate, "、");
+//			System.out.println(warnAboutIdNoDuplicate);
+//			warning += (warnAboutIdNoDuplicate + "\n");
+//		}
 		
 		String infoMsg = infoTotalCount + "\n" + infoImportCount;
 		if(StringUtils.isNotBlank(warning)){

@@ -1,6 +1,9 @@
 package com.angrycat.erp.initialize.config;
 
 import java.io.IOException;
+import java.nio.charset.Charset;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Properties;
 
 import org.springframework.context.MessageSource;
@@ -9,6 +12,10 @@ import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.support.ReloadableResourceBundleMessageSource;
 import org.springframework.http.MediaType;
+import org.springframework.http.converter.ByteArrayHttpMessageConverter;
+import org.springframework.http.converter.HttpMessageConverter;
+import org.springframework.http.converter.StringHttpMessageConverter;
+import org.springframework.http.converter.json.MappingJackson2HttpMessageConverter;
 import org.springframework.validation.Validator;
 import org.springframework.validation.beanvalidation.LocalValidatorFactoryBean;
 import org.springframework.web.accept.ContentNegotiationManagerFactoryBean;
@@ -25,6 +32,8 @@ import org.springframework.web.servlet.view.JstlView;
 @EnableWebMvc
 @ComponentScan("com.angrycat.erp.web.controller")
 public class WebConfig extends WebMvcConfigurerAdapter {
+	private static final Charset UTF8 = Charset.forName("UTF-8");
+	
 	@Bean
 	public ViewResolver viewResolver(ContentNegotiationManagerFactoryBean contentManager){
 		InternalResourceViewResolver resolver = new InternalResourceViewResolver();
@@ -109,5 +118,17 @@ public class WebConfig extends WebMvcConfigurerAdapter {
 		cnmfb.setMediaTypes(props);
 		
 		return cnmfb;
+	}
+	
+	@Override
+	public void configureMessageConverters(List<HttpMessageConverter<?>> converters){
+		MappingJackson2HttpMessageConverter jsonConverter = new MappingJackson2HttpMessageConverter();
+		List<MediaType> jsonTypes = new ArrayList<>(jsonConverter.getSupportedMediaTypes());
+		jsonTypes.add(MediaType.TEXT_PLAIN);
+		jsonConverter.setSupportedMediaTypes(jsonTypes);
+		converters.add(new StringHttpMessageConverter(UTF8));
+		converters.add(new ByteArrayHttpMessageConverter());
+		converters.add(jsonConverter);
+		super.configureMessageConverters(converters);
 	}
 }

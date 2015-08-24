@@ -2,9 +2,8 @@ package com.angrycat.erp.test;
 
 import static com.angrycat.erp.common.DatetimeUtil.getFirstMinuteOfDay;
 
-import java.util.LinkedHashSet;
+import java.util.LinkedList;
 import java.util.List;
-import java.util.Set;
 
 import com.angrycat.erp.businessrule.MemberVipDiscount;
 import com.angrycat.erp.condition.ConditionFactory;
@@ -14,7 +13,28 @@ import com.angrycat.erp.service.CrudBaseService;
 
 public class MemberVipDiscountTest extends BaseTest {
 	public static void main(String[]args){
-		testQueryDetailSort();
+		testQueryMemberVipDiscountLazyFetch();
+	}
+	public static void testQueryMemberVipDiscountLazyFetch(){
+		executeSession((s, acac)->{
+			CrudBaseService<Member, Member> cbs = (CrudBaseService<Member, Member>)acac.getBean("crudBaseService");
+			cbs
+				.createFromAlias(Member.class.getName(), "p")
+				.addSelect("DISTINCT(p)")
+				.createAssociationAlias("left join fetch p.vipDiscountDetails", "details", null)
+				.addWhere(ConditionFactory.putStr("p.id = :pId"));
+			
+			cbs.getSimpleExpressions().get("pId").setValue("20150820-164113515-pRMin");
+			System.out.println(cbs.toQueryGenerator().toCompleteStr());
+			
+			List<Member> list = cbs.executeQueryList(s);
+			list.stream().forEach(m->{
+				System.out.println("m id: " + m.getId() + ", toVipDate: " + m.getToVipDate());
+				m.getVipDiscountDetails().stream().forEach(d->{
+					System.out.println("d id: " + d.getId() + ", toVipDate: " + d.getToVipDate());
+				});
+			});
+		});
 	}
 	// unexpected results!!
 	public static void testQueryMemberVipDiscount(){
@@ -156,8 +176,8 @@ public class MemberVipDiscountTest extends BaseTest {
 			mvd.setAddCount(3);
 			mvd.applyRule(m);
 			
-			Set<VipDiscountDetail> detail = m.getVipDiscountDetails();
-			m.setVipDiscountDetails(new LinkedHashSet<VipDiscountDetail>());
+			List<VipDiscountDetail> detail = m.getVipDiscountDetails();
+			m.setVipDiscountDetails(new LinkedList<VipDiscountDetail>());
 			
 			s.save(m);
 			s.flush();
