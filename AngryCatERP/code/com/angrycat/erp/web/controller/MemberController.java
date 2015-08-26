@@ -38,9 +38,11 @@ import com.angrycat.erp.condition.MatchMode;
 import com.angrycat.erp.excel.ExcelExporter;
 import com.angrycat.erp.excel.ExcelImporter;
 import com.angrycat.erp.jackson.mixin.MemberIgnoreDetail;
+import com.angrycat.erp.log.DataChangeLogger;
 import com.angrycat.erp.model.Member;
 import com.angrycat.erp.model.VipDiscountDetail;
-import com.angrycat.erp.service.CrudBaseService;
+import com.angrycat.erp.security.User;
+import com.angrycat.erp.service.QueryBaseService;
 import com.angrycat.erp.web.WebUtils;
 import com.angrycat.erp.web.component.ConditionConfig;
 
@@ -51,12 +53,12 @@ import com.angrycat.erp.web.component.ConditionConfig;
 @Scope("session")
 public class MemberController {
 	@Autowired
-	@Qualifier("crudBaseService")
-	private CrudBaseService<Member, Member> memberCrudService;
+	@Qualifier("queryBaseService")
+	private QueryBaseService<Member, Member> memberQueryService;
 	
 	@Autowired
-	@Qualifier("crudBaseService")
-	private CrudBaseService<Member, Member> findMemberService;
+	@Qualifier("queryBaseService")
+	private QueryBaseService<Member, Member> findMemberService;
 	
 	@Autowired
 	private SessionFactoryWrapper sfw;
@@ -72,13 +74,17 @@ public class MemberController {
 	@Autowired
 	private VipDiscountUseStatus useStatus;
 	
+	@Autowired
+	private DataChangeLogger dataChangeLogger;
+	
 	@PostConstruct
 	public void init(){
-		memberCrudService.setRootAndInitDefault(Member.class);
+		User currentUser = WebUtils.getSessionUser();
+		memberQueryService.setRootAndInitDefault(Member.class);
 		
-		String root = CrudBaseService.DEFAULT_ROOT_ALIAS;
+		String root = QueryBaseService.DEFAULT_ROOT_ALIAS;
 		String rootAliasWith = root + ".";
-		memberCrudService
+		memberQueryService
 			.addWhere(ConditionFactory.putStrCaseInsensitive(rootAliasWith+"name LIKE :pName", MatchMode.ANYWHERE))
 			.addWhere(ConditionFactory.putInt(rootAliasWith+"gender=:pGender"))
 			.addWhere(ConditionFactory.putSqlDate(rootAliasWith+"birthday >= :pBirthdayStart"))
@@ -88,13 +94,15 @@ public class MemberController {
 			.addWhere(ConditionFactory.putStr(rootAliasWith+"mobile LIKE :pMobile", MatchMode.START))
 			.addWhere(ConditionFactory.putBoolean(rootAliasWith+"important = :pImportant"))
 		;
-		memberCrudService.setUser(WebUtils.getSessionUser());
+		memberQueryService.setUser(currentUser);
 		
 		findMemberService
 			.createFromAlias(Member.class.getName(), root)
 			.createAssociationAlias("left join fetch "+rootAliasWith+"vipDiscountDetails", "details", null)
 			.addWhere(ConditionFactory.putStr(rootAliasWith+"id = :pId"));
-		findMemberService.setUser(WebUtils.getSessionUser());
+		findMemberService.setUser(currentUser);
+		
+		dataChangeLogger.setUser(currentUser);
 	}
 	
 	@RequestMapping(value="/list", method=RequestMethod.GET)
@@ -110,7 +118,7 @@ public class MemberController {
 	@ResponseStatus(HttpStatus.OK)
 	public @ResponseBody String queryAll(){
 		System.out.println("queryAll.... ");
-		ConditionConfig<Member> cc = memberCrudService.genCondtitionsAfterExecuteQueryPageable();
+		ConditionConfig<Member> cc = memberQueryService.genCondtitionsAfterExecuteQueryPageable();
 		String result = memberIgnoreDetail(cc);
 		return result;
 	}
@@ -125,7 +133,7 @@ public class MemberController {
 			produces={"application/xml", "application/json"},
 			headers="Accept=*/*")
 	public @ResponseBody String queryCondtional(@RequestBody ConditionConfig<Member> conditionConfig){
-		ConditionConfig<Member> cc = memberCrudService.executeQueryPageable(conditionConfig);
+		ConditionConfig<Member> cc = memberQueryService.executeQueryPageable(conditionConfig);
 		String result = memberIgnoreDetail(cc);
 		return result;
 	}
@@ -135,7 +143,7 @@ public class MemberController {
 			produces={"application/xml", "application/json"},
 			headers="Accept=*/*")
 	public @ResponseBody String deleteItems(@RequestBody List<String> ids){
-		ConditionConfig<Member> cc = memberCrudService.executeQueryPageableAfterDelete(ids);
+		ConditionConfig<Member> cc = memberQueryService.executeQueryPageableAfterDelete(ids);
 		String result = memberIgnoreDetail(cc);
 		return result;
 	}
@@ -167,8 +175,10 @@ public class MemberController {
 			headers="Accept=*/*")
 	public @ResponseBody Member saveOrMerge(@RequestBody Member member){
 		sfw.executeSaveOrUpdate(s->{
-			if(StringUtils.isBlank(member.getId())){
-				if(member.getVipDiscountDetails().size() > 0){// 連同明細一起新增
+			Member oldSnapshot = null;
+			if(StringUtils.isBlank(member.getId())){// add
+				int detailCount = member.getVipDiscountDetails().size();
+				if(detailCount > 0){// 連同明細一起新增
 					List<VipDiscountDetail> detail = member.getVipDiscountDetails();
 					member.setVipDiscountDetails(new LinkedList<VipDiscountDetail>());
 					s.save(member);
@@ -178,15 +188,18 @@ public class MemberController {
 					});
 					member.getVipDiscountDetails().addAll(detail);
 				}
-			}else{
+			}else{// update
 				findMemberService.getSimpleExpressions().get("pId").setValue(member.getId());
-				List<Member> members = findMemberService.executeQueryList();
+				List<Member> members = findMemberService.executeQueryList(s);
 				
 				if(!members.isEmpty()){
-					Member sessionMember = members.get(0);
+					oldSnapshot = members.get(0);// old data detached
+					s.evict(oldSnapshot);
+					
+					Member sessionMember = findMemberService.executeQueryList(s).get(0);
 					Iterator<VipDiscountDetail> details = sessionMember.getVipDiscountDetails().iterator();
 					boolean deleted = false;
-					while(details.hasNext()){
+					while(details.hasNext()){// delete vipDiscountDetails in memory
 						boolean deleting = true;
 						VipDiscountDetail detail = details.next();
 						for(VipDiscountDetail d : member.getVipDiscountDetails()){
@@ -200,15 +213,24 @@ public class MemberController {
 							deleted = true;
 						}
 					}
-					if(deleted){
+					if(deleted){// change database to really delete vipDiscountDetails
 						s.saveOrUpdate(sessionMember);
 						s.flush();
 					}
 					s.evict(sessionMember);
 				}
-			}				
-			s.saveOrUpdate(member);
+			}
+			s.saveOrUpdate(member);// update member, or add or update detail
 			s.flush();
+			if(oldSnapshot == null){
+				dataChangeLogger.logAdd(member, s);
+			}else{
+				Collections.reverse(oldSnapshot.getVipDiscountDetails());
+				Collections.reverse(member.getVipDiscountDetails());
+				dataChangeLogger.logUpdate(oldSnapshot, member, s);
+			}
+			s.flush();
+			Collections.reverse(member.getVipDiscountDetails());
 		});
 		return member;
 	}
@@ -221,7 +243,7 @@ public class MemberController {
 	public @ResponseBody String uploadExcel(
 		@RequestPart("uploadExcelFile") byte[] uploadExcelFile){
 		Map<String, String> msg = excelImporter.persist(uploadExcelFile);
-		ConditionConfig<Member> cc = memberCrudService.genCondtitionsAfterExecuteQueryPageable();
+		ConditionConfig<Member> cc = memberQueryService.genCondtitionsAfterExecuteQueryPageable();
 		cc.getMsgs().clear();
 		cc.getMsgs().putAll(msg);
 		String result = memberIgnoreDetail(cc);
@@ -231,13 +253,13 @@ public class MemberController {
 	
 	@RequestMapping(value="/copyCondition", method=RequestMethod.POST, produces={"application/xml", "application/json"})
 	public @ResponseBody Map<String, String> copyCondition(@RequestBody ConditionConfig<Member> conditionConfig){
-		memberCrudService.copyConditionConfig(conditionConfig);
+		memberQueryService.copyConditionConfig(conditionConfig);
 		return Collections.emptyMap();
 	}
 	
 	@RequestMapping(value="/downloadExcel", method={RequestMethod.POST, RequestMethod.GET})
 	public void downloadExcel(HttpServletResponse response){
-		File tempFile = excelExporter.execute(memberCrudService);
+		File tempFile = excelExporter.execute(memberQueryService);
 		
 		try(FileInputStream fis = new FileInputStream(tempFile);){
 			writeExcelToResponse(response, fis, "member.xlsx");

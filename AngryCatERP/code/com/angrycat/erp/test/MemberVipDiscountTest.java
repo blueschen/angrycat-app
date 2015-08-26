@@ -9,7 +9,7 @@ import com.angrycat.erp.businessrule.MemberVipDiscount;
 import com.angrycat.erp.condition.ConditionFactory;
 import com.angrycat.erp.model.Member;
 import com.angrycat.erp.model.VipDiscountDetail;
-import com.angrycat.erp.service.CrudBaseService;
+import com.angrycat.erp.service.QueryBaseService;
 
 public class MemberVipDiscountTest extends BaseTest {
 	public static void main(String[]args){
@@ -17,7 +17,7 @@ public class MemberVipDiscountTest extends BaseTest {
 	}
 	public static void testQueryMemberVipDiscountLazyFetch(){
 		executeSession((s, acac)->{
-			CrudBaseService<Member, Member> cbs = (CrudBaseService<Member, Member>)acac.getBean("crudBaseService");
+			QueryBaseService<Member, Member> cbs = (QueryBaseService<Member, Member>)acac.getBean("queryBaseService");
 			cbs
 				.createFromAlias(Member.class.getName(), "p")
 				.addSelect("DISTINCT(p)")
@@ -39,7 +39,7 @@ public class MemberVipDiscountTest extends BaseTest {
 	// unexpected results!!
 	public static void testQueryMemberVipDiscount(){
 		executeSession((s, acac)->{
-			CrudBaseService<Member, Member> cbs = (CrudBaseService<Member, Member>)acac.getBean("crudBaseService");
+			QueryBaseService<Member, Member> cbs = (QueryBaseService<Member, Member>)acac.getBean("queryBaseService");
 			cbs.setRoot(Member.class);
 			cbs.createFromAlias(Member.class.getName(), "p")
 				.addSelect("DISTINCT(p)")

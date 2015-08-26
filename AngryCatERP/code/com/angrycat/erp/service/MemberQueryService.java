@@ -12,7 +12,7 @@ import com.angrycat.erp.model.Member;
 
 @Service
 @Scope("prototype")
-public class MemberCrudService extends CrudBaseService<Member, Member> {
+public class MemberQueryService extends QueryBaseService<Member, Member> {
 
 	/**
 	 * 
@@ -20,7 +20,7 @@ public class MemberCrudService extends CrudBaseService<Member, Member> {
 	private static final long serialVersionUID = -647818435220341328L;
 
 	@Autowired
-	public MemberCrudService(SessionFactoryWrapper sfw){
+	public MemberQueryService(SessionFactoryWrapper sfw){
 		super(sfw, Member.class);
 	}
 	

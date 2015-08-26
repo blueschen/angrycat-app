@@ -33,7 +33,6 @@ public class Test {
 //		testInsertParameterToDB();
 //		testInsertAngryCatMemberToDB();
 //		testDateParse();
-//		testInitParameterCrudService();
 //		testInitSessionExecutable();
 //		testStrCaseInsensitive();
 //		testReflectionToStringBuilder();

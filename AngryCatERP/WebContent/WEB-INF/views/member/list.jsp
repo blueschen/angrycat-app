@@ -19,17 +19,17 @@
 	
 	<script type="text/javascript">
 		<%@ include file="/vendor/angularjs/1.4.3/angular.min.js" %>
+		<%@ include file="/vendor/angularjs/1.4.3/i18n/angular-locale_zh-tw.js" %>
 		<%@ include file="/vendor/angular-bootstrap/ui-bootstrap-tpls-0.13.0.min.js" %>
-		<%@ include file="/common/date/date-service.js" %>
-		<%@ include file="/common/datepicker/datepicker-service.js" %>
-		<%@ include file="/common/datepicker/datepicker-directive.js" %>
 		<%@ include file="/common/spinner/spinner-service.js" %>
 		<%@ include file="/common/fileupload/fileupload-service.js" %>
 		<%@ include file="/common/fileupload/fileupload-ajax-directive.js" %>
 	</script>
+	<script type="text/javascript" src="<c:url value="/vendor/angular-strap/2.3.1/angular-strap.min.js"/>"></script>
+	<script type="text/javascript" src="<c:url value="/vendor/angular-strap/2.3.1/angular-strap.tpl.min.js"/>"></script>
 	
 </head>
-<body ng-controller="MainCtrl as mainCtrl">
+<body ng-controller="MainCtrl as mainCtrl" ng-keypress="mainCtrl.keypressQuery($event)">
   
 <div class="container">
 
@@ -37,7 +37,7 @@
 <h4>Hello <s:message code="model.name.${modelName}"/>!</h4>
 </div>
 
-<form class="form-horizontal">
+<form class="form-horizontal" name="memberListForm" >
  	<div class="form-group">
 		<label class="col-sm-2 control-label" for="pName" >
  			姓名
@@ -60,23 +60,33 @@
 			</select>
  		</div>
  	</div>
- 	<div class="form-group">
- 		<label class="col-sm-2 control-label" for="pBirthdayStart">
+ 	<div class="form-group" ng-class="{'has-error': memberListForm.pBirthdayStart.$invalid || memberListForm.pBirthdayEnd.$invalid}">
+ 		<label class="col-sm-2 control-label">
  			出生起迄日
 		</label>
 		<div class="col-sm-3">
-			<datepicker-input 
-				datepicker-id="pBirthdayStart" 
-				erp-model-name="mainCtrl.conditionConfig.conds.condition_pBirthdayStart"
-				format="yyyy-MM-dd">
-			</datepicker-input>
+ 			<input id="pBirthdayStart" 
+ 				class="form-control" 
+ 				ng-model="mainCtrl.conditionConfig.conds.condition_pBirthdayStart" 
+ 				name="pBirthdayStart" 
+ 				bs-datepicker 
+ 				type="text" 
+ 				autoclose="1"
+ 				date-format="yyyy-MM-dd"
+ 				placeholder="yyyy-MM-dd"
+ 				date-type="string">			
 		</div>
 		<div class="col-sm-3">
-			<datepicker-input 
-				datepicker-id="pBirthdayEnd" 
-				erp-model-name="mainCtrl.conditionConfig.conds.condition_pBirthdayEnd"
-				format="yyyy-MM-dd">
-			</datepicker-input>
+ 			<input id="pBirthdayEnd" 
+ 				class="form-control" 
+ 				ng-model="mainCtrl.conditionConfig.conds.condition_pBirthdayEnd" 
+ 				name="pBirthdayEnd" 
+ 				bs-datepicker 
+ 				type="text" 
+ 				autoclose="1"
+ 				date-format="yyyy-MM-dd"
+ 				placeholder="yyyy-MM-dd"
+ 				date-type="string">			
 		</div>
  	</div>
  	<div class="form-group">
@@ -192,7 +202,7 @@
 </div>
 
 <script type="text/javascript">
-	angular.module('angryCatMemberListApp', ['ui.bootstrap','erp.datepicker.service', 'erp.datepicker.directive', 'erp.fileupload.ajax.directive'])
+	angular.module('angryCatMemberListApp', ['ui.bootstrap', 'erp.fileupload.ajax.directive', 'mgcrea.ngStrap'])
 		.factory('AuthInterceptor', ['$q', function($q){
 			return {
 				responseError: function(responseRejection){
@@ -337,6 +347,12 @@
 			};
 			self.checkOrUncheckAll = function($event){
 				MemberService.checkOrUncheckAll($event);
+			};
+			self.keypressQuery = function($event){
+				$log.log('$event.which: ' + $event.which);
+				if($event.which == 13){
+					self.query();
+				}
 			};
 		}])
 		.filter('convertGender', [function(){

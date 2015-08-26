@@ -12,6 +12,8 @@ public class PropertyFormat implements ObjectFormat {
 	private String name;
 	private String property;
 	private String messageFormat;
+	private String dateFormat = "yyyy-MM-dd";
+	private String datetimeFormat = "yyyy-MM-dd HH:mm";
 	
 	public PropertyFormat(String name, String property){
 		this(name, property, null);
@@ -53,7 +55,7 @@ public class PropertyFormat implements ObjectFormat {
 		return property;
 	}
 	
-	private String getMessageFormatValue(String innerGetValue){
+	protected String getMessageFormatValue(String innerGetValue){
 		if(messageFormat == null){
 			return innerGetValue;
 		}
@@ -66,10 +68,10 @@ public class PropertyFormat implements ObjectFormat {
 			return "";
 		}
 		if(valueObj instanceof Date){
-			return new SimpleDateFormat("yyyy-MM-dd").format(valueObj);
+			return new SimpleDateFormat(dateFormat).format(valueObj);
 		}
 		if(valueObj instanceof Timestamp){
-			return new SimpleDateFormat("yyyy-MM-dd HH:mm").format(valueObj);
+			return new SimpleDateFormat(datetimeFormat).format(valueObj);
 		}
 		if(valueObj instanceof Float){
 			return new BigDecimal((Float)valueObj).toString();
@@ -82,5 +84,18 @@ public class PropertyFormat implements ObjectFormat {
 		}
 		return valueObj.toString();
 	}
+	public String getDateFormat() {
+		return dateFormat;
+	}
+	public void setDateFormat(String dateFormat) {
+		this.dateFormat = dateFormat;
+	}
+	public String getDatetimeFormat() {
+		return datetimeFormat;
+	}
+	public void setDatetimeFormat(String datetimeFormat) {
+		this.datetimeFormat = datetimeFormat;
+	}
+	
 
 }

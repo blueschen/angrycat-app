@@ -12,14 +12,14 @@ import com.angrycat.erp.model.Parameter;
 
 @Service
 @Scope(value="prototype")
-public class ParameterCrudService extends CrudBaseService<Parameter, Parameter> {
+public class ParameterQueryService extends QueryBaseService<Parameter, Parameter> {
 	/**
 	 * 
 	 */
 	private static final long serialVersionUID = -5896650225588143252L;
 
 	@Autowired
-	public ParameterCrudService(SessionFactoryWrapper sfw) {
+	public ParameterQueryService(SessionFactoryWrapper sfw) {
 		super(sfw, Parameter.class);
 	}
 

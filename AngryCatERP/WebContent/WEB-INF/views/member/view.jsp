@@ -54,7 +54,8 @@
  					type="text" 
  					autoclose="1"
  					date-format="yyyy-MM-dd"
- 					placeholder="yyyy-MM-dd">			      
+ 					placeholder="yyyy-MM-dd"
+ 					date-type="string">			      
  			</div>		
 		</div>
 		<div class="form-group col-sm-5">

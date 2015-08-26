@@ -37,7 +37,7 @@ public class ActionLogger {
 	}
 	
 	public static <T>void logDelete(T obj, User user){
-		List<ObjectFormat> formats = FormatListFactory.findFormatList(obj.getClass(), FormatUse.DELETE_LOG);
+		List<ObjectFormat> formats = FormatListFactory.forLog(obj);
 		logToFile(formats, user, "com.angrycat.erp.crud.delete", obj);
 	}
 	

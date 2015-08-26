@@ -20,23 +20,22 @@ import org.springframework.stereotype.Service;
 import com.angrycat.erp.condition.ConditionFactory;
 import com.angrycat.erp.condition.MatchMode;
 import com.angrycat.erp.format.FormatListFactory;
-import com.angrycat.erp.format.FormatUse;
 import com.angrycat.erp.format.ObjectFormat;
 import com.angrycat.erp.model.Member;
-import com.angrycat.erp.service.CrudBaseService;
+import com.angrycat.erp.service.QueryBaseService;
 
 @Service
 public class ExcelExporter {
 	@Autowired
-	@Qualifier("crudBaseService")
-	private CrudBaseService<Member, Member> memberCrudService;
+	@Qualifier("queryBaseService")
+	private QueryBaseService<Member, Member> memberQueryService;
 	
 	@PostConstruct
 	public void init(){
-		memberCrudService.setRootAndInitDefault(Member.class);
+		memberQueryService.setRootAndInitDefault(Member.class);
 
-		String rootAliasWith = CrudBaseService.DEFAULT_ROOT_ALIAS + ".";
-		memberCrudService
+		String rootAliasWith = QueryBaseService.DEFAULT_ROOT_ALIAS + ".";
+		memberQueryService
 			.addWhere(ConditionFactory.putStrCaseInsensitive(rootAliasWith+"name LIKE :pName", MatchMode.ANYWHERE))
 			.addWhere(ConditionFactory.putInt(rootAliasWith+"gender=:pGender"))
 			.addWhere(ConditionFactory.putSqlDate(rootAliasWith+"birthday >= :pBirthdayStart"))
@@ -49,12 +48,12 @@ public class ExcelExporter {
 	}
 	
 	public void execute(){
-		execute(memberCrudService);
+		execute(memberQueryService);
 	}
 	
-	public File execute(CrudBaseService<Member, Member> memberCrudService){
-		File tempFile = memberCrudService.executeScrollableQuery((rs, sfw)->{
-			List<ObjectFormat> formats = FormatListFactory.findFormatList(Member.class, FormatUse.DELETE_LOG);
+	public File execute(QueryBaseService<Member, Member> memberQueryService){
+		File tempFile = memberQueryService.executeScrollableQuery((rs, sfw)->{
+			List<ObjectFormat> formats = FormatListFactory.ofMemberForExcelExport();
 			String tempPath = FileUtils.getTempDirectoryPath() + RandomStringUtils.randomAlphanumeric(8) + ".xlsx";
 			
 			File file = new File(tempPath);

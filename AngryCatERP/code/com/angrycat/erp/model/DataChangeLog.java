@@ -8,27 +8,18 @@ import javax.persistence.CollectionTable;
 import javax.persistence.Column;
 import javax.persistence.ElementCollection;
 import javax.persistence.Entity;
+import javax.persistence.FetchType;
 import javax.persistence.GeneratedValue;
 import javax.persistence.Id;
 import javax.persistence.JoinColumn;
 import javax.persistence.OrderColumn;
 import javax.persistence.Table;
-import javax.persistence.Transient;
 
 import org.hibernate.annotations.GenericGenerator;
 
 @Entity
 @Table(name="shr_datachangelog")
 public class DataChangeLog {
-	
-	@Transient
-	public static final String ACTION_ADD = "add"; 
-	@Transient
-	public static final String ACTION_UPDATE = "update"; 
-	@Transient
-	public static final String ACTION_DELETE = "delete"; 
-	@Transient
-	public static final String ACTION_QUERY = "query"; 
 		
 	private String id;
 	private String docId;
@@ -38,6 +29,8 @@ public class DataChangeLog {
 	private String userName;
 	private List<DataChangeLogDetail> details = new ArrayList<>();
 	private String note;
+	private String action;
+	
 	@Id
 	@Column(name="id")
 	@GenericGenerator(name="datachangelog_id", strategy = "com.angrycat.erp.ds.TimeUID")
@@ -83,7 +76,7 @@ public class DataChangeLog {
 	public void setUserName(String userName) {
 		this.userName = userName;
 	}
-	@ElementCollection
+	@ElementCollection(fetch=FetchType.EAGER, targetClass=DataChangeLogDetail.class)
 	@CollectionTable(
 		name="shr_datachangelogdetail",
 		joinColumns=@JoinColumn(name="dataChangeLogId"))
@@ -100,5 +93,12 @@ public class DataChangeLog {
 	}
 	public void setNote(String note) {
 		this.note = note;
+	}
+	@Column(name="action")
+	public String getAction() {
+		return action;
+	}
+	public void setAction(String action) {
+		this.action = action;
 	}
 }

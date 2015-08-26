@@ -15,7 +15,7 @@ import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.ResponseStatus;
 
 import com.angrycat.erp.model.Parameter;
-import com.angrycat.erp.service.ParameterCrudService;
+import com.angrycat.erp.service.ParameterQueryService;
 import com.angrycat.erp.web.component.ConditionConfig;
 
 @Controller
@@ -27,8 +27,7 @@ public class ParameterController {
 	private static final String PARAMATER_LIST = "parameter/list";
 	
 	@Autowired
-	@Qualifier("parameterCrudService")
-	private ParameterCrudService parameterCrudService;
+	private ParameterQueryService parameterQueryService;
 	
 	@RequestMapping(value="/list", method=RequestMethod.GET)
 	public String showConditions(){
@@ -41,8 +40,8 @@ public class ParameterController {
 			headers="Accept=*/*")
 	@ResponseStatus(HttpStatus.OK)
 	public @ResponseBody ConditionConfig<Parameter> getConditionConfig(){
-		List<Parameter> results = parameterCrudService.executeQueryPageable();
-		ConditionConfig<Parameter> cc = parameterCrudService.getConditionConfig();
+		List<Parameter> results = parameterQueryService.executeQueryPageable();
+		ConditionConfig<Parameter> cc = parameterQueryService.getConditionConfig();
 		cc.setResults(results);
 		return cc;
 	}
@@ -56,7 +55,7 @@ public class ParameterController {
 		c.forEach((k,v)->{
 			System.out.println(k + ": " + (v!=null ? v.getClass() : ""));
 		});
-		return parameterCrudService.executeQueryPageable(conditionConfig);
+		return parameterQueryService.executeQueryPageable(conditionConfig);
 	}
 
 }

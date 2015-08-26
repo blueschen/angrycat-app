@@ -15,15 +15,15 @@ import org.springframework.web.bind.annotation.RequestParam;
 import com.angrycat.erp.common.CommonUtil;
 import com.angrycat.erp.condition.ConditionFactory;
 import com.angrycat.erp.security.User;
-import com.angrycat.erp.service.CrudBaseService;
+import com.angrycat.erp.service.QueryBaseService;
 import com.angrycat.erp.web.WebUtils;
 
 @Controller
 @Scope("request")
 public class LoginController {
 	@Autowired
-	@Qualifier("crudBaseService")
-	private CrudBaseService<User, User> loginCrudService;
+	@Qualifier("queryBaseService")
+	private QueryBaseService<User, User> loginQueryService;
 	
 	@RequestMapping(value="/login", method={RequestMethod.POST})
 	public String login(
@@ -39,13 +39,13 @@ public class LoginController {
 			return "forward:" + loginPath;
 		}
 		
-		loginCrudService.setRootAndInitDefault(User.class);		
-		String rootAliasWith = CrudBaseService.DEFAULT_ROOT_ALIAS + ".";
-		loginCrudService
+		loginQueryService.setRootAndInitDefault(User.class);		
+		String rootAliasWith = QueryBaseService.DEFAULT_ROOT_ALIAS + ".";
+		loginQueryService
 			.addWhere(ConditionFactory.putStr(rootAliasWith+"userId=:pUserId", userId))
 			.addWhere(ConditionFactory.putStr(rootAliasWith+"password=:pPassword", password))
 		;
-		List<User> users = loginCrudService.executeQueryList();
+		List<User> users = loginQueryService.executeQueryList();
 		if(!users.isEmpty()){
 			WebUtils.currentSession().setAttribute(WebUtils.SESSION_USER, users.get(0));
 			return "redirect:/member/list";

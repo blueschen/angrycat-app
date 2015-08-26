@@ -10,7 +10,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.function.BiFunction;
 import java.util.function.Consumer;
-import java.util.function.Function;
 
 import org.apache.commons.lang3.StringUtils;
 import org.hibernate.ScrollMode;
@@ -25,7 +24,7 @@ import org.springframework.transaction.annotation.Transactional;
 import com.angrycat.erp.component.SessionFactoryWrapper;
 import com.angrycat.erp.condition.Order;
 import com.angrycat.erp.condition.SimpleExpression;
-import com.angrycat.erp.log.ActionLogger;
+import com.angrycat.erp.log.DataChangeLogger;
 import com.angrycat.erp.query.ConditionalQuery;
 import com.angrycat.erp.query.QueryGenerator;
 import com.angrycat.erp.security.User;
@@ -34,36 +33,32 @@ import com.angrycat.erp.web.component.ConditionConfig;
 
 @Service
 @Scope("prototype")
-public class CrudBaseService<T, R> extends ConditionalQuery<T> implements CrudService<T, R> {
-
-	/**
-	 * 
-	 */
+public class QueryBaseService<T, R> extends ConditionalQuery<T> implements ConditionalQueryService<T, R> {
 	private static final long serialVersionUID = -8528962281827660052L;
-	
-	private SessionFactoryWrapper sfw;
-	private Class<R> root;
-	
+		
 	public static final String DEFAULT_ROOT_ALIAS = "p";
-	
 	public static final String SIMPLE_EXPRESSION_PREFIEX	= "condition_";
 	public static final String CURRENT_PAGE					= "currentPage";
 	public static final String COUNT_PER_PAGE				= "countPerPage";
 	public static final String ORDER_TYPE					= "orderType";
-	private static final List<String> CONFIG_RANGES			= Arrays.asList(CURRENT_PAGE, COUNT_PER_PAGE, ORDER_TYPE);
+	private static final List<String> CONFIG_RANGES			= Arrays.asList(CURRENT_PAGE, COUNT_PER_PAGE, ORDER_TYPE);	
+	private static final DateFormat dateFormatFS = new SimpleDateFormat("yyyy-MM-dd");
+	private static final DateFormat timeFormatFS = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
 	
-	private DateFormat dateFormatFS = new SimpleDateFormat("yyyy-MM-dd");
-	private DateFormat timeFormatFS = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
-	
+	private SessionFactoryWrapper sfw;
+	private Class<R> root;	
 	private User user;
 	
 	@Autowired
-	public CrudBaseService(SessionFactoryWrapper sfw){
+	private DataChangeLogger dataChangeLogger;
+	
+	@Autowired
+	public QueryBaseService(SessionFactoryWrapper sfw){
 		super(sfw.getSessionFactory());
 		this.sfw = sfw;
 	}
 	
-	public CrudBaseService(SessionFactoryWrapper sfw, Class<R> root){
+	public QueryBaseService(SessionFactoryWrapper sfw, Class<R> root){
 		this(sfw);
 		this.sfw = sfw;
 		this.root = root;
@@ -250,7 +245,8 @@ public class CrudBaseService<T, R> extends ConditionalQuery<T> implements CrudSe
 	 * @return
 	 */
 	protected List<T> executeQueryPageableAfterDelete(Consumer<Session> beforeDelete, List<String> ids){
-
+		User currentUser = defaultUserIfNotExisted();
+		
 		Session s = sfw.openSession();
 		List<T> r = Collections.emptyList();
 		if(ids != null && !ids.isEmpty()){
@@ -278,7 +274,7 @@ public class CrudBaseService<T, R> extends ConditionalQuery<T> implements CrudSe
 						s.clear();
 					}
 					Object obj = results.get()[0];
-					ActionLogger.logDelete(obj, defaultUserIfNotExisted());
+					dataChangeLogger.logDelete(obj, s, currentUser);
 					s.delete(obj);
 				}
 				tx.commit();

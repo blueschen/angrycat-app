@@ -35,7 +35,7 @@
      	<Logger name="com.angrycat.erp.crud" level="info" additivity="false">
           <AppenderRef ref="CrudFile"/>
         </Logger>
-             	<Logger name="com.angrycat.erp.crud.delete" level="info" additivity="false">
+        <Logger name="com.angrycat.erp.crud.delete" level="info" additivity="false">
           <AppenderRef ref="DeleteFile"/>
         </Logger>
         <Root level="error">
