@@ -24,6 +24,8 @@ import org.springframework.transaction.annotation.Transactional;
 import com.angrycat.erp.component.SessionFactoryWrapper;
 import com.angrycat.erp.condition.Order;
 import com.angrycat.erp.condition.SimpleExpression;
+import com.angrycat.erp.condition.TimestampEndExpression;
+import com.angrycat.erp.condition.TimestampStartExpression;
 import com.angrycat.erp.log.DataChangeLogger;
 import com.angrycat.erp.query.ConditionalQuery;
 import com.angrycat.erp.query.QueryGenerator;
@@ -116,7 +118,7 @@ public class QueryBaseService<T, R> extends ConditionalQuery<T> implements Condi
 				String id = k.replace(SIMPLE_EXPRESSION_PREFIEX, "");
 				SimpleExpression se = getSimpleExpressions().get(id);
 				if(se != null){
-					se.setValue(parseSimpleExprValueType(se.getType(), v));
+					se.setValue(parseSimpleExprValueType(se, v));
 				}else{
 					System.out.println("null id:" + id);
 				}
@@ -170,10 +172,11 @@ public class QueryBaseService<T, R> extends ConditionalQuery<T> implements Condi
 		return cc;
 	}
 	
-	protected Object parseSimpleExprValueType(Class<?>clz, Object val){
+	protected Object parseSimpleExprValueType(SimpleExpression se, Object val){
 		if(val==null){
 			return null;
 		}
+		Class<?> clz = se.getType();
 		if(val.getClass() == clz){
 			return val;
 		}
@@ -203,7 +206,11 @@ public class QueryBaseService<T, R> extends ConditionalQuery<T> implements Condi
 				}else if(clz == Date.class){
 					result = new Date(dateFormatFS.parse(str).getTime());
 				}else if(clz == Timestamp.class){
-					result = new Timestamp(timeFormatFS.parse(str).getTime());
+					if(se instanceof TimestampStartExpression || se instanceof TimestampEndExpression){
+						result = str;
+					}else{
+						result = new Timestamp(timeFormatFS.parse(str).getTime());
+					}
 				}else if(clz == Boolean.class){
 					result = Boolean.parseBoolean(str);
 				}

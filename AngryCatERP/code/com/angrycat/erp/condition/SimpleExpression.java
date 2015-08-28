@@ -89,7 +89,11 @@ public class SimpleExpression implements ConditionConfigurable {
 				returnVal = Integer.valueOf(strVal);
 			}else if(type == Float.class){
 				returnVal = Float.valueOf(strVal);
+			}else{
+				returnVal = strVal;
 			}
+		}else{
+			returnVal = v;
 		}
 
 		return returnVal;

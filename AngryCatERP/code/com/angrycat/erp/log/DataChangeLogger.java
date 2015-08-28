@@ -48,12 +48,16 @@ public class DataChangeLogger {
 			String oldVal = oldObject != null ? removeReturn(of.getValue(oldObject)) : null;
 			String newVal = newObject != null ? removeReturn(of.getValue(newObject)) : null;
 			if(!new EqualsBuilder().append(oldVal, newVal).isEquals()){
-				log.getDetails().add(new DataChangeLogDetail(of.getName(), oldVal, newVal));
+				log.getDetails().add(new DataChangeLogDetail(of.getName(), toDefaultIfNull(oldVal), toDefaultIfNull(newVal)));
 			}
 		});
 		if(!log.getDetails().isEmpty()){
 			s.save(log);
 		}
+	}
+	
+	private String toDefaultIfNull(String val){
+		return StringUtils.defaultIfBlank(val, "--");
 	}
 	
 	public void logAdd(Object newObject, Session s){

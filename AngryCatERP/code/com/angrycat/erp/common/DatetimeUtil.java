@@ -3,8 +3,6 @@ package com.angrycat.erp.common;
 import java.sql.Date;
 import java.util.Calendar;
 
-import com.angrycat.erp.web.component.ConditionConfig;
-
 public class DatetimeUtil {
 	/**
 	 * retrieve Date<br>

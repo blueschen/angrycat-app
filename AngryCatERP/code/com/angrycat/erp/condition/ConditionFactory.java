@@ -131,7 +131,39 @@ public class ConditionFactory implements Serializable {
 		return expression;
 	}
 	public static SimpleExpression putTimestamp(String expr, Timestamp val){
-		SimpleExpression expression = putStr(expr);
+		SimpleExpression expression = putTimestamp(expr);
+		expression.setValue(val);
+		return expression;
+	}
+	public static SimpleExpression putTimestampStart(String expr){
+		String propertyName = findPropertyName(expr);
+		String operator = findOperator(expr);
+		String namedParam = findNamedParam(expr);
+		SimpleExpression expression = new TimestampStartExpression();
+		expression.setId(namedParam);
+		expression.setOperator(operator);
+		expression.setPropertyName(propertyName);
+		expression.setType(Timestamp.class);
+		return expression;
+	}
+	public static SimpleExpression putTimestampStart(String expr, Timestamp val){
+		SimpleExpression expression = putTimestampStart(expr);
+		expression.setValue(val);
+		return expression;
+	}
+	public static SimpleExpression putTimestampEnd(String expr){
+		String propertyName = findPropertyName(expr);
+		String operator = findOperator(expr);
+		String namedParam = findNamedParam(expr);
+		SimpleExpression expression = new TimestampEndExpression();
+		expression.setId(namedParam);
+		expression.setOperator(operator);
+		expression.setPropertyName(propertyName);
+		expression.setType(Timestamp.class);
+		return expression;
+	}
+	public static SimpleExpression putTimestampEnd(String expr, Timestamp val){
+		SimpleExpression expression = putTimestampEnd(expr);
 		expression.setValue(val);
 		return expression;
 	}

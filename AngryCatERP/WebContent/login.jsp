@@ -68,7 +68,7 @@
 			}
 			if(user){
 				self.user = JSON.parse(user);	
-			}			
+			}
 		}]);
 </script>
 </body>

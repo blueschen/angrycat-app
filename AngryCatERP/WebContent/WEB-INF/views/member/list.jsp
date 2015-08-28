@@ -168,6 +168,7 @@
 		<td>成為VIP時間</td>
 		<td>郵遞區號</td>
 		<td>內容</td>
+		<td>異動紀錄</td>
 	</tr>
 	<tr ng-repeat="result in mainCtrl.conditionConfig.results">
 		<td><input type="checkbox" value="{{result.id}}" name="ids"></td>
@@ -179,9 +180,14 @@
 		<td>{{result.important | convertBoolean}}</td>
 		<td>{{result.toVipDate}}</td>
 		<td>{{result.postalCode}}</td>
-		<td to-view="{{result.id}}">
-			<span>
+		<td>
+			<span to-view="{{result.id}}">
 				<i class="glyphicon glyphicon-file"></i>	
+			</span>
+		</td>
+		<td>
+			<span to-change-log="{{result.id}}">
+				<i class="glyphicon glyphicon-pencil"></i>	
 			</span>
 		</td>
 	</tr>
@@ -372,6 +378,13 @@
 				});
 			};
 		}])
+		.directive('toChangeLog', [function(){
+			return function(scope, ele, attrs){
+				ele.bind('click', function(){
+					document.location.href = '${pageContext.request.contextPath}/datachangelog/list?docId=' + attrs.toChangeLog + '&docType=com.angrycat.erp.model.Member';
+				});
+			};
+		}])		
 		.directive('erpFileAjaxCallback', ['$log', function($log){
 			return {
 				restrict: 'E',

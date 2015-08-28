@@ -8,7 +8,6 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 import com.angrycat.erp.format.FormatListFactory;
-import com.angrycat.erp.format.FormatUse;
 import com.angrycat.erp.format.ObjectFormat;
 import com.angrycat.erp.security.User;
 
