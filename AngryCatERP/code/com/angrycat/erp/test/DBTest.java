@@ -1,16 +1,15 @@
 package com.angrycat.erp.test;
 
+import static com.angrycat.erp.condition.ConditionFactory.putStr;
+
 import java.sql.Date;
 import java.sql.Timestamp;
 import java.util.Iterator;
 import java.util.List;
-import java.util.function.BiConsumer;
 
 import org.apache.commons.lang3.builder.ReflectionToStringBuilder;
 import org.apache.commons.lang3.builder.ToStringStyle;
-import org.hibernate.Session;
 import org.springframework.context.annotation.AnnotationConfigApplicationContext;
-import org.springframework.orm.hibernate4.LocalSessionFactoryBean;
 
 import com.angrycat.erp.businessrule.MemberVipDiscount;
 import com.angrycat.erp.businessrule.VipDiscountUseStatus;
@@ -19,15 +18,19 @@ import com.angrycat.erp.initialize.config.RootConfig;
 import com.angrycat.erp.model.DataChangeLog;
 import com.angrycat.erp.model.DataChangeLogDetail;
 import com.angrycat.erp.model.Member;
+import com.angrycat.erp.query.QueryGenerator;
 import com.angrycat.erp.security.Group;
 import com.angrycat.erp.security.Role;
 import com.angrycat.erp.security.RoleConstants;
 import com.angrycat.erp.security.User;
 import com.angrycat.erp.security.extend.GroupInfo;
 import com.angrycat.erp.security.extend.UserInfo;
+import com.angrycat.erp.service.QueryBaseService;
 
 
-public class DBTest {
+
+
+public class DBTest extends BaseTest{
 	
 	public static void main(String[]args){
 //		insertSecurityAll();
@@ -36,7 +39,8 @@ public class DBTest {
 //		selectTest();
 //		testInsertDataChangeLog();
 //		testBatchSize();
-		testInsertVipDiscoutnDetails();
+//		testInsertVipDiscoutnDetails();
+		testSetNull();
 	}
 	
 	public static void selectTest(){
@@ -255,23 +259,6 @@ public class DBTest {
 		});
 	}
 	
-	public static void executeSession(BiConsumer<Session, AnnotationConfigApplicationContext>c){
-		AnnotationConfigApplicationContext acac = new AnnotationConfigApplicationContext(RootConfig.class);
-		Session s = null;
-		try{
-			s = acac.getBean(LocalSessionFactoryBean.class).getObject().openSession();
-			c.accept(s, acac);
-		}catch(Throwable e){
-			e.printStackTrace();
-		}finally{
-			
-			if(s !=null && s.isOpen()){
-				s.close();
-			}
-			acac.close();
-		}
-	}
-	
 	public static void testBatchSize(){
 		AnnotationConfigApplicationContext acac = new AnnotationConfigApplicationContext(RootConfig.class);
 		SessionFactoryWrapper sfw = acac.getBean(SessionFactoryWrapper.class);
@@ -307,6 +294,22 @@ public class DBTest {
 			s.saveOrUpdate(m);
 			s.flush();
 			s.clear();
+		});
+	}
+	
+	private static void testSetNull(){
+		executeApplicationContext(acac->{
+			QueryBaseService<DataChangeLog, DataChangeLog> qbs = (QueryBaseService<DataChangeLog, DataChangeLog>)acac.getBean("queryBaseService");
+			qbs.setRootAndInitDefault(DataChangeLog.class);
+			qbs
+			.addWhere(putStr("p.docType = :pDocType"))
+			.addWhere(putStr("p.docId = :pDocId"));
+			qbs.getSimpleExpressions().get("pDocType").setValue(null);
+			qbs.getSimpleExpressions().get("pDocId").setValue(null);
+			QueryGenerator qg = qbs.toQueryGenerator();
+			System.out.println(qg.toCompleteStr());
+			List<DataChangeLog> list = qbs.executeQueryList();
+			System.out.println("list size: " + list.size());
 		});
 	}
 }

@@ -92,8 +92,8 @@ public class DataChangeLogger {
 	}
 	
 	private static String removeReturn(String val){
-		if(val == null){
-			return val;
+		if(val == null || StringUtils.isBlank(val)){
+			return null;
 		}
 		return StringUtils.replace(val, "\r\n", "\n");
 	}

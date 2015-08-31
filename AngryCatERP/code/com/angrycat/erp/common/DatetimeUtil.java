@@ -46,7 +46,7 @@ public class DatetimeUtil {
 	public static Date getLastMinuteOfDay(int year, int month, int day){
 		Calendar c = Calendar.getInstance();
 		c.set(Calendar.YEAR, year);
-		c.set(Calendar.MONTH, month);
+		c.set(Calendar.MONTH, month-1);
 		c.set(Calendar.DAY_OF_MONTH, day);
 		c = getLastMinute(c);
 		return new Date(c.getTimeInMillis());
@@ -81,7 +81,8 @@ public class DatetimeUtil {
 	public static Date getLastDateOfMonth(int year, int month){
 		Calendar c = Calendar.getInstance();
 		c.set(Calendar.YEAR, year);
-		c.set(Calendar.MONTH, month);
+		c.set(Calendar.MONTH, month-1);
+		c.set(Calendar.DAY_OF_MONTH, 1);
 		int lastDay = c.getActualMaximum(Calendar.DAY_OF_MONTH);
 		return getLastMinuteOfDay(year, month, lastDay);
 	}
@@ -112,6 +113,18 @@ public class DatetimeUtil {
 		System.out.println("one year after: " + addOneYearToLastMinute(time));
 	}
 	public static void testGetLastDateOfMonth(){
-		System.out.println("last day: " + getLastDateOfMonth(2016, 1));
+		System.out.println("last day: " + getLastDateOfMonth(2015, 11));
+	}
+	private static void testGetLastMinuteOfDay(){
+		System.out.println(getLastMinuteOfDay(2015, 11, 12));
+	}
+	private static void testGetFirstMinuteOfDay(){
+		Date d = getFirstMinuteOfDay(2015, 11, 12);
+		Calendar c = Calendar.getInstance();
+		c.setTimeInMillis(d.getTime());
+		System.out.println("hour: " + c.get(Calendar.HOUR_OF_DAY) + ", minute: " + c.get(Calendar.MINUTE) + ", sec: " + c.get(Calendar.SECOND));
+	}
+	public static void main(String[]args){
+		testGetFirstMinuteOfDay();
 	}
 }

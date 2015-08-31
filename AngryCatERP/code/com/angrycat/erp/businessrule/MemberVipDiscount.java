@@ -71,13 +71,12 @@ public class MemberVipDiscount implements Serializable {
 			int toVipMonth = toVip.get(Calendar.MONTH);
 			
 			firstEffectiveStart = getFirstMinuteOfDay(toVipDate);
-			
 			if(toVipMonth == birthMonth){
 				firstEffectiveEnd = addOneYearToLastMinute(toVipDate);
 			}else if(toVipMonth < birthMonth){
-				firstEffectiveEnd = getLastDateOfMonth(toVipYear, birthMonth);
+				firstEffectiveEnd = getLastDateOfMonth(toVipYear, birthMonth+1);
 			}else{// toVipMonth > birthMonth
-				firstEffectiveEnd = getLastDateOfMonth(toVipYear+1, birthMonth);
+				firstEffectiveEnd = getLastDateOfMonth(toVipYear+1, birthMonth+1);
 			}
 		}
 		
@@ -120,22 +119,6 @@ public class MemberVipDiscount implements Serializable {
 			return false;
 		}
 		return true;
-	}
-	private static void testApplyVipEffectiveDurGenRule(){
-		Member m = new Member();
-		m.setBirthday(getFirstMinuteOfDay(1977, 1, 20));
-		m.setToVipDate(getFirstMinuteOfDay(2014, 3, 30));
-		
-		MemberVipDiscount memberVipDiscount = new MemberVipDiscount();
-		memberVipDiscount.applyRule(m);
-		System.out.println("birthday: " + m.getBirthday());
-		
-		System.out.println("toVipDate: " + m.getToVipDate());
-		System.out.println("toVipEndDate: " + m.getToVipEndDate());
-		m.getVipDiscountDetails().forEach(v->{
-			System.out.println("effective start: " + v.getEffectiveStart());
-			System.out.println("effective end: " + v.getEffectiveEnd());
-		});
 	}
 	public static MemberVipDiscount getInstance(){
 		MemberVipDiscount memberVipDiscount = new MemberVipDiscount();

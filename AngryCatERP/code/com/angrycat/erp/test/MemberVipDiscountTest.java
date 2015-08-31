@@ -6,15 +6,13 @@ import java.util.LinkedList;
 import java.util.List;
 
 import com.angrycat.erp.businessrule.MemberVipDiscount;
+import com.angrycat.erp.common.DatetimeUtil;
 import com.angrycat.erp.condition.ConditionFactory;
 import com.angrycat.erp.model.Member;
 import com.angrycat.erp.model.VipDiscountDetail;
 import com.angrycat.erp.service.QueryBaseService;
 
 public class MemberVipDiscountTest extends BaseTest {
-	public static void main(String[]args){
-		testQueryMemberVipDiscountLazyFetch();
-	}
 	public static void testQueryMemberVipDiscountLazyFetch(){
 		executeSession((s, acac)->{
 			QueryBaseService<Member, Member> cbs = (QueryBaseService<Member, Member>)acac.getBean("queryBaseService");
@@ -204,5 +202,39 @@ public class MemberVipDiscountTest extends BaseTest {
 				});
 			});
 		});
+	}
+	
+	private static void testVipDiscountRule(){
+		Member m = new Member();
+		m.setBirthday(DatetimeUtil.getFirstMinuteOfDay(1988, 11, 12));
+		m.setToVipDate(DatetimeUtil.getFirstMinuteOfDay(2015, 8, 31));
+		System.out.println("birthday:" + m.getBirthday());
+		System.out.println("toVipDate:" + m.getToVipDate());
+		
+		MemberVipDiscount mvd = new MemberVipDiscount();
+		mvd.applyRule(m);
+		
+		m.getVipDiscountDetails().forEach(d->{
+			System.out.println("start: " + d.getEffectiveStart() + ", end: " + d.getEffectiveEnd());
+		});
+	}
+	private static void testApplyVipEffectiveDurGenRule(){
+		Member m = new Member();
+		m.setBirthday(getFirstMinuteOfDay(1977, 1, 20));
+		m.setToVipDate(getFirstMinuteOfDay(2014, 3, 30));
+		
+		MemberVipDiscount memberVipDiscount = new MemberVipDiscount();
+		memberVipDiscount.applyRule(m);
+		System.out.println("birthday: " + m.getBirthday());
+		
+		System.out.println("toVipDate: " + m.getToVipDate());
+		System.out.println("toVipEndDate: " + m.getToVipEndDate());
+		m.getVipDiscountDetails().forEach(v->{
+			System.out.println("effective start: " + v.getEffectiveStart());
+			System.out.println("effective end: " + v.getEffectiveEnd());
+		});
+	}
+	public static void main(String[]args){
+		testApplyVipEffectiveDurGenRule();
 	}
 }

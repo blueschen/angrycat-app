@@ -7,6 +7,7 @@ import static com.angrycat.erp.condition.ConditionFactory.putTimestampStart;
 
 import javax.annotation.PostConstruct;
 
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Scope;
@@ -51,9 +52,13 @@ public class DataChangeLogController {
 	}
 	
 	@RequestMapping(value="/list", method=RequestMethod.GET)
-	public String list(@RequestParam("docType")String docType, @RequestParam("docId")String docId){
-		queryListService.getSimpleExpressions().get("pDocType").setValue(docType);
-		queryListService.getSimpleExpressions().get("pDocId").setValue(docId);
+	public String list(@RequestParam(value="docType", required=false)String docType, @RequestParam(value="docId", required=false)String docId){
+		if(StringUtils.isNotBlank(docType)){
+			queryListService.getSimpleExpressions().get("pDocType").setValue(docType);
+		}
+		if(StringUtils.isNotBlank(docId)){
+			queryListService.getSimpleExpressions().get("pDocId").setValue(docId);
+		}
 		return "datachangelog/list";
 	}
 	
