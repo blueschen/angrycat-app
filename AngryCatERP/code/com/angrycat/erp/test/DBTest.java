@@ -1,6 +1,7 @@
 package com.angrycat.erp.test;
 
 import static com.angrycat.erp.condition.ConditionFactory.putStr;
+import static com.angrycat.erp.condition.ConditionFactory.propertyDesc;
 
 import java.sql.Date;
 import java.sql.Timestamp;
@@ -30,19 +31,7 @@ import com.angrycat.erp.service.QueryBaseService;
 
 
 
-public class DBTest extends BaseTest{
-	
-	public static void main(String[]args){
-//		insertSecurityAll();
-//		insertSecurity();
-//		testRole();
-//		selectTest();
-//		testInsertDataChangeLog();
-//		testBatchSize();
-//		testInsertVipDiscoutnDetails();
-		testSetNull();
-	}
-	
+public class DBTest extends BaseTest{	
 	public static void selectTest(){
 		executeSession((s, acac)->{
 			Long count = (Long)s.createQuery("SELECT COUNT(*) FROM " + Member.class.getName()).uniqueResult();
@@ -310,6 +299,36 @@ public class DBTest extends BaseTest{
 			System.out.println(qg.toCompleteStr());
 			List<DataChangeLog> list = qbs.executeQueryList();
 			System.out.println("list size: " + list.size());
+		});
+	}
+	public static void main(String[]args){
+//		insertSecurityAll();
+//		insertSecurity();
+//		testRole();
+//		selectTest();
+//		testInsertDataChangeLog();
+//		testBatchSize();
+//		testInsertVipDiscoutnDetails();
+//		testSetNull();
+		testSelfJoin();
+	}
+	private static void testSelfJoin(){
+		executeApplicationContext(acac->{
+			String clz = DataChangeLog.class.getName();
+			QueryBaseService<DataChangeLog, DataChangeLog> qbs = (QueryBaseService<DataChangeLog, DataChangeLog>)acac.getBean("queryBaseService");
+			qbs.createFromAlias(clz, "d1")
+			.createFromAlias(clz, "d2")
+			.addSelect("DISTINCT(d1)")
+			.addWhere(propertyDesc("d1.docId = d2.docId"))
+			.addWhere(putStr("d2.action = :d2Action", "DELETE"));
+			
+			QueryGenerator qg = qbs.toQueryGenerator();
+			System.out.println(qg.toCompleteStr());
+
+			List<DataChangeLog> list = qbs.executeQueryList();
+			list.stream().forEach(d->{
+				System.out.println("d id: " + d.getId());
+			});
 		});
 	}
 }

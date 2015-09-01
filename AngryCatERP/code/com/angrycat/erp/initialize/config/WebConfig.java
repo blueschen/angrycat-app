@@ -55,7 +55,7 @@ public class WebConfig extends WebMvcConfigurerAdapter {
 		configurer.enable();
 	}
 	
-	@Bean
+	@Bean(name="messageSource")
 	public MessageSource messageSource(){
 		ReloadableResourceBundleMessageSource messageSource = 
 			new ReloadableResourceBundleMessageSource();

@@ -51,7 +51,7 @@ public class ConditionFactory implements Serializable {
 		return found;
 	}
 	private static String findPropertyName(String input){
-		String regex = "[a-zA-Z\\.]+\\.[a-zA-Z\\.]+";
+		String regex = "[a-zA-Z0-9\\.]+\\.[a-zA-Z0-9\\.]+";
 		String found = findFirstMatch(regex, input);
 		return found;
 	}
@@ -70,8 +70,9 @@ public class ConditionFactory implements Serializable {
 	}
 	private static SimpleExpression findSimpleExpression(String expr){
 		String propertyName = findPropertyName(expr);
+		System.out.println("propertyName: " + propertyName);
 		String operator = findOperator(expr);
-		String namedParam = findNamedParam(expr); 
+		String namedParam = findNamedParam(expr);
 		SimpleExpression expression = newSimpleInstance(propertyName, operator, namedParam);
 		return expression;
 	}

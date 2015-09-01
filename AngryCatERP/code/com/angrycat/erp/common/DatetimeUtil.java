@@ -1,7 +1,15 @@
 package com.angrycat.erp.common;
 
 import java.sql.Date;
+import java.time.Instant;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.LocalTime;
+import java.time.ZoneId;
+import java.time.ZoneOffset;
+import java.util.Arrays;
 import java.util.Calendar;
+import java.util.TimeZone;
 
 public class DatetimeUtil {
 	/**
@@ -124,7 +132,24 @@ public class DatetimeUtil {
 		c.setTimeInMillis(d.getTime());
 		System.out.println("hour: " + c.get(Calendar.HOUR_OF_DAY) + ", minute: " + c.get(Calendar.MINUTE) + ", sec: " + c.get(Calendar.SECOND));
 	}
+	private static void test(){
+		int year = 2015;
+		int month = 11;
+		int day = 12;
+		
+		Instant instant = Instant.ofEpochMilli(System.currentTimeMillis());
+		LocalDateTime time = LocalDateTime.ofInstant(instant, ZoneOffset.UTC);
+		LocalDateTime d = LocalDateTime.of(LocalDate.of(year, month, day), LocalTime.MAX);
+		
+		
+		ZoneId zoneId = TimeZone.getDefault().toZoneId();
+		System.out.println("JVM time zone id: " + zoneId);
+		System.out.println("JVM time zone offset: " + TimeZone.getDefault().getRawOffset() + " milliseconds");
+		System.out.println("JVM time zone offset: " + TimeZone.getDefault().getRawOffset()/(60*60*1000) + " hours"); // converting to hours differing from Greenwich, ex. Asia/Taipei is GMT+8, the result is 28,800,000 milliseconds 
+		System.out.println("JVM time zone ids: " + Arrays.asList(TimeZone.getAvailableIDs(TimeZone.getDefault().getRawOffset())));
+		System.out.println("JVM support time zone ids: " + Arrays.asList(TimeZone.getAvailableIDs()));
+	}
 	public static void main(String[]args){
-		testGetFirstMinuteOfDay();
+		test();
 	}
 }
