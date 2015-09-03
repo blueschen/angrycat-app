@@ -312,20 +312,20 @@ public class DBTest extends BaseTest{
 //		testSetNull();
 		testSelfJoin();
 	}
+	// this example can be used to replace subquery
 	private static void testSelfJoin(){
 		executeApplicationContext(acac->{
 			String clz = DataChangeLog.class.getName();
 			QueryBaseService<DataChangeLog, DataChangeLog> qbs = (QueryBaseService<DataChangeLog, DataChangeLog>)acac.getBean("queryBaseService");
 			qbs.createFromAlias(clz, "d1")
 			.createFromAlias(clz, "d2")
-			.addSelect("DISTINCT(d1)")
 			.addWhere(propertyDesc("d1.docId = d2.docId"))
 			.addWhere(putStr("d2.action = :d2Action", "DELETE"));
 			
 			QueryGenerator qg = qbs.toQueryGenerator();
 			System.out.println(qg.toCompleteStr());
 
-			List<DataChangeLog> list = qbs.executeQueryList();
+			List<DataChangeLog> list = qbs.executeQueryPageable();
 			list.stream().forEach(d->{
 				System.out.println("d id: " + d.getId());
 			});

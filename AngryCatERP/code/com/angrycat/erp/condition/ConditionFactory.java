@@ -70,7 +70,6 @@ public class ConditionFactory implements Serializable {
 	}
 	private static SimpleExpression findSimpleExpression(String expr){
 		String propertyName = findPropertyName(expr);
-		System.out.println("propertyName: " + propertyName);
 		String operator = findOperator(expr);
 		String namedParam = findNamedParam(expr);
 		SimpleExpression expression = newSimpleInstance(propertyName, operator, namedParam);

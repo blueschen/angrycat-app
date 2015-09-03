@@ -4,8 +4,7 @@
 <%@ taglib uri="http://www.springframework.org/tags/form" prefix="sf"%>
 <%@ taglib uri="http://www.springframework.org/tags" prefix="s"%>
 
-<c:set value="datachangelog" var="modelName"/>
-<c:set value="${pageContext.request.contextPath}/${modelName}" var="urlPrefix"/>
+<c:set value="${pageContext.request.contextPath}/${moduleName}" var="urlPrefix"/>
 <!DOCTYPE html>
 <html ng-app="datachangelogListApp">
 <head>
@@ -35,13 +34,47 @@
 	
 </head>
 <body ng-controller="MainCtrl as mainCtrl" ng-keypress="mainCtrl.keypressQuery($event)">
+
+<div>
+	<nav role="navigation" class="navbar navbar-default navbar-fixed-top">
+		<div class="container">
+			<div class="navbar-header">
+				<button type="button" data-target="#navbarCollapse" data-toggle="collapse" class="navbar-toggle">
+					<span class="sr-only">Toggle navigation</span>
+					<span class="icon-bar"></span>
+					<span class="icon-bar"></span>
+					<span class="icon-bar"></span>
+				</button>
+				<a href="#" class="navbar-brand">Angrycat</a>
+			</div>
+			<div id="navbarCollapse" class="collapse navbar-collapse">
+				<ul class="nav navbar-nav">
+					<li ng-class="{'active': mainCtrl.moduleName == 'member'}">
+						<a href="${pageContext.request.contextPath}/member/list">會員查詢</a>
+					</li>
+					<li ng-class="{'active': mainCtrl.moduleName == 'datachangelog'}">
+						<a href="${pageContext.request.contextPath}/datachangelog/list">異動紀錄查詢</a>
+					</li>
+					<li ng-class="{'active': mainCtrl.moduleName == 'datadeletelog'}">
+						<a href="${pageContext.request.contextPath}/datadeletelog/list">刪除紀錄查詢</a>
+					</li>					
+				</ul>
+				<ul class="nav navbar-nav navbar-right">
+					<li>
+						<a href="${pageContext.request.contextPath}/logout"><span class="glyphicon glyphicon-user"></span>登出</a>
+					</li>
+				</ul>
+			</div>		
+		</div>
+	</nav>
+</div>
   
 <div class="container">
 
 <div class="jumbotron">
 <h4>異動紀錄查詢</h4>
 </div>
-
+<input type="hidden" ng-model="mainCtrl.conditionConfig.conds.condition_dAction"/>
 <form class="form-horizontal" name="datachangelogListForm" >
  	<div class="form-group">
 		<label class="col-sm-2 control-label" for="pAction">
@@ -123,24 +156,27 @@
 <table class="table table-bordered table-hover table-condense">
 	<colgroup>
 		<col class="col-sm-2">
-		<col class="col-sm-5">
-		<col class="col-sm-5">
+		<col class="col-sm-2">
+		<col class="col-sm-4">
+		<col class="col-sm-4">
 	</colgroup>
 	<thead>
 	<tr>
 		<th>更動時間</th>
+		<th>更動模組</th>
 		<th>使用者帳號</th>
 		<th>使用者姓名</th>
 	</tr>	
 	</thead>
 	<tbody ng-repeat="result in mainCtrl.conditionConfig.results">
 		<tr class="main-row" ng-click="mainCtrl.toggleDetail($index)">
-			<td>{{result.logTime | date : 'yyyy-MM-dd HH:mm:ss' : mainCtrl.TIMEZONE_ID}}</td>
-			<td>{{result.userId}}</td>
-			<td>{{result.userName}}</td>				
+			<td><span ng-bind="result.logTime | date : 'yyyy-MM-dd HH:mm:ss' : mainCtrl.TIMEZONE_ID"></span></td>
+			<td><span ng-bind="result.docType | convertModule"></span></td>
+			<td><span ng-bind="result.userId"></span></td>
+			<td><span ng-bind="result.userName"></span></td>				
 		</tr>
 		<tr class="extra-row" ng-show="mainCtrl.active == mainCtrl.active">
-			<td colspan="3" style="padding: 0px;">
+			<td colspan="4" style="padding: 0px;">
 				<table style="width:100%;" class="table-bordered">
 					<colgroup>
 						<col class="col-sm-2">
@@ -156,9 +192,9 @@
 					</thead>
 					<tbody  ng-repeat="detail in result.details">
 						<tr>
-							<td>{{detail.fieldName}}</td>
-							<td>{{detail.originalContent}}</td>
-							<td>{{detail.changedContent}}</td>				
+							<td><span ng-bind="detail.fieldName"></span></td>
+							<td><span ng-bind="detail.originalContent"></span></td>
+							<td><span ng-bind="detail.changedContent"></span></td>				
 						</tr>					
 					</tbody>
 				</table>
@@ -252,10 +288,15 @@
 			};
 			self.TIMEZONE_ID = DateService.TIMEZONE_ID;
 			self.queryAll();
+			self.moduleName = '${moduleName}';
 		}])
-		.filter('convertDetail', [function(){
-			return function(detail){
-				return detail.fieldName + ': ' + detail.originalContent + ' -> ' + detail.changedContent;
+		.filter('convertModule', [function(){
+			return function(clz){
+				var name = '';
+				if(clz == 'com.angrycat.erp.model.Member'){
+					name = '會員';
+				}
+				return name;
 			}
 		}]);
 </script>

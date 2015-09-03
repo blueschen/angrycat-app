@@ -16,6 +16,7 @@ import javax.servlet.http.HttpSession;
 
 import com.angrycat.erp.security.User;
 import com.angrycat.erp.web.WebUtils;
+import com.angrycat.erp.web.controller.LoginController;
 
 public class SecurityFilter implements Filter {
 	private Set<String> allowPathStart = new HashSet<>();
@@ -39,7 +40,7 @@ public class SecurityFilter implements Filter {
 				if(isAjax(req)){
 					res.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
 				}else{
-					res.sendRedirect(req.getContextPath() + "/login.jsp");
+					res.sendRedirect(req.getContextPath() + LoginController.LOGIN_PATH);
 				}
 				return;
 			}

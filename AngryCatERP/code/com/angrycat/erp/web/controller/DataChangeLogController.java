@@ -7,11 +7,11 @@ import static com.angrycat.erp.condition.ConditionFactory.putTimestampStart;
 
 import javax.annotation.PostConstruct;
 
-import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Controller;
+import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
@@ -52,13 +52,13 @@ public class DataChangeLogController {
 	}
 	
 	@RequestMapping(value="/list", method=RequestMethod.GET)
-	public String list(@RequestParam(value="docType", required=false)String docType, @RequestParam(value="docId", required=false)String docId){
-		if(StringUtils.isNotBlank(docType)){
-			queryListService.getSimpleExpressions().get("pDocType").setValue(docType);
-		}
-		if(StringUtils.isNotBlank(docId)){
-			queryListService.getSimpleExpressions().get("pDocId").setValue(docId);
-		}
+	public String list(
+		@RequestParam(value="docType", required=false)String docType, 
+		@RequestParam(value="docId", required=false)String docId,
+		Model model){
+		queryListService.getSimpleExpressions().get("pDocType").setValue(docType);
+		queryListService.getSimpleExpressions().get("pDocId").setValue(docId);
+		model.addAttribute("moduleName", getModule());
 		return "datachangelog/list";
 	}
 	
@@ -67,7 +67,9 @@ public class DataChangeLogController {
 			produces={"application/xml", "application/json"},
 			headers="Accept=*/*")
 	public @ResponseBody ConditionConfig<DataChangeLog> queryAll(){
+		System.out.println("d action2: " + queryListService.getSimpleExpressions().get("dAction"));
 		ConditionConfig<DataChangeLog> cc = queryListService.genCondtitionsAfterExecuteQueryPageable();
+		System.out.println("d action3: " + queryListService.getSimpleExpressions().get("dAction"));
 		return cc;
 	}
 	
@@ -78,5 +80,13 @@ public class DataChangeLogController {
 	public @ResponseBody ConditionConfig<DataChangeLog> queryConditional(@RequestBody ConditionConfig<DataChangeLog> conditionConfig){
 		ConditionConfig<DataChangeLog> cc = queryListService.executeQueryPageable(conditionConfig);
 		return cc;
+	}
+	
+	QueryBaseService<DataChangeLog, DataChangeLog> getQueryListService(){
+		return this.queryListService;
+	}
+	
+	String getModule(){
+		return "datachangelog";
 	}
 }

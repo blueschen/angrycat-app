@@ -5,7 +5,7 @@
 <%@ taglib uri="http://www.springframework.org/tags" prefix="s"%>
 
 <c:set value="member" var="modelName"/>
-<c:set value="${pageContext.request.contextPath}/${modelName}" var="urlPrefix"/>
+<c:set value="${pageContext.request.contextPath}/${moduleName}" var="urlPrefix"/>
 <!DOCTYPE html>
 <html ng-app="angryCatMemberListApp">
 <head>
@@ -30,7 +30,42 @@
 	
 </head>
 <body ng-controller="MainCtrl as mainCtrl" ng-keypress="mainCtrl.keypressQuery($event)">
-  
+<div>
+	<nav role="navigation" class="navbar navbar-default navbar-fixed-top">
+		<div class="container">
+			<div class="navbar-header">
+				<button type="button" data-target="#navbarCollapse" data-toggle="collapse" class="navbar-toggle">
+					<span class="sr-only">Toggle navigation</span>
+					<span class="icon-bar"></span>
+					<span class="icon-bar"></span>
+					<span class="icon-bar"></span>
+				</button>
+				<a href="#" class="navbar-brand">Angrycat</a>
+			</div>
+			<div id="navbarCollapse" class="collapse navbar-collapse">
+				<ul class="nav navbar-nav">
+					<li ng-class="{'active': mainCtrl.moduleName == 'member'}">
+						<a href="${pageContext.request.contextPath}/member/list">會員查詢</a>
+					</li>
+					<li ng-class="{'active': mainCtrl.moduleName == 'datachangelog'}">
+						<a href="${pageContext.request.contextPath}/datachangelog/list">異動紀錄查詢</a>
+					</li>
+					<li ng-class="{'active': mainCtrl.moduleName == 'datadeletelog'}">
+						<a href="${pageContext.request.contextPath}/datadeletelog/list">刪除紀錄查詢</a>
+					</li>
+				</ul>
+				<ul class="nav navbar-nav navbar-right">
+					<li>
+						<a href="${pageContext.request.contextPath}/logout"><span class="glyphicon glyphicon-user"></span>登出</a>
+					</li>
+				</ul>
+			</div>		
+		</div>
+	</nav>
+</div>
+
+
+
 <div class="container">
 
 <div class="jumbotron">
@@ -172,14 +207,14 @@
 	</tr>
 	<tr ng-repeat="result in mainCtrl.conditionConfig.results">
 		<td><input type="checkbox" value="{{result.id}}" name="ids"></td>
-		<td>{{result.idNo}}</td>
-		<td>{{result.name}}</td>
-		<td>{{result.fbNickname}}</td>
-		<td>{{result.gender | convertGender}}</td>
-		<td>{{result.birthday}}</td>
-		<td>{{result.important | convertBoolean}}</td>
-		<td>{{result.toVipDate}}</td>
-		<td>{{result.postalCode}}</td>
+		<td><span ng-bind="result.idNo"></span></td>
+		<td><span ng-bind="result.name"></span></td>
+		<td><span ng-bind="result.fbNickname"></span></td>
+		<td><span ng-bind="result.gender | convertGender"></span></td>
+		<td><span ng-bind="result.birthday"></span></td>
+		<td><span ng-bind="result.important | convertBoolean"></span></td>
+		<td><span ng-bind="result.toVipDate"></span></td>
+		<td><span ng-bind="result.postalCode"></span></td>
 		<td>
 			<span to-view="{{result.id}}">
 				<i class="glyphicon glyphicon-file"></i>	
@@ -360,6 +395,7 @@
 					self.query();
 				}
 			};
+			self.moduleName = '${moduleName}';
 		}])
 		.filter('convertGender', [function(){
 			return function(input){

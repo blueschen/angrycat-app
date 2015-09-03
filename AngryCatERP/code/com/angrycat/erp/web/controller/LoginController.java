@@ -21,6 +21,7 @@ import com.angrycat.erp.web.WebUtils;
 @Controller
 @Scope("request")
 public class LoginController {
+	public static final String LOGIN_PATH = "/login.jsp";
 	@Autowired
 	@Qualifier("queryBaseService")
 	private QueryBaseService<User, User> loginQueryService;
@@ -31,12 +32,11 @@ public class LoginController {
 		@RequestParam("password")String password,
 		Model model){
 		
-		String loginPath = "/login.jsp";
 		if(StringUtils.isBlank(userId)
 		|| StringUtils.isBlank(password)){
 			model.addAttribute("loginErrMsg", "帳號或密碼不正確");
 			model.addAttribute("user", CommonUtil.parseToJson(new User(userId, password)));
-			return "forward:" + loginPath;
+			return "forward:" + LOGIN_PATH;
 		}
 		
 		loginQueryService.setRootAndInitDefault(User.class);		
@@ -52,7 +52,7 @@ public class LoginController {
 		}
 		model.addAttribute("loginErrMsg", "帳號不存在");
 		model.addAttribute("user", CommonUtil.parseToJson(new User(userId, password)));
-		return "forward:" + loginPath;
+		return "forward:" + LOGIN_PATH;
 	}
 	
 	

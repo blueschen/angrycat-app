@@ -49,19 +49,22 @@ public class ConditionalQuery<T> extends QueryConfig implements
 		
 		String selectTotalCount = "SELECT COUNT(DISTINCT " + identifier + ")";
 		String selectTotalCountFrom = selectTotalCount + "\nFROM " + fromTarget;
-		String join = generator.getJoin() != null ? ("\n"+generator.getJoin()) : "";
+		String join =  StringUtils.isNotBlank(generator.getJoin()) ? ("\n"+generator.getJoin()) : "";
 		String where =  StringUtils.isNotBlank(generator.getWhere()) ? ("\nWHERE "+generator.getWhere()) : "";
 		String getTotalCount = selectTotalCountFrom + join + where;
+		System.out.println("getTotalCount:\n" + getTotalCount);
 		
 		String selectDistinctRootId = "SELECT DISTINCT " + identifier;
 		String selectDistinctRootIdFrom = selectTotalCountFrom.replace(selectTotalCount, selectDistinctRootId);
 		String orderBy = StringUtils.isNotBlank(generator.getOrderBy()) ? ("\nORDER BY "+generator.getOrderBy()) : "\nORDER BY " + identifier + " DESC";
 		orderBy = !orderBy.contains(identifier) ? (orderBy + ", " + identifier + " DESC") : orderBy;
 		String getIds = selectDistinctRootIdFrom + join + where + orderBy;
+		System.out.println("getIds:\n" + getIds);
 		
-		String selectDistinctRoot = "SELECT DISTINCT " + selectTarget;
+		String selectDistinctRoot = "SELECT DISTINCT " + alias;
 		String selectDistinctRootFrom = selectDistinctRootIdFrom.replace(selectDistinctRootId, selectDistinctRoot);
 		String getEntities = selectDistinctRootFrom + ("\nWHERE " + identifier + " IN (:ids)\n" + orderBy);
+		System.out.println("getEntities:\n" + getEntities);
 		
 		Map<String, Object> params = generator.getParams();
 		

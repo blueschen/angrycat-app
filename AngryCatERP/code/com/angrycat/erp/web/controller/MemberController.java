@@ -106,8 +106,8 @@ public class MemberController {
 	}
 	
 	@RequestMapping(value="/list", method=RequestMethod.GET)
-	public String list(){
-		System.out.println("list.... ");
+	public String list(Model model){
+		model.addAttribute("moduleName", getModule());
 		return "member/list";
 	}
 	
@@ -301,6 +301,10 @@ public class MemberController {
 		}catch(Throwable t){
 			throw new RuntimeException(t);
 		}
+	}
+	
+	String getModule(){
+		return "member";
 	}
 	
 }
