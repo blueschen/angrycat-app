@@ -179,6 +179,18 @@
 			<version>0.2.10</version>
 		</dependency>
 		
+		<!-- jackcess -->
+		<dependency>
+			<groupId>com.healthmarketscience.jackcess</groupId>
+			<artifactId>jackcess</artifactId>
+			<version>2.1.2</version>
+		</dependency>
+		<dependency>
+			<groupId>com.healthmarketscience.jackcess</groupId>
+			<artifactId>jackcess-encrypt</artifactId>
+			<version>2.1.0</version>
+		</dependency>
+		
 	</dependencies>
 	
 	
