@@ -171,11 +171,13 @@
 	<tbody ng-repeat="result in mainCtrl.conditionConfig.results">
 		<tr class="main-row" ng-click="mainCtrl.toggleDetail($index)">
 			<td><span ng-bind="result.logTime | date : 'yyyy-MM-dd HH:mm:ss' : mainCtrl.TIMEZONE_ID"></span></td>
-			<td><span ng-bind="result.docType | convertModule"></span></td>
+			<td>
+				<span ng-bind="result.docId"></span>	
+			</td>
 			<td><span ng-bind="result.userId"></span></td>
 			<td><span ng-bind="result.userName"></span></td>				
 		</tr>
-		<tr class="extra-row" ng-show="mainCtrl.active == mainCtrl.active">
+		<tr class="extra-row">
 			<td colspan="4" style="padding: 0px;">
 				<table style="width:100%;" class="table-bordered">
 					<colgroup>

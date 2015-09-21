@@ -67,9 +67,7 @@ public class DataChangeLogController {
 			produces={"application/xml", "application/json"},
 			headers="Accept=*/*")
 	public @ResponseBody ConditionConfig<DataChangeLog> queryAll(){
-		System.out.println("d action2: " + queryListService.getSimpleExpressions().get("dAction"));
 		ConditionConfig<DataChangeLog> cc = queryListService.genCondtitionsAfterExecuteQueryPageable();
-		System.out.println("d action3: " + queryListService.getSimpleExpressions().get("dAction"));
 		return cc;
 	}
 	

@@ -118,7 +118,9 @@ public class QueryBaseService<T, R> extends ConditionalQuery<T> implements Condi
 				String id = k.replace(SIMPLE_EXPRESSION_PREFIEX, "");
 				SimpleExpression se = getSimpleExpressions().get(id);
 				if(se != null){
-					se.setValue(parseSimpleExprValueType(se, v));
+					if(!se.isFixed()){
+						se.setValue(parseSimpleExprValueType(se, v));
+					}
 				}else{
 					System.out.println("null id:" + id);
 				}

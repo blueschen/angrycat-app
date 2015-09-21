@@ -1,7 +1,7 @@
 package com.angrycat.erp.test;
 
-import static com.angrycat.erp.condition.ConditionFactory.putStr;
 import static com.angrycat.erp.condition.ConditionFactory.propertyDesc;
+import static com.angrycat.erp.condition.ConditionFactory.putStr;
 
 import java.sql.Date;
 import java.sql.Timestamp;
@@ -15,6 +15,7 @@ import org.springframework.context.annotation.AnnotationConfigApplicationContext
 import com.angrycat.erp.businessrule.MemberVipDiscount;
 import com.angrycat.erp.businessrule.VipDiscountUseStatus;
 import com.angrycat.erp.component.SessionFactoryWrapper;
+import com.angrycat.erp.condition.Order;
 import com.angrycat.erp.initialize.config.RootConfig;
 import com.angrycat.erp.model.DataChangeLog;
 import com.angrycat.erp.model.DataChangeLogDetail;
@@ -310,7 +311,8 @@ public class DBTest extends BaseTest{
 //		testBatchSize();
 //		testInsertVipDiscoutnDetails();
 //		testSetNull();
-		testSelfJoin();
+//		testSelfJoin();
+		testOrderBy();
 	}
 	// this example can be used to replace subquery
 	private static void testSelfJoin(){
@@ -330,5 +332,34 @@ public class DBTest extends BaseTest{
 				System.out.println("d id: " + d.getId());
 			});
 		});
+	}
+	
+	private static void testOrderBy(){
+		executeApplicationContext(acac->{
+			Order orderByDocId = new Order("d1.docId", false);
+			Order orderByUserId = new Order("d1.userId", false);
+			
+			String clz = DataChangeLog.class.getName();
+			QueryBaseService<DataChangeLog, DataChangeLog> qbs = (QueryBaseService<DataChangeLog, DataChangeLog>)acac.getBean("queryBaseService");
+			qbs.createFromAlias(clz, "d1")
+			.createFromAlias(clz, "d2")
+			.addWhere(propertyDesc("d1.docId = d2.docId"))
+			.addWhere(putStr("d2.action = :d2Action", "DELETE"))
+			.addOrder(orderByDocId)
+			.addOrder(orderByUserId);
+			
+			QueryGenerator qg = qbs.toQueryGenerator();
+			System.out.println(qg.toCompleteStr());
+
+			List<DataChangeLog> list = qbs.executeQueryPageable();
+			list.stream().forEach(d->{
+				System.out.println("d id: " + d.getId() + ", d docId: " + d.getDocId());
+			});
+		});
+		
+		
+		
+		
+		
 	}
 }

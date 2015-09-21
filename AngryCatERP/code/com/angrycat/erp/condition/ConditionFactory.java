@@ -85,6 +85,17 @@ public class ConditionFactory implements Serializable {
 		expression.setValue(val);
 		return expression;
 	}
+	/**
+	 * just flag to confirm not to overwrite (initial)condition value 
+	 * @param expr
+	 * @param val
+	 * @return
+	 */
+	public static SimpleExpression putFixedStr(String expr, String val){
+		SimpleExpression expression = putStr(expr, val);
+		expression.setFixed(true);
+		return expression;
+	}
 	public static SimpleExpression putInt(String expr){
 		SimpleExpression expression = findSimpleExpression(expr);
 		expression.setType(Integer.class);

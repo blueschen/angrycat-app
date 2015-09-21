@@ -19,6 +19,7 @@ public class SimpleExpression implements ConditionConfigurable {
 	private String operator;
 	private Object value;
 	private Class<?> type;
+	private boolean fixed;
 	
 	public String getId() {
 		return id;
@@ -58,6 +59,14 @@ public class SimpleExpression implements ConditionConfigurable {
 
 	public void setType(Class<?> type) {
 		this.type = type;
+	}
+
+	public boolean isFixed() {
+		return fixed;
+	}
+
+	public void setFixed(boolean fixed) {
+		this.fixed = fixed;
 	}
 
 	public boolean isIgnored(){
