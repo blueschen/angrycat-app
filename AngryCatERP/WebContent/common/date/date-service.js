@@ -22,7 +22,6 @@
 					return 'GMT'+timezone;
 				},
 				TIMEZONE_ID = getTimeZoneId();
-				Object.freeze(TIMEZONE_ID);
 			return {
 				toDateString: toDateString,
 				toTodayString: function(){

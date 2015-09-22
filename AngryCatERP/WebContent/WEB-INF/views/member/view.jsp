@@ -7,15 +7,18 @@
 <c:set value="member" var="modelName"/>
 <c:set value="${pageContext.request.contextPath}/${modelName}" var="urlPrefix"/>
 <!DOCTYPE html>
-<html ng-app="angryCatMemberViewApp">
+<html lang="zh-TW" ng-app="angryCatMemberViewApp">
 <head>
-<meta content="width=device-width, initial-scale=1.0" name="viewport">
-<title><s:message code="model.name.${modelName}"/></title>
+	<meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+	<meta content="width=device-width, initial-scale=1.0" name="viewport">
+	
+	<title><s:message code="model.name.${modelName}"/></title>
 
-<link rel="stylesheet" href='<c:url value="/vendor/bootstrap/3.1.1/css/bootstrap.css"/>'/>
-<link rel="stylesheet" href='<c:url value="/vendor/bootstrap/3.1.1/css/bootstrap-theme.css"/>'/>
-<link rel="stylesheet" href='<c:url value="/vendor/bootstrap/3.1.1/css/bootstrap-responsive.css"/>'/>
-
+	<link rel="stylesheet" href='<c:url value="/vendor/bootstrap/3.1.1/css/bootstrap.css"/>'/>
+	<link rel="stylesheet" href='<c:url value="/vendor/bootstrap/3.1.1/css/bootstrap-theme.css"/>'/>
+	<link rel="stylesheet" href='<c:url value="/vendor/bootstrap/3.1.1/css/bootstrap-responsive.css"/>'/>
+    
 	<script type="text/javascript">		
 		<%@ include file="/vendor/angularjs/1.4.3/angular.min.js" %>
 		<%@ include file="/vendor/angularjs/1.4.3/i18n/angular-locale_zh-tw.js" %>
@@ -24,6 +27,11 @@
 	</script>
 	<script type="text/javascript" src="<c:url value="/vendor/angular-strap/2.3.1/angular-strap.min.js"/>"></script>
 	<script type="text/javascript" src="<c:url value="/vendor/angular-strap/2.3.1/angular-strap.tpl.min.js"/>"></script>
+
+	<!--[if lt IE 9]>
+      <script src="https://oss.maxcdn.com/html5shiv/3.7.2/html5shiv.min.js"></script>
+      <script src="https://oss.maxcdn.com/respond/1.4.2/respond.min.js"></script>
+    <![endif]-->
 
 	<style type="text/css">
 	.form-horizontal .control-label.text-left{
@@ -92,7 +100,7 @@
  			</label>
  			<div class="col-sm-7">
  				<p class="form-control-static">
- 				{{mainCtrl.member.toVipDate}}
+ 					<span ng-bind="mainCtrl.member.toVipDate"></span>
  				</p>
  			</div>
 		</div>
@@ -169,9 +177,9 @@
  	</div>
  	<div class="form-group">
  		<div class="col-sm-offset-3">
- 			<input type="button" value="{{mainCtrl.member.id | saveOrModify}}" ng-click="mainCtrl.save()" class="btn btn-default" ng-disabled="memberForm.$invalid"/>
+ 			<input type="button" value="儲存" ng-click="mainCtrl.save()" ng-disabled="memberForm.$invalid" class="btn btn-default"/>
  			<input type="button" value="關閉" onclick="document.location.href='${urlPrefix}/list'" class="btn btn-default"/>
- 			<button type="button" class="btn btn-default" ng-click="mainCtrl.addMemberDiscount()">
+ 			<button type="button" class="btn btn-default" ng-click="mainCtrl.addMemberDiscount()" ng-if="mainCtrl.login">
 				增加VIP紀錄
 			</button>
  		</div>
@@ -295,7 +303,8 @@
 			self.showRemoveBtn = function(detail){
 				var idx = self.member.vipDiscountDetails.indexOf(detail);
 				return idx == 0 && !detail.discountUseDate && new Date(detail.effectiveEnd) >= new Date();
-			}
+			};
+			self.login = "${sessionScope['sessionUser']}" ? true : false;
 		}])
 		.filter('saveOrModify', [function(){
 			return function(input){
