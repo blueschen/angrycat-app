@@ -8,6 +8,7 @@ import javax.annotation.PostConstruct;
 
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.RandomStringUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.poi.ss.usermodel.Cell;
 import org.apache.poi.ss.usermodel.Row;
 import org.apache.poi.ss.usermodel.Sheet;
@@ -78,8 +79,11 @@ public class ExcelExporter {
 					Row row = sheet.createRow(rowCount++);
 					for(int i = 0; i < formats.size(); i++){
 						ObjectFormat f = formats.get(i);
-						Cell cell = row.createCell(i);
-						cell.setCellValue(f.getValue(obj));
+						String val = f.getValue(obj);
+						if(StringUtils.isNotBlank(val)){
+							Cell cell = row.createCell(i);
+							cell.setCellValue(val);
+						}
 					}
 					if(++currentCount % batchSize == 0){
 						s.flush();
