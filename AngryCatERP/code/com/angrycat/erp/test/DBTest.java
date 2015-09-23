@@ -349,7 +349,7 @@ public class DBTest extends BaseTest{
 			.addOrder(orderByUserId);
 			
 			QueryGenerator qg = qbs.toQueryGenerator();
-			System.out.println(qg.toCompleteStr());
+//			System.out.println(qg.toCompleteStr());
 
 			List<DataChangeLog> list = qbs.executeQueryPageable();
 			list.stream().forEach(d->{

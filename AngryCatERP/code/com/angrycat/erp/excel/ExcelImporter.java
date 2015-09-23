@@ -33,10 +33,12 @@ import java.util.stream.Collectors;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.apache.poi.ss.usermodel.Cell;
+import org.apache.poi.ss.usermodel.DataFormatter;
 import org.apache.poi.ss.usermodel.Row;
 import org.apache.poi.ss.usermodel.Sheet;
 import org.apache.poi.ss.usermodel.Workbook;
 import org.apache.poi.ss.usermodel.WorkbookFactory;
+import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import org.hibernate.Session;
 import org.hibernate.Transaction;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -46,7 +48,9 @@ import org.springframework.stereotype.Component;
 
 import com.angrycat.erp.businessrule.MemberVipDiscount;
 import com.angrycat.erp.component.SessionFactoryWrapper;
+import com.angrycat.erp.log.DataChangeLogger;
 import com.angrycat.erp.model.Member;
+
 
 @Component
 @Scope("prototype")
@@ -59,7 +63,8 @@ public class ExcelImporter {
 	private MemberVipDiscount discount;
 		
 	public static void main(String[]args){
-		readAndWrite("C:\\angrycat_workitem\\OHM Beads TW (AngryCat) 一般會員資料.xlsx", "C:\\angrycat_workitem\\test.xlsx");
+//		readAndWrite("C:\\angrycat_workitem\\OHM Beads TW (AngryCat) 一般會員資料.xlsx", "C:\\angrycat_workitem\\test.xlsx");
+		read("E:\\angrycat_workitem\\member\\臺灣OHM商品總庫存清單_T20150923.xlsx", 1, 7);
 	}
 	
 	private static void readAndWrite(String src, String dest){
@@ -79,7 +84,39 @@ public class ExcelImporter {
 		}
 	}
 	
+	/**
+	 * 顯示資料源的欄位值，必須指定檔案位置、第幾頁、第幾欄
+	 * @param src
+	 * @param sheetIdx
+	 * @param colIdx
+	 */
+	private static void read(String src, int sheetIdx, int colIdx){
+		try(InputStream is = new FileInputStream(src);
+			XSSFWorkbook wb = new XSSFWorkbook(is);){
+			
+			Sheet sheet = wb.getSheetAt(sheetIdx);
+			DataFormatter df = new DataFormatter();
+			sheet.forEach(row->{
+				Cell cell = row.getCell(colIdx);
+				System.out.println(cell.getErrorCellValue());
+				
+			});
+			
+		}catch(Throwable e){
+			throw new RuntimeException(e);
+		}finally{
+			System.out.println("executing finally...");
+		}
+		
+		
+		
+	}
+	
 	public Map<String, String> persist(byte[] data){
+		return persist(data, null);
+	}
+	
+	public Map<String, String> persist(byte[] data, DataChangeLogger dataChangeLogger){
 		
 		int totalCount = 0;
 		
@@ -92,8 +129,8 @@ public class ExcelImporter {
 		Session s = null;
 		Transaction tx = null;
 		discount.setToVipDateReset(false);
-		try{
-			ByteArrayInputStream bais = new ByteArrayInputStream(data);
+		try(ByteArrayInputStream bais = new ByteArrayInputStream(data);){
+			
 			Workbook wb = WorkbookFactory.create(bais);
 			Sheet sheet = wb.getSheetAt(0);
 			totalCount = sheet.getLastRowNum();
@@ -170,6 +207,9 @@ public class ExcelImporter {
 				}
 				
 				s.save(m);
+				if(dataChangeLogger != null){
+					dataChangeLogger.logAdd(m, s);
+				}
 				
 				if(++insertCount % batchSize == 0){
 					s.flush();

@@ -17,10 +17,18 @@ import com.angrycat.erp.format.ObjectFormat;
 import com.angrycat.erp.model.DataChangeLog;
 import com.angrycat.erp.model.DataChangeLogDetail;
 import com.angrycat.erp.security.User;
+import com.angrycat.erp.security.extend.UserInfo;
 
 @Component
 @Scope("prototype")
 public class DataChangeLogger {
+	private static final User DEFAULT_USER;
+	static{
+		DEFAULT_USER = new User();
+		DEFAULT_USER.setUserId("userNotFound");
+		DEFAULT_USER.setInfo(new UserInfo());
+		DEFAULT_USER.getInfo().setName("未登錄者");
+	}
 	@Autowired
 	private LocalSessionFactoryBean sf;
 	private User user;
@@ -36,6 +44,9 @@ public class DataChangeLogger {
 	}
 	
 	public void log(User user, String docId, String docType, Object oldObject, Object newObject, List<ObjectFormat> formatList, String note, Session s, ActionType action){
+		if(user == null){
+			user = DEFAULT_USER; 
+		}
 		DataChangeLog log = new DataChangeLog();
 		log.setDocId(docId);
 		log.setDocType(docType);

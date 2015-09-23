@@ -162,11 +162,9 @@
 			</select>
  		</div>
  	</div>
- </form>
- 
- <div class="btn-toolbar" role="toolbar">
+ 	 <div class="btn-toolbar" role="toolbar">
  	<div class="btn-group" role="group">
- 		<input type="button" value="查詢" ng-click="mainCtrl.query()" class="btn btn-default"/>
+ 		<input type="button" value="查詢" ng-click="mainCtrl.query()" class="btn btn-default" ng-disabled="memberListForm.$invalid"/>
  	</div>
  	<div class="btn-group" role="group">
  		<input type="button" value="清除" ng-click="mainCtrl.clear()" class="btn btn-default"/>
@@ -183,12 +181,13 @@
 		</erp-file-ajax-btn>
  	</div>
  	<div class="btn-group" role="group">
- 		<button ng-click="mainCtrl.copyCondition()" class="btn btn-default">下載會員檔案</button>
+ 		<button ng-click="mainCtrl.copyCondition()" class="btn btn-default"  ng-disabled="memberListForm.$invalid">下載會員檔案</button>
  	</div>
  	<div class="btn-group" role="group">
  		<button ng-click="mainCtrl.downloadTemplate()" class="btn btn-default">下載範本</button>
  	</div>
  </div>
+ </form>
 
 <div class="table-responsive">		
 <table class="table table-bordered table-hover table-condense">

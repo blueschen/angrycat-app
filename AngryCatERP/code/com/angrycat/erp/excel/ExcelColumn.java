@@ -23,7 +23,56 @@ public class ExcelColumn {
 		
 		public static final int COLUMN_COUNT	= index;
 		
-		
-
+	}
+	
+	public static class Product{
+		public static class Sheet1{
+			static int idx = 0;
+			public static final int 型號		= idx++;
+			public static final int 英文名字	= idx++;
+			public static final int 定價		= idx++;
+			public static final int SHEET1_COLUMN_COUNT = idx;
+		}
+		public static class Sheet2{
+			static int idx = 0;
+			public static final int MISS1	= idx++;
+			public static final int MISS2	= idx++;
+			public static final int MISS3	= idx++;
+			public static final int 型號		= idx++;
+			public static final int 英文名字	= idx++;
+			public static final int 定價		= idx++;
+			public static final int 系咧名	= idx++;
+			public static final int 圖片		= idx++;
+			public static final int SHEET1_COLUMN_COUNT = idx;
+		}
+		public static class Sheet3{
+			static int idx = 0;
+			public static final int 型號		= idx++;
+			public static final int 英文名字	= idx++;
+			public static final int 定價		= idx++;
+			public static final int 圖片		= idx++;
+			public static final int SHEET1_COLUMN_COUNT = idx;
+		}
+		public static class OnePos{
+			static int idx = 0;
+			public static final int 產品編號		= idx++;
+			public static final int 產品名稱		= idx++;
+			public static final int 類別編號		= idx++;
+			public static final int 性質			= idx++;
+			public static final int 條碼編號		= idx++;
+			public static final int 售價			= idx++;
+			public static final int VIP售價		= idx++;
+			public static final int 分級售價_3	= idx++;
+			public static final int 分級售價_4	= idx++;
+			public static final int 分級售價_5	= idx++;
+			public static final int 單位成本		= idx++;
+			public static final int 品牌編號		= idx++;
+			public static final int 型號			= idx++;
+			public static final int 備註欄		= idx++;
+			public static final int 供應商編號	= idx++;
+			public static final int 單位			= idx++;
+			public static final int 庫存			= idx++;
+			public static final int SHEET1_COLUMN_COUNT = idx;
+		}
 	}
 }

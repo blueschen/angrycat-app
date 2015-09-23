@@ -11,7 +11,7 @@ import com.angrycat.erp.excel.ExcelImporter;
 import com.angrycat.erp.initialize.config.RootConfig;
 import com.angrycat.erp.model.Member;
 
-public class ExcelImporterTest {
+public class ExcelImporterTest extends BaseTest{
 
 	public static void main(String[] args) {
 		testImportMember();

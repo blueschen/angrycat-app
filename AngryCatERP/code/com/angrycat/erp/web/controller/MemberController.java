@@ -1,5 +1,13 @@
 package com.angrycat.erp.web.controller;
 
+import static com.angrycat.erp.condition.ConditionFactory.putBoolean;
+import static com.angrycat.erp.condition.ConditionFactory.putInt;
+import static com.angrycat.erp.condition.ConditionFactory.putSqlDate;
+import static com.angrycat.erp.condition.ConditionFactory.putStr;
+import static com.angrycat.erp.condition.ConditionFactory.putStrCaseInsensitive;
+import static com.angrycat.erp.condition.MatchMode.ANYWHERE;
+import static com.angrycat.erp.condition.MatchMode.START;
+
 import java.io.File;
 import java.io.FileInputStream;
 import java.util.Collections;
@@ -33,8 +41,6 @@ import com.angrycat.erp.businessrule.MemberVipDiscount;
 import com.angrycat.erp.businessrule.VipDiscountUseStatus;
 import com.angrycat.erp.common.CommonUtil;
 import com.angrycat.erp.component.SessionFactoryWrapper;
-import com.angrycat.erp.condition.ConditionFactory;
-import com.angrycat.erp.condition.MatchMode;
 import com.angrycat.erp.excel.ExcelExporter;
 import com.angrycat.erp.excel.ExcelImporter;
 import com.angrycat.erp.jackson.mixin.MemberIgnoreDetail;
@@ -79,30 +85,25 @@ public class MemberController {
 	
 	@PostConstruct
 	public void init(){
-		User currentUser = WebUtils.getSessionUser();
 		memberQueryService.setRootAndInitDefault(Member.class);
 		
-		String root = QueryBaseService.DEFAULT_ROOT_ALIAS;
-		String rootAliasWith = root + ".";
 		memberQueryService
-			.addWhere(ConditionFactory.putStrCaseInsensitive(rootAliasWith+"name LIKE :pName", MatchMode.ANYWHERE))
-			.addWhere(ConditionFactory.putInt(rootAliasWith+"gender=:pGender"))
-			.addWhere(ConditionFactory.putSqlDate(rootAliasWith+"birthday >= :pBirthdayStart"))
-			.addWhere(ConditionFactory.putSqlDate(rootAliasWith+"birthday <= :pBirthdayEnd"))
-			.addWhere(ConditionFactory.putStr(rootAliasWith+"idNo LIKE :pIdNo", MatchMode.START))
-			.addWhere(ConditionFactory.putStrCaseInsensitive(rootAliasWith+"fbNickname LIKE :pFbNickname", MatchMode.ANYWHERE))
-			.addWhere(ConditionFactory.putStr(rootAliasWith+"mobile LIKE :pMobile", MatchMode.START))
-			.addWhere(ConditionFactory.putBoolean(rootAliasWith+"important = :pImportant"))
+			.addWhere(putStrCaseInsensitive("p.name LIKE :pName", ANYWHERE))
+			.addWhere(putInt("p.gender=:pGender"))
+			.addWhere(putSqlDate("p.birthday >= :pBirthdayStart"))
+			.addWhere(putSqlDate("p.birthday <= :pBirthdayEnd"))
+			.addWhere(putStr("p.idNo LIKE :pIdNo", START))
+			.addWhere(putStrCaseInsensitive("p.fbNickname LIKE :pFbNickname", ANYWHERE))
+			.addWhere(putStr("p.mobile LIKE :pMobile", START))
+			.addWhere(putBoolean("p.important = :pImportant"))
 		;
-		memberQueryService.setUser(currentUser);
 		
 		findMemberService
-			.createFromAlias(Member.class.getName(), root)
-			.createAssociationAlias("left join fetch "+rootAliasWith+"vipDiscountDetails", "details", null)
-			.addWhere(ConditionFactory.putStr(rootAliasWith+"id = :pId"));
-		findMemberService.setUser(currentUser);
+			.createFromAlias(Member.class.getName(), "p")
+			.createAssociationAlias("left join fetch p.vipDiscountDetails", "details", null)
+			.addWhere(putStr("p.id = :pId"));
 		
-		dataChangeLogger.setUser(currentUser);
+		addUserToComponent();
 	}
 	
 	@RequestMapping(value="/list", method=RequestMethod.GET)
@@ -117,7 +118,6 @@ public class MemberController {
 			headers="Accept=*/*")
 	@ResponseStatus(HttpStatus.OK)
 	public @ResponseBody String queryAll(){
-		System.out.println("queryAll.... ");
 		ConditionConfig<Member> cc = memberQueryService.genCondtitionsAfterExecuteQueryPageable();
 		String result = memberIgnoreDetail(cc);
 		return result;
@@ -143,6 +143,7 @@ public class MemberController {
 			produces={"application/xml", "application/json"},
 			headers="Accept=*/*")
 	public @ResponseBody String deleteItems(@RequestBody List<String> ids){
+		addUserToComponent();
 		ConditionConfig<Member> cc = memberQueryService.executeQueryPageableAfterDelete(ids);
 		String result = memberIgnoreDetail(cc);
 		return result;
@@ -155,7 +156,6 @@ public class MemberController {
 	@RequestMapping(value="/view/{id}",
 			method=RequestMethod.GET)
 	public String view(@PathVariable("id")String id, Model model){
-		System.out.println("call view id: " + id);
 		findMemberService.getSimpleExpressions().get("pId").setValue(id);
 		List<Member> members = findMemberService.executeQueryList();
 		Member member = null;
@@ -174,6 +174,7 @@ public class MemberController {
 			produces={"application/xml", "application/json"},
 			headers="Accept=*/*")
 	public @ResponseBody Member saveOrMerge(@RequestBody Member member){
+		addUserToComponent();
 		sfw.executeSaveOrUpdate(s->{
 			Member oldSnapshot = null;
 			if(StringUtils.isBlank(member.getId())){// add
@@ -242,7 +243,8 @@ public class MemberController {
 			headers="Accept=*/*")
 	public @ResponseBody String uploadExcel(
 		@RequestPart("uploadExcelFile") byte[] uploadExcelFile){
-		Map<String, String> msg = excelImporter.persist(uploadExcelFile);
+		addUserToComponent();
+		Map<String, String> msg = excelImporter.persist(uploadExcelFile, dataChangeLogger);
 		ConditionConfig<Member> cc = memberQueryService.genCondtitionsAfterExecuteQueryPageable();
 		cc.getMsgs().clear();
 		cc.getMsgs().putAll(msg);
@@ -305,6 +307,21 @@ public class MemberController {
 	
 	String getModule(){
 		return "member";
+	}
+	
+	/**
+	 * 新增頁面要開放給未登入者使用，而MemberController本身是Session Scope，<br>
+	 * 如果先新增後登錄，和先登錄後新增，兩者造成的差異在於，<br>
+	 * 前者初始化的元件裡面不會帶入Session User後者會，<br>
+	 * 接下來要考量的，就是新增、修改、匯入、刪除這些動作都要重新檢查一遍。
+	 */
+	private void addUserToComponent(){
+		if(dataChangeLogger.getUser() == null){
+			User user = WebUtils.getSessionUser();
+			dataChangeLogger.setUser(user);
+			memberQueryService.setUser(user);
+			findMemberService.setUser(user);
+		}
 	}
 	
 }
