@@ -297,7 +297,7 @@ public class MemberController {
 	@RequestMapping(value="/downloadTemplate", method={RequestMethod.GET, RequestMethod.POST})
 	public void downloadTemplate(HttpServletResponse response){
 		String root = WebUtils.currentServletContext().getRealPath("/");
-		String filePath = root + "\\member_sample.xlsx";
+		String filePath = root + File.separator + "member_sample.xlsx";
 		try(FileInputStream fis = new FileInputStream(filePath);){
 			writeExcelToResponse(response, fis, "member_template.xlsx");
 		}catch(Throwable t){

@@ -7,6 +7,7 @@ import java.util.function.Consumer;
 import org.apache.commons.lang3.builder.ReflectionToStringBuilder;
 import org.apache.commons.lang3.builder.ToStringStyle;
 import org.hibernate.Session;
+import org.hibernate.Transaction;
 import org.springframework.context.annotation.AnnotationConfigApplicationContext;
 import org.springframework.orm.hibernate4.LocalSessionFactoryBean;
 
@@ -23,10 +24,14 @@ public class BaseTest {
 	protected static void executeSession(BiConsumer<Session, AnnotationConfigApplicationContext>c){
 		executeApplicationContext(acac->{
 			Session s = null;
+			Transaction tx = null;
 			try{
 				s = acac.getBean(LocalSessionFactoryBean.class).getObject().openSession();
+				tx = s.beginTransaction();
 				c.accept(s, acac);
+				tx.commit();
 			}catch(Throwable e){
+				tx.rollback();
 				e.printStackTrace();
 			}finally{
 				

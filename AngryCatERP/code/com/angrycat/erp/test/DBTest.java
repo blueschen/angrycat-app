@@ -199,6 +199,29 @@ public class DBTest extends BaseTest{
 		});		
 	}
 	
+	public static void insertSecurityOther(){
+		executeSession((s, acac)->{
+			
+			List<Group> groups = s.createQuery("FROM " + Group.class.getName() + " g WHERE g.info.code = ?").setString(0, "UserGroup").list();
+			
+			UserInfo userInfo1 = new UserInfo();
+			userInfo1.setCode("slowlywu");
+			userInfo1.setName("慢慢");
+			userInfo1.setNameEng("slowlywu");
+			s.save(userInfo1);
+			s.flush();
+			
+			User user1 = new User();
+			user1.setUserId("slowlywu");
+			user1.setPassword("198615");
+			user1.setDefaultGroup(groups.get(0));
+			user1.setInfo(userInfo1);
+			s.save(user1);
+			s.flush();
+		});		
+	}
+	
+	
 	public static void testRole(){
 		executeSession((s, acac)->{
 			Iterator<User> itr = s.createQuery("FROM " + User.class.getName() + " u WHERE u.userId = ?").setString(0, "root").iterate();
@@ -312,7 +335,8 @@ public class DBTest extends BaseTest{
 //		testInsertVipDiscoutnDetails();
 //		testSetNull();
 //		testSelfJoin();
-		testOrderBy();
+//		testOrderBy();
+		insertSecurityOther();
 	}
 	// this example can be used to replace subquery
 	private static void testSelfJoin(){

@@ -28,6 +28,7 @@ public class ExcelColumn {
 	public static class Product{
 		public static class Sheet1{
 			static int idx = 0;
+			public static final int 類別		= idx++;
 			public static final int 型號		= idx++;
 			public static final int 英文名字	= idx++;
 			public static final int 定價		= idx++;
@@ -35,18 +36,17 @@ public class ExcelColumn {
 		}
 		public static class Sheet2{
 			static int idx = 0;
-			public static final int MISS1	= idx++;
-			public static final int MISS2	= idx++;
-			public static final int MISS3	= idx++;
+			public static final int 類別		= idx++;
 			public static final int 型號		= idx++;
 			public static final int 英文名字	= idx++;
 			public static final int 定價		= idx++;
-			public static final int 系咧名	= idx++;
+			public static final int 系列名	= idx++;
 			public static final int 圖片		= idx++;
 			public static final int SHEET1_COLUMN_COUNT = idx;
 		}
 		public static class Sheet3{
 			static int idx = 0;
+			public static final int 類別		= idx++;
 			public static final int 型號		= idx++;
 			public static final int 英文名字	= idx++;
 			public static final int 定價		= idx++;

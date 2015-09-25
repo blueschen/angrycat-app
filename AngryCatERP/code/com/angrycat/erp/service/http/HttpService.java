@@ -22,13 +22,13 @@ public class HttpService {
 			connection.setRequestProperty("User-Agent", USER_AGENT);
 			
 			int responseCode = connection.getResponseCode();
-			System.out.println("request url: " + requestUrl);
-			System.out.println("response code: " + responseCode);
 			
 			if(responseCode == HttpURLConnection.HTTP_OK){
 				try(BufferedInputStream bis = new BufferedInputStream(connection.getInputStream());){
 					action.accept(bis);
 				}
+			}else{
+				System.out.println("failed responseCode: " + responseCode + ", requestUrl: " + requestUrl);
 			}
 			connection.disconnect();
 		}catch(Throwable e){
