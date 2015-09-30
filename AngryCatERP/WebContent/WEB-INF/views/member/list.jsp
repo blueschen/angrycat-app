@@ -29,7 +29,7 @@
 	<script type="text/javascript" src="<c:url value="/vendor/angular-strap/2.3.1/angular-strap.tpl.min.js"/>"></script>
 	
 </head>
-<body ng-controller="MainCtrl as mainCtrl" ng-keypress="mainCtrl.keypressQuery($event)">
+<body ng-controller="MainCtrl as mainCtrl">
 <div>
 	<nav role="navigation" class="navbar navbar-default navbar-fixed-top">
 		<div class="container">
@@ -72,13 +72,13 @@
 <h4>Hello <s:message code="model.name.${modelName}"/>!</h4>
 </div>
 
-<form class="form-horizontal" name="memberListForm" >
+<form class="form-horizontal" name="memberListForm">
  	<div class="form-group">
 		<label class="col-sm-2 control-label" for="pName" >
  			姓名
  		</label>
  		<div class="col-sm-6">
- 			<input type="text" ng-model="mainCtrl.conditionConfig.conds.condition_pName" id="pName" class="form-control">
+ 			<input type="text" ng-model="mainCtrl.conditionConfig.conds.condition_pName" id="pName" class="form-control" ng-keypress="alert('ddd')">
  		</div>
  	</div>
  	<div class="form-group">
@@ -164,7 +164,7 @@
  	</div>
  	 <div class="btn-toolbar" role="toolbar">
  	<div class="btn-group" role="group">
- 		<input type="button" value="查詢" ng-click="mainCtrl.query()" class="btn btn-default" ng-disabled="memberListForm.$invalid"/>
+ 		<button type="submit" ng-click="mainCtrl.query()" class="btn btn-default" ng-disabled="memberListForm.$invalid">查詢</button>
  	</div>
  	<div class="btn-group" role="group">
  		<input type="button" value="清除" ng-click="mainCtrl.clear()" class="btn btn-default"/>
@@ -181,10 +181,10 @@
 		</erp-file-ajax-btn>
  	</div>
  	<div class="btn-group" role="group">
- 		<button ng-click="mainCtrl.copyCondition()" class="btn btn-default"  ng-disabled="memberListForm.$invalid">下載會員檔案</button>
+ 		<input ng-click="mainCtrl.copyCondition()" class="btn btn-default"  ng-disabled="memberListForm.$invalid" value="下載會員檔案"/>
  	</div>
  	<div class="btn-group" role="group">
- 		<button ng-click="mainCtrl.downloadTemplate()" class="btn btn-default">下載範本</button>
+ 		<input ng-click="mainCtrl.downloadTemplate()" class="btn btn-default" value="下載範本"/>
  	</div>
  </div>
  </form>

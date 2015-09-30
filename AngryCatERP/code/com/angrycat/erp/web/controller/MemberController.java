@@ -310,10 +310,11 @@ public class MemberController {
 	}
 	
 	/**
-	 * 新增頁面要開放給未登入者使用，而MemberController本身是Session Scope，<br>
-	 * 如果先新增後登錄，和先登錄後新增，兩者造成的差異在於，<br>
-	 * 前者初始化的元件裡面不會帶入Session User後者會，<br>
+	 * 新增頁面要開放給未登入者使用，而MemberController本身是Session Scope，
+	 * 先新增後登錄，和先登錄後新增，兩者的差異在於，
+	 * 前者初始化的元件裡面不會帶入Session User後者會，
 	 * 接下來要考量的，就是新增、修改、匯入、刪除這些動作都要重新檢查一遍。
+	 * 理論上發生上述情況的可能性非常低，一旦發生直接的影響就是修改動作的log會看不出來使用者。
 	 */
 	private void addUserToComponent(){
 		if(dataChangeLogger.getUser() == null){

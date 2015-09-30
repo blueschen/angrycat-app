@@ -177,7 +177,7 @@
  	</div>
  	<div class="form-group">
  		<div class="col-sm-offset-3">
- 			<input type="button" value="{{mainCtrl.member.id | saveOrModify}}" ng-click="mainCtrl.save()" ng-disabled="memberForm.$invalid" class="btn btn-default"/>
+ 			<input type="submit" value="{{mainCtrl.member.id | saveOrModify}}" ng-click="mainCtrl.save()" ng-disabled="memberForm.$invalid" class="btn btn-default"/>
  			<input type="button" value="關閉" onclick="document.location.href='${urlPrefix}/list'" class="btn btn-default" ng-if="mainCtrl.login"/>
  			<button type="button" class="btn btn-default" ng-click="mainCtrl.addMemberDiscount()" ng-if="mainCtrl.login">
 				增加VIP紀錄

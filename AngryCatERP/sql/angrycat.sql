@@ -150,6 +150,7 @@ UNLOCK TABLES;
 DROP TABLE IF EXISTS `shr_alluser`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!40101 SET character_set_client = utf8 */;
+
 CREATE TABLE `shr_alluser` (
   `id` varchar(100) CHARACTER SET utf8 COLLATE utf8_bin NOT NULL,
   `name` varchar(100) DEFAULT NULL,
@@ -157,11 +158,13 @@ CREATE TABLE `shr_alluser` (
   `info` varchar(100) CHARACTER SET utf8 COLLATE utf8_bin DEFAULT NULL,
   `disabled` tinyint(3) unsigned NOT NULL,
   `defaultGroup` varchar(100) CHARACTER SET utf8 COLLATE utf8_bin DEFAULT NULL,
-  `userId` varchar(100) CHARACTER SET utf8 COLLATE utf8_bin DEFAULT NULL,
+  `userId` varchar(100) CHARACTER SET utf8 COLLATE utf8_bin NOT NULL,
   PRIMARY KEY (`id`),
+  UNIQUE KEY `UK_userId` (`userId`),
   KEY `FK_alluser_1` (`defaultGroup`),
   CONSTRAINT `FK_alluser_1` FOREIGN KEY (`defaultGroup`) REFERENCES `shr_allgroup` (`id`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8
+
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --

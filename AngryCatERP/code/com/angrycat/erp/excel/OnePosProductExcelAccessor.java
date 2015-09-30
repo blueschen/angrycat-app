@@ -44,10 +44,15 @@ import com.angrycat.erp.service.http.HttpService;
  * @author JerryLin<br>
  * 
  * 將公司內部產品的Excel轉成OnePos需要的Excel匯入格式。
+ * 使用者自己手動編輯Excel效率不見得會比跑程式差。
+ * 跑程式唯一顯著的優勢是抓圖。
  * <p>
  * 如果有額外設定的話(imgProcessEnabled = true)，
  * 可以抓取對應的圖檔之後改名以符合OnePos的命名要求，
- * 但要注意效能非常慢(1082筆資料需要執行7分鐘)。
+ * 但要注意效能非常慢，
+ * 1082筆資料需要執行7分鐘，
+ * 這還只是本機端的測試結果。
+ * 效能上的特性讓這隻程式不適合部署在網路主機上。
  * <p>
  * 可以透過範本或新增的方式匯出檔案，
  * 但強烈建議透過OnePos的範本(設定templatePath)匯出。

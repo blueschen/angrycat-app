@@ -33,7 +33,7 @@
 	</style>
 	
 </head>
-<body ng-controller="MainCtrl as mainCtrl" ng-keypress="mainCtrl.keypressQuery($event)">
+<body ng-controller="MainCtrl as mainCtrl">
 
 <div>
 	<nav role="navigation" class="navbar navbar-default navbar-fixed-top">
@@ -136,16 +136,15 @@
  			<input type="text" ng-model="mainCtrl.conditionConfig.conds.condition_pUserId" id="pUserId" class="form-control">
  		</div>
  	</div>
- </form>
- 
- <div class="btn-toolbar" role="toolbar">
+ 	 <div class="btn-toolbar" role="toolbar">
  	<div class="btn-group" role="group">
- 		<input type="button" value="查詢" ng-click="mainCtrl.queryByConds()" class="btn btn-default"/>
+ 		<input type="submit" ng-click="mainCtrl.queryByConds()" class="btn btn-default" value="查詢"/>
  	</div>
  	<div class="btn-group" role="group">
- 		<input type="button" value="清除" ng-click="mainCtrl.clearConds()" class="btn btn-default"/>
+ 		<input type="button" ng-click="mainCtrl.clearConds()" class="btn btn-default"value="清除"/>
  	</div>
  </div>
+ </form>
 
 <div class="table-responsive">
 	<div class="row">
