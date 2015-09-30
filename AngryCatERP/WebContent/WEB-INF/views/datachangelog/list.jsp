@@ -121,11 +121,11 @@
 		</div>
  	</div>
  	<div class="form-group">
- 	 	<label class="col-sm-2 control-label" for="pUserName" >
+ 	 	<label class="col-sm-2 control-label" for="pUserName">
  			使用者姓名
  		</label>
  		<div class="col-sm-6">
- 			<input type="text" ng-model="mainCtrl.conditionConfig.conds.condition_pUserName" id="pUserName" class="form-control">
+ 			<input type="text" ng-model="mainCtrl.conditionConfig.conds.condition_pUserName" id="pUserName" class="form-control" autofocus>
  		</div>
  	</div>
  	<div class="form-group">

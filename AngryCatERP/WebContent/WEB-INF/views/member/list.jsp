@@ -78,7 +78,7 @@
  			姓名
  		</label>
  		<div class="col-sm-6">
- 			<input type="text" ng-model="mainCtrl.conditionConfig.conds.condition_pName" id="pName" class="form-control" ng-keypress="alert('ddd')">
+ 			<input type="text" ng-model="mainCtrl.conditionConfig.conds.condition_pName" id="pName" class="form-control" autofocus>
  		</div>
  	</div>
  	<div class="form-group">
