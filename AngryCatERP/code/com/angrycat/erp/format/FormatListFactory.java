@@ -36,7 +36,8 @@ public class FormatListFactory {
 		f.add(new PropertyFormat("身分證字號", "idNo"));		
 		f.add(birthday);
 		f.add(new PropertyFormat("電子信箱", "email"));
-		f.add(new PropertyFormat("聯絡電話", "mobile"));
+		f.add(new PropertyFormat("手機電話", "mobile"));
+		f.add(new PropertyFormat("室內電話", "tel"));
 		f.add(new PropertyFormat("郵遞區號", "postalCode"));
 		f.add(new PropertyFormat("地址", "address"));		
 		f.add(new PropertyFormat("備註", "note"));
@@ -45,7 +46,7 @@ public class FormatListFactory {
 	}
 	
 	public static List<ObjectFormat> ofMemberForExcelExport(){
-		List<ObjectFormat> f = ofMemberBase("MM/dd/yyyy");
+		List<ObjectFormat> f = ofMemberBase("yyyy-MM-dd");
 		return f;
 	}
 	

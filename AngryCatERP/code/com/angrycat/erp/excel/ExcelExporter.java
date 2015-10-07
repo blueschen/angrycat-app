@@ -10,6 +10,8 @@ import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.RandomStringUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.poi.ss.usermodel.Cell;
+import org.apache.poi.ss.usermodel.CellStyle;
+import org.apache.poi.ss.usermodel.DataFormat;
 import org.apache.poi.ss.usermodel.Row;
 import org.apache.poi.ss.usermodel.Sheet;
 import org.apache.poi.xssf.streaming.SXSSFWorkbook;
@@ -62,6 +64,10 @@ public class ExcelExporter {
 				SXSSFWorkbook wb = new SXSSFWorkbook(100);){				
 				wb.setCompressTempFiles(true);
 				
+				DataFormat df = wb.createDataFormat();
+				CellStyle cs = wb.createCellStyle();
+				cs.setDataFormat(df.getFormat("@")); // 文字格式
+				
 				Sheet sheet = wb.createSheet();
 				int rowCount = 0;
 				Row firstRow = sheet.createRow(rowCount++);
@@ -83,6 +89,7 @@ public class ExcelExporter {
 						if(StringUtils.isNotBlank(val)){
 							Cell cell = row.createCell(i);
 							cell.setCellValue(val);
+							cell.setCellStyle(cs);
 						}
 					}
 					if(++currentCount % batchSize == 0){

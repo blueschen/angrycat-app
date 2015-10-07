@@ -51,7 +51,7 @@ public class ConditionFactory implements Serializable {
 		return found;
 	}
 	private static String findPropertyName(String input){
-		String regex = "[a-zA-Z0-9\\.]+\\.[a-zA-Z0-9\\.]+";
+		String regex = "[a-zA-Z0-9\\.\\(]+\\.[a-zA-Z0-9\\.\\)]+";
 		String found = findFirstMatch(regex, input);
 		return found;
 	}

@@ -62,6 +62,9 @@ public class SecurityFilter implements Filter {
 		// 為了讓一般人可以自行填入會員資料，將會員新增頁面的操作獨立出來
 		allowPathEqual.add("/member/add");
 		allowPathEqual.add("/member/save.json");
+		// 會員頁面需要檢核手機和室內電話擇一必填
+		allowPathStart.add("/member/mobileDuplicated");
+		allowPathStart.add("/member/telDuplicated");
 	}
 	
 	private boolean allow(HttpServletRequest request){

@@ -78,7 +78,11 @@ public class QueryConfig implements QueryConfigurable {
 			SimpleExpression simpleExpression = (SimpleExpression)condition;
 			String propertyName = simpleExpression.getPropertyName();
 			if(propertyName.contains(".")){
-				String alias = propertyName.substring(0, propertyName.indexOf("."));
+				String alias = null;
+				if(propertyName.contains("(")){
+					propertyName = propertyName.substring(propertyName.indexOf("(")+1, propertyName.length()-1); // 如果有函式先去掉前面的部分
+				}
+				alias = propertyName.substring(0, propertyName.indexOf("."));
 				if(!aliases.contains(alias)){
 					throw new RuntimeException("SimpleExpression id ["+alias+"] not existed!!");
 				}

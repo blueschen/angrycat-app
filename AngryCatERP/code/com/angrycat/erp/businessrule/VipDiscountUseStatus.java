@@ -19,7 +19,7 @@ public class VipDiscountUseStatus implements Serializable{
 	private Date today;
 	public Date getToday(){return this.today;}
 	public void setToday(Date today){this.today = today;}
-	public Date getTodayOrNew(){
+	private Date specifyOrNewToday(){
 		Date current = today;
 		if(current == null){
 			current = new Date(System.currentTimeMillis());
@@ -29,7 +29,7 @@ public class VipDiscountUseStatus implements Serializable{
 
 	private void applyRule(VipDiscountDetail d, Date birthday){
 		d.setAvailable(false);
-		Date today = getTodayOrNew();
+		Date today = specifyOrNewToday();
 		int birthMonth = getMonth(birthday);
 		
 		if(d.getDiscountUseDate() != null){

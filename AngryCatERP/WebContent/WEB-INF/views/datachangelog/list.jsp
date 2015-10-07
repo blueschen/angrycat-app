@@ -90,8 +90,8 @@
 			</select>
  		</div>
  	</div>
- 	<div class="form-group" ng-class="{'has-error': datachangelogListForm.pLogTimeStart.$invalid || datachangelogListForm.pLogTimeEnd.$invalid}">
- 		<label class="col-sm-2 control-label">
+ 	<div class="form-group" ng-class="{'has-error': (datachangelogListForm.pLogTimeStart.$dirty && datachangelogListForm.pLogTimeStart.$invalid) || (datachangelogListForm.pLogTimeEnd.$dirty && datachangelogListForm.pLogTimeEnd.$invalid)}">
+ 		<label class="col-sm-2 control-label" id="logTimeDur">
  			更動時間範圍
 		</label>
 		<div class="col-sm-3">
@@ -104,7 +104,8 @@
  				autoclose="1"
  				date-format="yyyy-MM-dd"
  				placeholder="yyyy-MM-dd"
- 				date-type="string">
+ 				date-type="string"
+ 				aria-labelledby="logTimeDur">
  			
 		</div>
 		<div class="col-sm-3">
@@ -117,7 +118,8 @@
  				autoclose="1"
  				date-format="yyyy-MM-dd"
  				placeholder="yyyy-MM-dd"
- 				date-type="string">			
+ 				date-type="string"
+ 				aria-labelledby="logTimeDur">			
 		</div>
  	</div>
  	<div class="form-group">
@@ -138,7 +140,7 @@
  	</div>
  	 <div class="btn-toolbar" role="toolbar">
  	<div class="btn-group" role="group">
- 		<input type="submit" ng-click="mainCtrl.queryByConds()" class="btn btn-default" value="查詢"/>
+ 		<input type="submit" ng-click="mainCtrl.queryByConds()" class="btn btn-default" value="查詢" ng-disabled="datachangelogListForm.$dirty && datachangelogListForm.$invalid"/>
  	</div>
  	<div class="btn-group" role="group">
  		<input type="button" ng-click="mainCtrl.clearConds()" class="btn btn-default"value="清除"/>
@@ -241,7 +243,8 @@
 			var self = this,
 				queryAllUrl = '${urlPrefix}/queryAll.json'
 				queryConditionalUrl = '${urlPrefix}/queryConditional.json',
-				condPrefix = 'condition_';
+				condPrefix = 'condition_',
+				initialState = null;
 				
 			self.actionTypes = [{label: '刪除', value: 'DELETE'}, {label: '修改', value: 'UPDATE'}, {label: '新增', value: 'ADD'}];
 			
@@ -249,6 +252,7 @@
 				AjaxService.post(queryAllUrl)
 					.then(function(response){
 						self.conditionConfig = response.data;
+						initialState = angular.copy(self.conditionConfig.conds);
 					},function(responseErr){
 						alert('queryAll failed');
 						$log.log('queryAll failed err msg: ' + JSON.stringify(responseErr));
@@ -264,25 +268,13 @@
 					})
 			};
 			self.clearConds = function(){
-				var config = self.conditionConfig,
-					excludes = [condPrefix + 'pDocType', condPrefix + 'pDocId'];
-				if(config && config.conds){
-					var conds = config.conds;
-					for(var cond in conds){
-						if(conds.hasOwnProperty(cond) && cond.indexOf(condPrefix) == 0 && excludes.indexOf(cond)==-1){
-							conds[cond] = null;
-						}
-					}
-				}
+				self.conditionConfig.conds = angular.copy(initialState);
+				$scope.datachangelogListForm.$setPristine();
+				delete $scope.datachangelogListForm.$error.parse;
+				delete $scope.datachangelogListForm.$error.date;
 			};
 			self.pageChanged = function(){
 				self.queryByConds();
-			};
-			self.keypressQuery = function($event){
-				$log.log('$event.which: ' + $event.which);
-				if($event.which == 13){
-					self.queryByConds();
-				}
 			};
 			self.toggleDetail = function($index){
 				self.active = self.active == $index ? -1 : $index;

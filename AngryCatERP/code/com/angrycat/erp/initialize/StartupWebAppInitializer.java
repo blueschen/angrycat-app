@@ -1,8 +1,11 @@
 package com.angrycat.erp.initialize;
 
+import java.io.File;
+
 import javax.servlet.MultipartConfigElement;
 import javax.servlet.ServletRegistration.Dynamic;
 
+import org.apache.commons.io.FileUtils;
 import org.springframework.web.servlet.support.AbstractAnnotationConfigDispatcherServletInitializer;
 
 import com.angrycat.erp.initialize.config.RootConfig;
@@ -30,6 +33,14 @@ public class StartupWebAppInitializer extends
 	protected void customizeRegistration(Dynamic registration){
 		String serverRoot = System.getProperty("catalina.home");
 		String uploadTemp = serverRoot + "/uploads/tmp";
+		File dir = new File(uploadTemp);
+		if(!dir.exists()){
+			try{
+				FileUtils.forceMkdir(dir);
+			}catch(Throwable e){
+				throw new RuntimeException(e);
+			}
+		}
 		registration.setMultipartConfig(new MultipartConfigElement(uploadTemp, 2097152, 4194304, 0));
 	}
 }

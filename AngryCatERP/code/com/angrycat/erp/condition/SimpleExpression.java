@@ -112,5 +112,4 @@ public class SimpleExpression implements ConditionConfigurable {
 	public String toSqlString() {
 		return getPropertyName() + " " + getOperator() + " (:" + getId() + ")";
 	}
-
 }

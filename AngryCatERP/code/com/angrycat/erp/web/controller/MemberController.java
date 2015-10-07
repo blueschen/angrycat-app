@@ -11,6 +11,7 @@ import static com.angrycat.erp.condition.MatchMode.START;
 import java.io.File;
 import java.io.FileInputStream;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
@@ -95,7 +96,12 @@ public class MemberController {
 			.addWhere(putStr("p.idNo LIKE :pIdNo", START))
 			.addWhere(putStrCaseInsensitive("p.fbNickname LIKE :pFbNickname", ANYWHERE))
 			.addWhere(putStr("p.mobile LIKE :pMobile", START))
+			.addWhere(putStr("p.tel LIKE :pTel", START))
 			.addWhere(putBoolean("p.important = :pImportant"))
+			.addWhere(putInt("month(p.birthday) >= :pBirthdayMonthStart"))
+			.addWhere(putInt("month(p.birthday) <= :pBirthdayMonthEnd"))
+			.addWhere(putSqlDate("p.toVipEndDate >= :pToVipEndDateStart"))
+			.addWhere(putSqlDate("p.toVipEndDate <= :pToVipEndDateEnd"))
 		;
 		
 		findMemberService
@@ -151,16 +157,20 @@ public class MemberController {
 	@RequestMapping(value="/add",
 			method=RequestMethod.GET)
 	public String add(){
+		reset();
 		return "member/view";
 	}
 	@RequestMapping(value="/view/{id}",
 			method=RequestMethod.GET)
 	public String view(@PathVariable("id")String id, Model model){
+		reset();
 		findMemberService.getSimpleExpressions().get("pId").setValue(id);
 		List<Member> members = findMemberService.executeQueryList();
 		Member member = null;
 		if(!members.isEmpty()){
 			member = members.get(0);
+		}else{
+			return "member/list"; // 如果在查詢和導頁之間，資料被刪掉了，就導回查詢
 		}
 		if(member!=null){
 			useStatus.applyRule(member);
@@ -305,8 +315,55 @@ public class MemberController {
 		}
 	}
 	
+	@RequestMapping(value="/updateDiscountParam", method=RequestMethod.POST, produces={"application/xml", "application/json"})
+	public @ResponseBody Map<String, String> updateDiscountParam(@RequestBody MemberVipDiscount discount){
+		if(discount != null){
+			this.discount.setToday(discount.getToday());
+			this.discount.setBatchStartDate(discount.getBatchStartDate());
+			this.useStatus.setToday(discount.getToday());
+		}else{
+			this.discount.setToday(null);
+			this.discount.setBatchStartDate(null);
+			this.useStatus.setToday(null);
+		}
+		return Collections.emptyMap();
+	}
+	
 	String getModule(){
 		return "member";
+	}
+	
+	@RequestMapping(value="/mobileDuplicated/{mobile}/{name}", method=RequestMethod.GET)
+	public @ResponseBody Map<String, Boolean> mobileDuplicated(@PathVariable("mobile") String mobile, @PathVariable("name") String name){
+		Map<String, Boolean> results = new HashMap<>();
+		sfw.executeSession(s->{
+			long count = 0;
+			count = (long)s.createQuery("SELECT COUNT(m.id) FROM " + Member.class.getName() + " m WHERE m.mobile = ? AND m.name = ?").setString(0, mobile).setString(1, name).uniqueResult();
+			results.put("isValid", count == 0);
+		});
+		return results;
+	}
+	
+	@RequestMapping(value="/telDuplicated/{tel}/{name}", method=RequestMethod.GET)
+	public @ResponseBody Map<String, Boolean> telDuplicated(@PathVariable("tel") String tel, @PathVariable("name") String name){
+		Map<String, Boolean> results = new HashMap<>();
+		sfw.executeSession(s->{
+			long count = 0;
+			count = (long)s.createQuery("SELECT COUNT(m.id) FROM " + Member.class.getName() + " m WHERE m.tel = ? AND m.name = ?").setString(0, tel).setString(1, name).uniqueResult();
+			results.put("isValid", count == 0);
+		});
+		return results;
+	}
+	
+	@RequestMapping(value="/resetConditions", 
+			method=RequestMethod.GET,
+			produces={"application/xml", "application/json"},
+			headers="Accept=*/*")
+	@ResponseStatus(HttpStatus.OK)
+	public @ResponseBody String resetConditions(){
+		ConditionConfig<Member> cc = memberQueryService.resetConditions();
+		String result = memberIgnoreDetail(cc);
+		return result;
 	}
 	
 	/**
@@ -323,6 +380,13 @@ public class MemberController {
 			memberQueryService.setUser(user);
 			findMemberService.setUser(user);
 		}
+	}
+	
+	private void reset(){
+		this.discount.setToday(null);
+		this.discount.setBatchStartDate(null);
+		this.useStatus.setToday(null);
+		addUserToComponent();
 	}
 	
 }

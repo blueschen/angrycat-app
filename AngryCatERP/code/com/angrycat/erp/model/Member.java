@@ -35,6 +35,7 @@ public class Member {
 	private Date birthday; 
 	private String email;
 	private String mobile;
+	private String tel;
 	private String postalCode;
 	private String address;
 	private Date toVipDate; // 轉VIP起始日
@@ -157,5 +158,12 @@ public class Member {
 	}
 	public void setVipDiscountDetails(List<VipDiscountDetail> vipDiscountDetails) {
 		this.vipDiscountDetails = vipDiscountDetails;
+	}
+	@Column(name="tel")
+	public String getTel() {
+		return tel;
+	}
+	public void setTel(String tel) {
+		this.tel = tel;
 	}
 }

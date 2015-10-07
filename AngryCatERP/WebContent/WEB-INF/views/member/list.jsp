@@ -95,9 +95,9 @@
 			</select>
  		</div>
  	</div>
- 	<div class="form-group" ng-class="{'has-error': memberListForm.pBirthdayStart.$invalid || memberListForm.pBirthdayEnd.$invalid}">
- 		<label class="col-sm-2 control-label">
- 			出生起迄日
+ 	<div class="form-group" ng-class="{'has-error': (memberListForm.pBirthdayStart.$dirty && memberListForm.pBirthdayStart.$invalid) || (memberListForm.pBirthdayEnd.$dirty && memberListForm.pBirthdayEnd.$invalid)}">
+ 		<label class="col-sm-2 control-label" id="birthDur">
+ 			出生日期
 		</label>
 		<div class="col-sm-3">
  			<input id="pBirthdayStart" 
@@ -109,7 +109,8 @@
  				autoclose="1"
  				date-format="yyyy-MM-dd"
  				placeholder="yyyy-MM-dd"
- 				date-type="string">			
+ 				date-type="string"
+ 				aria-labelledby="birthDur">			
 		</div>
 		<div class="col-sm-3">
  			<input id="pBirthdayEnd" 
@@ -121,8 +122,34 @@
  				autoclose="1"
  				date-format="yyyy-MM-dd"
  				placeholder="yyyy-MM-dd"
- 				date-type="string">			
+ 				date-type="string"
+ 				aria-labelledby="birthDur">			
 		</div>
+ 	</div>
+ 	<div class="form-group">
+ 		<label class="col-sm-2 control-label" id="pBirthdayMonth">
+ 			生日月份
+ 		</label>
+ 		<div class="col-sm-3">
+ 			<select 
+				ng-model="mainCtrl.conditionConfig.conds.condition_pBirthdayMonthStart" 
+				ng-options="v.value as v.label for v in mainCtrl.months"
+				id="pBirthdayMonthStart"
+				class="form-control"
+				aria-labelledby="pBirthdayMonth">
+				<option value="">==請選擇==</option>	
+			</select>
+ 		</div>
+ 		<div class="col-sm-3">
+ 			<select 
+				ng-model="mainCtrl.conditionConfig.conds.condition_pBirthdayMonthEnd" 
+				ng-options="v.value as v.label for v in mainCtrl.months"
+				id="pBirthdayMonthEnd"
+				class="form-control"
+				aria-labelledby="pBirthdayMonth">
+				<option value="">==請選擇==</option>	
+			</select>
+ 		</div> 		
  	</div>
  	<div class="form-group">
  	 	<label class="col-sm-2 control-label" for="pIdNo" >
@@ -137,17 +164,56 @@
  			FB暱稱
  		</label>
  		<div class="col-sm-6">
- 			<input type="text" ng-model="mainCtrl.conditionConfig.conds.condition_pFbNickname" id="pFbNickname" class="form-control">
+ 			<input type="text" ng-model="mainCtrl.conditionConfig.conds.condition_pFbNickname" id="pFbNickname" name="pFbNickname" class="form-control">
  		</div>
  	</div>
  	<div class="form-group">
  		<label class="col-sm-2 control-label" for="pMobile" >
- 			電話
+ 			手機電話
  		</label>
  		<div class="col-sm-6">
  			<input type="text" ng-model="mainCtrl.conditionConfig.conds.condition_pMobile" id="pMobile" class="form-control">
  		</div>
  	</div>
+ 	<div class="form-group">
+ 		<label class="col-sm-2 control-label" for="pTel" >
+ 			室內電話
+ 		</label>
+ 		<div class="col-sm-6">
+ 			<input type="text" ng-model="mainCtrl.conditionConfig.conds.condition_pTel" id="pTel" class="form-control">
+ 		</div>
+ 	</div>
+ 	<div class="form-group" ng-class="{'has-error': (memberListForm.pToVipEndDateStart.$dirty && memberListForm.pToVipEndDateStart.$invalid) || (memberListForm.pToVipEndDateEnd.$dirty && memberListForm.pToVipEndDateEnd.$invalid)}">
+ 		<label class="col-sm-2 control-label" id="toVipEndDateDur">
+ 			VIP到期日
+		</label>
+		<div class="col-sm-3">
+ 			<input id="pToVipEndDateStart" 
+ 				class="form-control" 
+ 				ng-model="mainCtrl.conditionConfig.conds.condition_pToVipEndDateStart" 
+ 				name="pToVipEndDateStart" 
+ 				bs-datepicker 
+ 				type="text" 
+ 				autoclose="1"
+ 				date-format="yyyy-MM-dd"
+ 				placeholder="yyyy-MM-dd"
+ 				date-type="string"
+ 				aria-labelledby="toVipEndDateDur">			
+		</div>
+		<div class="col-sm-3">
+ 			<input id="pToVipEndDateEnd" 
+ 				class="form-control" 
+ 				ng-model="mainCtrl.conditionConfig.conds.condition_pToVipEndDateEnd" 
+ 				name="pToVipEndDateEnd" 
+ 				bs-datepicker 
+ 				type="text" 
+ 				autoclose="1"
+ 				date-format="yyyy-MM-dd"
+ 				placeholder="yyyy-MM-dd"
+ 				date-type="string"
+ 				aria-labelledby="toVipEndDateDur">			
+		</div>
+ 	</div> 	 	
  	<div class="form-group">
  		<label class="col-sm-2 control-label" for="pImportant">
  			VIP
@@ -164,7 +230,7 @@
  	</div>
  	 <div class="btn-toolbar" role="toolbar">
  	<div class="btn-group" role="group">
- 		<button type="submit" ng-click="mainCtrl.query()" class="btn btn-default" ng-disabled="memberListForm.$invalid">查詢</button>
+ 		<button type="submit" ng-click="mainCtrl.query()" class="btn btn-default" ng-disabled="memberListForm.$dirty && memberListForm.$invalid">查詢</button>
  	</div>
  	<div class="btn-group" role="group">
  		<input type="button" value="清除" ng-click="mainCtrl.clear()" class="btn btn-default"/>
@@ -181,10 +247,10 @@
 		</erp-file-ajax-btn>
  	</div>
  	<div class="btn-group" role="group">
- 		<input ng-click="mainCtrl.copyCondition()" class="btn btn-default"  ng-disabled="memberListForm.$invalid" value="下載會員檔案"/>
+ 		<input type="button" ng-click="mainCtrl.copyCondition()" class="btn btn-default"  ng-disabled="memberListForm.$dirty && memberListForm.$invalid" value="下載會員檔案"/>
  	</div>
  	<div class="btn-group" role="group">
- 		<input ng-click="mainCtrl.downloadTemplate()" class="btn btn-default" value="下載範本"/>
+ 		<input type="button" ng-click="mainCtrl.downloadTemplate()" class="btn btn-default" value="下載範本"/>
  	</div>
  </div>
  </form>
@@ -243,6 +309,8 @@
 
 <script type="text/javascript">
 	angular.module('angryCatMemberListApp', ['ui.bootstrap', 'erp.fileupload.ajax.directive', 'mgcrea.ngStrap'])
+		.constant('urlPrefix', '${urlPrefix}')
+		.constant('moduleName', '${moduleName}')
 		.factory('AuthInterceptor', ['$q', function($q){
 			return {
 				responseError: function(responseRejection){
@@ -257,11 +325,12 @@
 			$httpProvider.defaults.headers.common['X-Requested-With'] = 'XMLHttpRequest'; // to tell server this is a ajax request
 			$httpProvider.interceptors.push('AuthInterceptor');
 		}])
-		.factory('MemberService', ['$http', function($http){
-			var queryAllUrl = '${urlPrefix}/queryAll.json',
-				queryByCondsUrl = '${urlPrefix}/queryCondtional.json',
-				deleteItemsUrl = '${urlPrefix}/deleteItems.json',
-				copyConditionUrl = '${urlPrefix}/copyCondition.json',
+		.factory('MemberService', ['$http', 'urlPrefix', function($http, urlPrefix){
+			var queryAllUrl = urlPrefix + '/queryAll.json',
+				queryByCondsUrl = urlPrefix + '/queryCondtional.json',
+				deleteItemsUrl = urlPrefix + '/deleteItems.json',
+				copyConditionUrl = urlPrefix + '/copyCondition.json',
+				resetConditionUrl = urlPrefix + '/resetConditions.json',
 				idCheckName = 'ids',
 				getCheckedItems = function(){
 					var ids = document.getElementsByName(idCheckName),
@@ -288,14 +357,13 @@
 				queryByConds: function(conds){
 					return $http.post(queryByCondsUrl, conds);
 				},
-				clearConds: function(config){
-					if(config && config.conds){
-						for(var cond in config.conds){
-							if(cond.indexOf('condition_') == 0){
-								config.conds[cond] = null;
-							}
-						}
-					}
+				clearConds: function(config, initialState){
+					return $http.get(resetConditionUrl)
+						.then(function(response){
+							config.conds = response.data.conds;
+						},function(responseErr){
+							alert('重置查詢條件錯誤');
+						});
 				},
 				getCheckedItems: getCheckedItems,
 				validateBeforeDelete: function(checkedItems){
@@ -333,7 +401,7 @@
 				}				
 			};
 		}])
-		.controller('MainCtrl', ['$log', '$scope', 'MemberService', '$window', function($log, $scope, MemberService, $window){			
+		.controller('MainCtrl', ['$log', '$scope', 'MemberService', '$window', 'urlPrefix', 'moduleName', function($log, $scope, MemberService, $window, urlPrefix, moduleName){			
 			var self = this;
 				
 			self.genders = [{label: '男', value: 0}, {label: '女', value: 1}];
@@ -342,7 +410,6 @@
 			MemberService.queryAll()
 				.then(function(response){
 					self.conditionConfig = response.data;
-					$log.log("getting: " + JSON.stringify(response.data));
 				},function(errResponse){
 					$log.log('Error while fetching notes');
 				});
@@ -350,7 +417,6 @@
 			self.query = function(){
 				MemberService.queryByConds(self.conditionConfig)
 				.then(function(response){
-					$log.log('successfully return: ' + JSON.stringify(response.data));
 					self.conditionConfig = response.data;
 				},function(errResponse){
 					$log.log('failed!!!!!' + JSON.stringify(errResponse));
@@ -361,6 +427,9 @@
 			}
 			self.clear = function(){
 				MemberService.clearConds(self.conditionConfig);
+				$scope.memberListForm.$setPristine();
+				delete $scope.memberListForm.$error.parse;
+				delete $scope.memberListForm.$error.date;
 			};
 			self.deleteItems = function(){
 				var checkedItems = MemberService.getCheckedItems();
@@ -369,7 +438,6 @@
 				}
 				MemberService.deleteItems(checkedItems)
 				.then(function(response){
-					$log.log('successfully return: ' + JSON.stringify(response.data));
 					self.conditionConfig = response.data;
 					alert('刪除成功' + checkedItems.length + '筆');
 				},function(errResponse){
@@ -379,22 +447,17 @@
 			self.copyCondition = function(){
 				MemberService.copyCondition(self.conditionConfig)
 					.then(function(){
-						$window.location.href = '${urlPrefix}/downloadExcel';
+						$window.location.href = urlPrefix + '/downloadExcel';
 					});
 			};
 			self.downloadTemplate = function(){
-				$window.location.href = '${urlPrefix}/downloadTemplate';
+				$window.location.href = urlPrefix + '/downloadTemplate';
 			};
 			self.checkOrUncheckAll = function($event){
 				MemberService.checkOrUncheckAll($event);
 			};
-			self.keypressQuery = function($event){
-				$log.log('$event.which: ' + $event.which);
-				if($event.which == 13){
-					self.query();
-				}
-			};
-			self.moduleName = '${moduleName}';
+			self.moduleName = moduleName;
+			self.months=[{label:'一', value:1},{label:'二', value:2},{label:'三', value:3},{label:'四', value:4},{label:'五', value:5},{label:'六', value:6},{label:'七', value:7},{label:'八', value:8},{label:'九', value:9},{label:'十', value:10},{label:'十一', value:11},{label:'十二', value:12}];
 		}])
 		.filter('convertGender', [function(){
 			return function(input){

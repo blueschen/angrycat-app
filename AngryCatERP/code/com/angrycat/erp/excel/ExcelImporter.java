@@ -8,11 +8,14 @@ import static com.angrycat.erp.excel.ExcelColumn.Member.出生年月日;
 import static com.angrycat.erp.excel.ExcelColumn.Member.地址;
 import static com.angrycat.erp.excel.ExcelColumn.Member.性別;
 import static com.angrycat.erp.excel.ExcelColumn.Member.真實姓名;
-import static com.angrycat.erp.excel.ExcelColumn.Member.聯絡電話;
+import static com.angrycat.erp.excel.ExcelColumn.Member.室內電話;
+import static com.angrycat.erp.excel.ExcelColumn.Member.手機電話;
 import static com.angrycat.erp.excel.ExcelColumn.Member.身份證字號;
 import static com.angrycat.erp.excel.ExcelColumn.Member.轉VIP日期;
 import static com.angrycat.erp.excel.ExcelColumn.Member.郵遞區號;
 import static com.angrycat.erp.excel.ExcelColumn.Member.電子信箱;
+import static com.angrycat.erp.excel.ExcelColumn.Member.生日使用8折優惠;
+import static com.angrycat.erp.excel.ExcelColumn.Member.COLUMN_COUNT;
 
 import java.io.ByteArrayInputStream;
 import java.io.FileInputStream;
@@ -28,6 +31,8 @@ import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 import org.apache.commons.lang3.StringUtils;
@@ -47,6 +52,7 @@ import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
 
 import com.angrycat.erp.businessrule.MemberVipDiscount;
+import com.angrycat.erp.common.DatetimeUtil;
 import com.angrycat.erp.component.SessionFactoryWrapper;
 import com.angrycat.erp.log.DataChangeLogger;
 import com.angrycat.erp.model.Member;
@@ -58,13 +64,21 @@ public class ExcelImporter {
 	@Autowired
 	@Qualifier("sessionFactoryWrapper")
 	private SessionFactoryWrapper sfw;
-	
 	@Autowired
 	private MemberVipDiscount discount;
+	private int colNum = 0;
+	
 		
 	public static void main(String[]args){
 //		readAndWrite("C:\\angrycat_workitem\\OHM Beads TW (AngryCat) 一般會員資料.xlsx", "C:\\angrycat_workitem\\test.xlsx");
-		read("E:\\angrycat_workitem\\member\\臺灣OHM商品總庫存清單_T20150923.xlsx", 1, 7);
+//		read("E:\\angrycat_workitem\\member\\2015_10_05\\OHM Beads TW (AngryCat) 一般會員資料_update.xlsx", 0, 0);
+	}
+
+	
+	private static void isFound(String pattern, String input){
+		Pattern pat = Pattern.compile(pattern);
+		Matcher m = pat.matcher(input);
+		System.out.println(m.find());
 	}
 	
 	private static void readAndWrite(String src, String dest){
@@ -95,11 +109,12 @@ public class ExcelImporter {
 			XSSFWorkbook wb = new XSSFWorkbook(is);){
 			
 			Sheet sheet = wb.getSheetAt(sheetIdx);
-			DataFormatter df = new DataFormatter();
+			final DataFormatter df = new DataFormatter();
 			sheet.forEach(row->{
 				Cell cell = row.getCell(colIdx);
-				System.out.println(cell.getErrorCellValue());
-				
+				System.out.println("cell: " + cell);
+				System.out.println("cell type: " + cell.getCellType());
+				System.out.println("cell value: " + df.formatCellValue(cell));
 			});
 			
 		}catch(Throwable e){
@@ -120,70 +135,94 @@ public class ExcelImporter {
 		
 		int totalCount = 0;
 		
-		String IDNO_NOT_EXISTED = "idNoNotExisted";
-		String IDNO_DUPLICATE = "idNoDuplicate";
+		String NAME_NOT_EXISTED = "nameNoNotExisted";
+		String MOBILE_OR_TEL_REQUIRED = "mobileOrTelRequired";
+		String MOBILE_DUPLICATE = "mobileDuplicate";
+		String TEL_DUPLICATE = "telDuplicate";
 		int VIP_MAX_YEAR = 2;
 		
 		Map<String, Integer> msg = new LinkedHashMap<>();
 		Map<String, String> logWarn = new HashMap<>();
 		Session s = null;
 		Transaction tx = null;
-		discount.setToVipDateReset(false);
+		int rowNum = 0;
+		int readableRowNum = 0;
+		int insertCount = 0;
 		try(ByteArrayInputStream bais = new ByteArrayInputStream(data);){
 			
 			Workbook wb = WorkbookFactory.create(bais);
 			Sheet sheet = wb.getSheetAt(0);
-			totalCount = sheet.getLastRowNum();
-			
+			totalCount = sheet.getLastRowNum();			
 			Iterator<Row> itr = sheet.iterator();
 			
 			s = sfw.openSession();
 			tx = s.beginTransaction();
 			
-			int insertCount = 0;
 			int batchSize = sfw.getBatchSize();
+			String DEFAULT_TEL = "00000";
 			while(itr.hasNext()){
 				Row row = itr.next();
-				int rowNum = row.getRowNum();
-				if(rowNum == 0){
+				rowNum = row.getRowNum();
+				readableRowNum = rowNum+1;
+				if(rowNum == 0 || isRowEmpty(row, COLUMN_COUNT)){
 					continue;
 				}
-								
 				String VIP			= parseStrVal(row, Ohmliy_VIP);
+				Date vipUsed		= parseSqlDateVal(row, 生日使用8折優惠);
 				String fbNickname	= parseStrVal(row, Facebook_姓名);
 				String name			= parseStrVal(row, 真實姓名);
 				String gender		= parseStrVal(row, 性別);
 				String idNo			= parseStrVal(row, 身份證字號);
 				Date birthday		= parseSqlDateVal(row, 出生年月日);
 				String email		= parseStrVal(row, 電子信箱);
-				String mobile		= parseNumericOrStr(row, 聯絡電話);
+				String mobile		= parseNumericOrStr(row, 手機電話);
+				String tel			= parseNumericOrStr(row, 室內電話);
 				String postalCode	= parseNumericOrStr(row, 郵遞區號);
 				String address		= parseStrVal(row, 地址);
 				Date toVipDate		= parseSqlDateVal(row, 轉VIP日期);
 				String note			= parseStrVal(row, 備註);
 				String vipYear		= parseNumericOrStr(row, VIP延續);
 				
-				if(StringUtils.isBlank(idNo)){
-					msg.put(IDNO_NOT_EXISTED+rowNum, rowNum);
+				if(StringUtils.isBlank(name)){
+					msg.put(NAME_NOT_EXISTED+readableRowNum, readableRowNum);
 					continue;
+				}
+				if(StringUtils.isBlank(mobile) && StringUtils.isBlank(tel)){
+					tel = DEFAULT_TEL;
+				}				
+				
+				if(StringUtils.isNotBlank(mobile)){
+					Number num = (Number)s.createQuery("SELECT COUNT(m) FROM " + Member.class.getName() + " m WHERE m.name = :name AND m.mobile = :mobile").setString("name", name).setString("mobile", mobile).uniqueResult();
+					int count = num.intValue();
+					if(count > 0){
+						msg.put(MOBILE_DUPLICATE+readableRowNum, readableRowNum);
+						continue;
+					}
+				}
+				if(StringUtils.isNotBlank(tel)){
+					Number num = (Number)s.createQuery("SELECT COUNT(m) FROM " + Member.class.getName() + " m WHERE m.name = :name AND m.tel = :tel").setString("name", name).setString("tel", tel).uniqueResult();
+					int count = num.intValue();
+					if(count > 0){
+						msg.put(TEL_DUPLICATE+readableRowNum, readableRowNum);
+						continue;
+					}
 				}
 				
-				idNo = idNo.toUpperCase();
-				Number num = (Number)s.createQuery("SELECT COUNT(m) FROM " + Member.class.getName() + " m WHERE m.idNo = :idNo").setString("idNo", idNo).uniqueResult();
-				int count = num.intValue();
-				if(count > 0){
-					msg.put(IDNO_DUPLICATE+rowNum, rowNum);
-					continue;
-				}
 				Member m = new Member();
-				m.setImportant("VIP".equals(VIP) || "R-VIP".equals(VIP));
+				if(StringUtils.isNotBlank(VIP)){
+					m.setImportant("VIP".equals(VIP) || "R-VIP".equals(VIP) || VIP.contains("bloger"));
+				}
 				m.setFbNickname(fbNickname);
 				m.setName(name);
 				m.setGender("男".equals(gender) ? Member.GENDER_MALE : Member.GENDER_FEMALE);
-				m.setIdNo(idNo);
+				if(StringUtils.isNoneBlank(idNo)){
+					idNo = idNo.toUpperCase();
+					m.setIdNo(idNo);
+				}
 				m.setBirthday(birthday);
 				m.setEmail(email);
 				m.setMobile(mobile);
+				m.setTel(tel);
 				m.setPostalCode(postalCode);
 				m.setAddress(address);
 				m.setToVipDate(toVipDate);
@@ -193,7 +232,7 @@ public class ExcelImporter {
 				
 				if(m.getBirthday()!=null && m.getToVipDate()!=null){
 					int vipEffectiveYearCount = 0;
-					if(StringUtils.isBlank(vipYear)){
+					if(StringUtils.isNumeric(vipYear) || StringUtils.isBlank(vipYear)){
 						vipEffectiveYearCount = 1;
 					}else{
 						vipEffectiveYearCount = Integer.parseInt(vipYear);
@@ -201,30 +240,35 @@ public class ExcelImporter {
 							vipEffectiveYearCount = VIP_MAX_YEAR;
 						}
 					}
+					discount.setBatchStartDate(m.getToVipDate());
 					discount.setAddCount(vipEffectiveYearCount);
 					discount.applyRule(m);
 					m.setImportant(true);
+					if(vipUsed != null && m.getVipDiscountDetails().size() > 0){
+						m.getVipDiscountDetails().get(0).setDiscountUseDate(vipUsed);
+					}
 				}
 				
 				s.save(m);
-				if(dataChangeLogger != null){
-					dataChangeLogger.logAdd(m, s);
-				}
+//				if(dataChangeLogger != null){
+//					dataChangeLogger.logAdd(m, s);
+//				}
 				
 				if(++insertCount % batchSize == 0){
 					s.flush();
 					s.clear();
 				}
 			}
-			
-			tx.commit();
-			
 		}catch(Throwable e){
-			tx.rollback();
 			String stackTrace = ExceptionUtils.getStackTrace(e);
-			logWarn.put("errorMsg", stackTrace);
+			logWarn.put("errorMsg", "程式執行到第"+readableRowNum+"行第"+(colNum+1)+"列發生錯誤\n"+stackTrace);
 			System.out.println(stackTrace);
 		}finally{
+			if(!logWarn.isEmpty() || !msg.isEmpty()){
+				tx.rollback();
+			}else{
+				tx.commit();
+			}
 			s.close();
 		}
 		if(!logWarn.isEmpty()){
@@ -232,38 +276,50 @@ public class ExcelImporter {
 		}
 		
 		String infoTotalCount = "總筆數: " + totalCount;
-		String infoImportCount = "實際匯入筆數: " + (totalCount - msg.size());
+		String infoImportCount = "實際匯入筆數: " + insertCount;
 		
 		System.out.println(infoTotalCount);
 		System.out.println(infoImportCount);
 		
-		String warning = "";
-		String warnAboutIdNoNotExisted = "";
-		String warnAboutIdNoDuplicate = "";
-		
-		List<Integer> idNoNotExisted = findMsgRowNums(msg, IDNO_NOT_EXISTED);
-		if(!idNoNotExisted.isEmpty()){
-			warnAboutIdNoNotExisted = "身分證字號不存在共"+idNoNotExisted.size()+"筆\n行數:" + StringUtils.join(idNoNotExisted, "、");
-			System.out.println(warnAboutIdNoNotExisted);
-			warning += (warnAboutIdNoNotExisted + "\n");
-		}
-//		List<Integer> idDuplicate = findMsgRowNums(msg, IDNO_DUPLICATE);
-//		if(!idDuplicate.isEmpty()){
-//			warnAboutIdNoDuplicate = "身分證字號重複共"+idDuplicate.size()+"筆\n行數:" + StringUtils.join(idDuplicate, "、");
-//			System.out.println(warnAboutIdNoDuplicate);
-//			warning += (warnAboutIdNoDuplicate + "\n");
-//		}
+		StringBuffer warning = new StringBuffer();
+		warning = genWarnMsg(msg, warning, NAME_NOT_EXISTED, "姓名不存在");
+		warning = genWarnMsg(msg, warning, MOBILE_OR_TEL_REQUIRED, "手機和室內電話至少要提供一項");
+		warning = genWarnMsg(msg, warning, MOBILE_DUPLICATE, "姓名和行動電話已存在");
+		warning = genWarnMsg(msg, warning, TEL_DUPLICATE, "姓名和室內電話已存在");
 		
 		String infoMsg = infoTotalCount + "\n" + infoImportCount;
-		if(StringUtils.isNotBlank(warning)){
-			infoMsg += ("\n" + warning);
-			logWarn.put("warnMsg", infoMsg);
+		if(StringUtils.isNotBlank(warning.toString())){
+			logWarn.put("warnMsg", warning.toString());
 		}else{
 			logWarn.put("infoMsg", infoMsg);
 		}
 		return logWarn;
 	}
 	
+	private static boolean isRowEmpty(Row row, int colCount){
+		final DataFormatter df = new DataFormatter();
+		boolean empty = true;
+		for(int i = 0; i < colCount; i++){
+			Cell cell = row.getCell(i);
+			String val = df.formatCellValue(cell);
+			if(StringUtils.isNotBlank(val)){
+				empty = false;
+				break;
+			}
+		}
+		return empty;
+	}
+	
+	private StringBuffer genWarnMsg(Map<String, Integer> msg, StringBuffer warnMsg, String msgKey, String msgTitle){
+		List<Integer> warnNums = findMsgRowNums(msg, msgKey);
+		String warn = "";
+		if(!warnNums.isEmpty()){
+			warn = msgTitle+"共"+warnNums.size()+"筆\n行數:" + StringUtils.join(warnNums, "、");
+			System.out.println(warn);
+			warnMsg.append(warn + "\n");
+		}
+		return warnMsg;
+	}
 	
 	String getUniqueKeyField(){
 		return "idNo";
@@ -286,6 +342,7 @@ public class ExcelImporter {
 	}
 	
 	String parseStrVal(Row row, int columnIndex){
+		colNum = columnIndex;
 		String result = null;
 		Cell cell = row.getCell(columnIndex);
 		if(cell == null){
@@ -294,11 +351,13 @@ public class ExcelImporter {
 		String v = cell.getStringCellValue();
 		if(StringUtils.isNotBlank(v)){
 			result = StringUtils.trim(v);
+			result = result.replace("\n", "");
 		}
 		return result;
 	}
 	
 	java.util.Date parseDateVal(Row row, int columnIndex){
+		colNum = columnIndex;
 		java.util.Date date = null;
 		Cell cell = row.getCell(columnIndex);
 		if(cell == null){
@@ -310,8 +369,15 @@ public class ExcelImporter {
 				date = cell.getDateCellValue();
 			}else if(type == Cell.CELL_TYPE_STRING){
 				String str = cell.getStringCellValue();
-				DateFormat df = new SimpleDateFormat("MM/dd/yyyy");
-				date = df.parse(str);
+				if(StringUtils.isNotBlank(str)){
+					str = str.trim();
+					String pattern = DatetimeUtil.getDatePattern(str);
+					if(pattern == null){
+						throw new RuntimeException("不正確的日期格式:" + str);
+					}
+					DateFormat df = new SimpleDateFormat(pattern);
+					date = df.parse(str);
+				}
 			}
 		}catch(Throwable e){
 			throw new RuntimeException(e);
@@ -320,11 +386,13 @@ public class ExcelImporter {
 	}
 	
 	java.sql.Date parseSqlDateVal(Row row, int columnIndex){
+		colNum = columnIndex;
 		java.util.Date d = parseDateVal(row, columnIndex);
 		return d != null ? new java.sql.Date(d.getTime()) : null; 
 	}
 	
 	Double parseNumericVal(Row row, int columnIndex){
+		colNum = columnIndex;
 		Cell cell = row.getCell(columnIndex);
 		if(cell == null){
 			return null;
@@ -334,6 +402,7 @@ public class ExcelImporter {
 	}
 	
 	String parseNumericOrStr(Row row, int columnIndex){
+		colNum = columnIndex;
 		Cell cell = row.getCell(columnIndex);
 		if(cell == null){
 			return null;
@@ -350,6 +419,7 @@ public class ExcelImporter {
 	}
 	
 	Date parseNumericToSqlDate(Row row ,int columnIndex){
+		colNum = columnIndex;
 		Double d = parseNumericVal(row, columnIndex);
 		if(d == null){
 			return null;

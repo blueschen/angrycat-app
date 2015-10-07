@@ -174,6 +174,19 @@ public class QueryBaseService<T, R> extends ConditionalQuery<T> implements Condi
 		return cc;
 	}
 	
+	public ConditionConfig<T> resetConditions(){
+		// simpleExpression
+		getSimpleExpressions().forEach((id,v)->{
+			if(!v.isFixed()){
+				v.setValue(null);
+			};
+		});
+		setCurrentPage(1);
+		setCountPerPage(10);
+		return getConditionConfig();
+	}
+	
+	
 	protected Object parseSimpleExprValueType(SimpleExpression se, Object val){
 		if(val==null){
 			return null;

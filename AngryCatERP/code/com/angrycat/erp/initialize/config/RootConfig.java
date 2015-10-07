@@ -32,6 +32,7 @@ public class RootConfig {
 		String serverRoot = System.getProperty("catalina.home");
 		if(StringUtils.isNotBlank(serverRoot)){
 			System.setProperty("catalina.home", "C:/dts/apache-tomcat-8.0.23");
+//			System.setProperty("catalina.home", "/usr/local/apache-tomcat-8.0.23_test1");
 		}
 	}
 	

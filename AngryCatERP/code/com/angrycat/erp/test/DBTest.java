@@ -2,6 +2,7 @@ package com.angrycat.erp.test;
 
 import static com.angrycat.erp.condition.ConditionFactory.propertyDesc;
 import static com.angrycat.erp.condition.ConditionFactory.putStr;
+import static com.angrycat.erp.condition.ConditionFactory.putInt;
 
 import java.sql.Date;
 import java.sql.Timestamp;
@@ -336,7 +337,8 @@ public class DBTest extends BaseTest{
 //		testSetNull();
 //		testSelfJoin();
 //		testOrderBy();
-		insertSecurityOther();
+//		insertSecurityOther();
+		testMonth();
 	}
 	// this example can be used to replace subquery
 	private static void testSelfJoin(){
@@ -353,7 +355,7 @@ public class DBTest extends BaseTest{
 
 			List<DataChangeLog> list = qbs.executeQueryPageable();
 			list.stream().forEach(d->{
-				System.out.println("d id: " + d.getId());
+				System.out.println("d id: " + d.getDocId());
 			});
 		});
 	}
@@ -380,7 +382,22 @@ public class DBTest extends BaseTest{
 				System.out.println("d id: " + d.getId() + ", d docId: " + d.getDocId());
 			});
 		});
-		
+	}
+	
+	private static void testMonth(){
+		executeApplicationContext(acac->{
+			QueryBaseService<Member, Member> qbs = (QueryBaseService<Member, Member>)acac.getBean("queryBaseService");
+			qbs.setRootAndInitDefault(Member.class);
+			qbs.addWhere(putInt("month(p.birthday) >= :pBirthday", 2));
+			QueryGenerator qg = qbs.toQueryGenerator();
+			System.out.println(qg.toCompleteStr());
+			List<Member> list = qbs.executeQueryPageable();
+			list.forEach(m->{
+				System.out.println("id: " + m.getId() + ", birth: " + m.getBirthday());
+			});
+			
+			
+		});
 		
 		
 		

@@ -10,8 +10,13 @@ import java.time.ZoneOffset;
 import java.util.Arrays;
 import java.util.Calendar;
 import java.util.TimeZone;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 public class DatetimeUtil {
+	
+
+	
 	/**
 	 * retrieve Date<br>
 	 * hour, minute, second, millisec all are set to zero
@@ -149,7 +154,36 @@ public class DatetimeUtil {
 		System.out.println("JVM time zone ids: " + Arrays.asList(TimeZone.getAvailableIDs(TimeZone.getDefault().getRawOffset())));
 		System.out.println("JVM support time zone ids: " + Arrays.asList(TimeZone.getAvailableIDs()));
 	}
+	public static String getDatePattern(String input){
+		Pattern p1 = Pattern.compile("[0-9]{4}\\-[0-9]{1,2}\\-[0-9]{1,2}");
+		if(isMatched(p1, input)){
+			return "yyyy-MM-dd";
+		}
+		Pattern p2 = Pattern.compile("[0-9]{1,2}\\-[0-9]{1,2}\\-[0-9]{4}");
+		if(isMatched(p2, input)){
+			return "MM-dd-yyyy";
+		}
+		Pattern p3 = Pattern.compile("[0-9]{4}/[0-9]{1,2}/[0-9]{1,2}");
+		if(isMatched(p3, input)){
+			return "yyyy/MM/dd";
+		}
+		Pattern p4 = Pattern.compile("[0-9]{1,2}/[0-9]{1,2}/[0-9]{4}");
+		if(isMatched(p4, input)){
+			return "MM/dd/yyyy";
+		}
+		return null;
+	}
+	
+	private static boolean isMatched(Pattern p, String input){
+		Matcher m = p.matcher(input);
+		return m.matches();
+	}
+	
+	private static void testPattern(){
+		String input = "1/1/1988";
+		System.out.println(getDatePattern(input));
+	}
 	public static void main(String[]args){
-		test();
+		testPattern();
 	}
 }

@@ -15,7 +15,8 @@ public class ExcelColumn {
 		public static final int 身份證字號		= index++;
 		public static final int 出生年月日		= index++;
 		public static final int 電子信箱			= index++;
-		public static final int 聯絡電話			= index++;
+		public static final int 手機電話			= index++;
+		public static final int 室內電話			= index++;
 		public static final int 郵遞區號			= index++;
 		public static final int 地址				= index++;		
 		public static final int 備註				= index++;
