@@ -171,7 +171,7 @@ public class DatetimeUtil {
 		if(isMatched(p4, input)){
 			return "MM/dd/yyyy";
 		}
-		return null;
+		throw new RuntimeException("日期格式不正確: " + input);
 	}
 	
 	private static boolean isMatched(Pattern p, String input){

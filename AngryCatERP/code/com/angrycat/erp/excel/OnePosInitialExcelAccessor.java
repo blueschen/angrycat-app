@@ -3,6 +3,7 @@ package com.angrycat.erp.excel;
 import static org.apache.poi.ss.usermodel.Cell.CELL_TYPE_NUMERIC;
 import static org.apache.poi.ss.usermodel.Cell.CELL_TYPE_STRING;
 
+import java.io.BufferedInputStream;
 import java.io.BufferedOutputStream;
 import java.io.ByteArrayInputStream;
 import java.io.File;
@@ -12,8 +13,16 @@ import java.io.InputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.Date;
 import java.util.Iterator;
+import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
+import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipOutputStream;
@@ -21,18 +30,24 @@ import java.util.zip.ZipOutputStream;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.RandomStringUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.poi.hssf.usermodel.HSSFCell;
 import org.apache.poi.hssf.usermodel.HSSFWorkbook;
 import org.apache.poi.ss.usermodel.Cell;
+import org.apache.poi.ss.usermodel.CellStyle;
 import org.apache.poi.ss.usermodel.DataFormatter;
 import org.apache.poi.ss.usermodel.Row;
 import org.apache.poi.ss.usermodel.Sheet;
 import org.apache.poi.util.IOUtils;
+import org.apache.poi.xssf.usermodel.XSSFCell;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.AnnotationConfigApplicationContext;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Service;
 
+import com.angrycat.erp.common.DatetimeUtil;
+import com.angrycat.erp.excel.ExcelColumn.Member;
+import com.angrycat.erp.excel.ExcelColumn.OnePosClient;
 import com.angrycat.erp.excel.ExcelColumn.Product.OnePos;
 import com.angrycat.erp.excel.ExcelColumn.Product.Sheet1;
 import com.angrycat.erp.excel.ExcelColumn.Product.Sheet2;
@@ -59,7 +74,7 @@ import com.angrycat.erp.service.http.HttpService;
  */
 @Service
 @Scope("prototype")
-public class OnePosProductExcelAccessor {
+public class OnePosInitialExcelAccessor {
 	private static final String JPG_POSTFIX = "-o-a.jpg";
 	private static final String URL_TEMPLATE = "http://ohmbeads.com/ohm2/media/import/{no}" + JPG_POSTFIX;
 	private static final String DEFAULT_IMG_DIR = "C:"+File.separator+"ONE-POS DB"+File.separator+"Project"+File.separator;
@@ -69,6 +84,8 @@ public class OnePosProductExcelAccessor {
 	private HttpService httpService;
 	private boolean imgProcessEnabled;
 	private String templatePath;
+	private Map<String, String> barCodes = getBarCodes();
+	private int importBarCodeCount = 0;
 	
 	public boolean isImgProcessEnabled() {
 		return imgProcessEnabled;
@@ -126,16 +143,116 @@ public class OnePosProductExcelAccessor {
 		}
 	}
 	
+	/**
+	 * 型號和條碼.xlsx這張Excel表是整理ohm-catalog-barcode-150601.pdf而來
+	 * @return
+	 */
+	private Map<String, String> getBarCodes(){
+		String path = "E:\\angrycat_workitem\\產品\\型號和條碼.xlsx";
+		Map<String, String> barCodes = Collections.emptyMap();
+		File file = new File(path);
+		if(!file.exists()){
+			return barCodes;
+		}
+		int tempBarCodeCount=0;
+		try(BufferedInputStream bis = new BufferedInputStream(new FileInputStream(file));
+			XSSFWorkbook wb = new XSSFWorkbook(bis);){
+			Sheet sheet = wb.getSheetAt(0);
+			Iterator<Row> rows = sheet.iterator();
+			barCodes = new LinkedHashMap<>();
+			while(rows.hasNext()){
+				Row row = rows.next();
+				Cell cell = row.getCell(0);
+				if(cell!=null){
+					String val = DF.formatCellValue(cell);
+					if(StringUtils.isBlank(val)){
+						continue;
+					}
+					String[] data = val.split(" ");
+					String barCode = data[0];
+					if(StringUtils.isBlank(barCode)){
+						continue;
+					}
+					barCode = barCode.trim();
+					if(!StringUtils.isNumeric(barCode) || barCode.length() != 13){
+						System.out.println("ignored barCode: " + barCode);
+						continue;
+					}
+					String sku = data[1];
+					if(StringUtils.isBlank(sku)){
+						continue;
+					}
+					sku = sku.trim();
+					barCodes.put(sku, barCode);
+					tempBarCodeCount++;
+				}
+			}
+			
+		}catch(Throwable e){
+			throw new RuntimeException(e);
+		}
+		System.out.println("total tempBarCodeCount: " + tempBarCodeCount);
+		return barCodes;
+	}
+	/**
+	 * 轉出型號、可掃描條碼、條碼數字對照表(可掃描條碼需配合額外條碼字型)
+	 * 資料源為ohm-catalog-barcode-150601.pdf
+	 * @param dest
+	 */
+	public void writeBarCodeScannable(String dest){
+		int rowNum = 0;
+		try(XSSFWorkbook wb = new XSSFWorkbook();
+		FileOutputStream fos = new FileOutputStream(dest)){
+			
+			Sheet sheet = wb.createSheet("可掃描條碼表");
+			Row firstRow = sheet.createRow(rowNum++);
+			int COL_IDX_MODEL_ID = 0;
+			int COL_IDX_BARCODE = 1;
+			int COL_IDX_BARCODE_NO = 2;
+			Cell c1 = firstRow.createCell(COL_IDX_MODEL_ID);
+			c1.setCellType(XSSFCell.CELL_TYPE_STRING);
+			c1.setCellValue("型號");
+			Cell c2 = firstRow.createCell(COL_IDX_BARCODE);
+			c2.setCellType(XSSFCell.CELL_TYPE_STRING);
+			c2.setCellValue("條碼");
+			Cell c3 = firstRow.createCell(COL_IDX_BARCODE_NO);
+			c3.setCellType(XSSFCell.CELL_TYPE_STRING);
+			c3.setCellValue("條碼號");
+			
+			barCodes.entrySet();
+			for(Map.Entry<String, String> b : barCodes.entrySet()){
+				Row row = sheet.createRow(rowNum++);
+				Cell cModelId = row.createCell(COL_IDX_MODEL_ID);
+				cModelId.setCellType(XSSFCell.CELL_TYPE_STRING);
+				cModelId.setCellValue(b.getKey());
+				
+				Cell cBarCode = row.createCell(COL_IDX_BARCODE);
+				cBarCode.setCellType(XSSFCell.CELL_TYPE_STRING);
+				cBarCode.setCellValue("*" + b.getValue() + "*");
+				
+				Cell cBarCodeNo = row.createCell(COL_IDX_BARCODE_NO);
+				cBarCodeNo.setCellType(XSSFCell.CELL_TYPE_STRING);
+				cBarCodeNo.setCellValue(b.getValue());
+			}
+			
+			wb.write(fos);
+		}catch(Throwable e){
+			throw new RuntimeException(e);
+		}
+	}
+	
 	private static void testProcess(){
 		long starttime = System.currentTimeMillis();
 		
 		AnnotationConfigApplicationContext acac = new AnnotationConfigApplicationContext(RootConfig.class);
-		String t1 = "E:\\angrycat_workitem\\member\\2015_09_24\\臺灣OHM商品總庫存清單(類別)_T20150924.xlsx";
+		String t1 = "E:\\angrycat_workitem\\產品\\臺灣OHM商品總庫存清單(類別)_T20150924.xlsx";
 		String t2 = "E:\\angrycat_workitem\\member\\臺灣OHM商品總庫存清單(類別)_T20150924 - 複製.xlsx";
-		try(FileInputStream fis = new FileInputStream(t2)){
+		
+		try(
+			FileInputStream fis = new FileInputStream(t1)){
 			byte[] data = IOUtils.toByteArray(fis);
-			OnePosProductExcelAccessor accessor = acac.getBean(OnePosProductExcelAccessor.class);
-			accessor.setImgProcessEnabled(true);
+			OnePosInitialExcelAccessor accessor = acac.getBean(OnePosInitialExcelAccessor.class);
+//			accessor.setImgProcessEnabled(true);
 			accessor.setTemplatePath("E:\\angrycat_workitem\\member\\v36 ONE-POS Data Quick Import  快速匯入 - Empty .xls");
 			accessor.process(data);
 			
@@ -157,7 +274,7 @@ public class OnePosProductExcelAccessor {
 	 * 如果有額外設定的話(imgProcessEnabled = true)，<br>
 	 * 可以抓取對應的圖檔之後改名。<br>
 	 * 
-	 * @param data
+	 * @param data: 原始資料源是"臺灣OHM商品總庫存清單(類別)_T20150924.xlsx"
 	 */
 	public void process(byte[] data){
 		String tempPath = FileUtils.getTempDirectoryPath();
@@ -165,6 +282,7 @@ public class OnePosProductExcelAccessor {
 		String tempDir = tempPath + customDir + File.separator;
 		System.out.println("process tempDir: " + tempDir);
 		String tempImgDir = tempDir + "image" + File.separator;
+		String memberPath = "E:\\angrycat_workitem\\member\\2015_10_05\\OHM Beads TW (AngryCat) 一般會員資料_update.xlsx";
 		try{
 			FileUtils.forceMkdir(new File(tempImgDir));
 		}catch(Throwable e){
@@ -173,25 +291,28 @@ public class OnePosProductExcelAccessor {
 		String customFile = RandomStringUtils.randomAlphanumeric(8) + ".xls";
 		String customFilePath = tempDir + customFile;
 		File file = new File(customFilePath);
+		
 		try(ByteArrayInputStream bais = new ByteArrayInputStream(data);
-			XSSFWorkbook wb = new XSSFWorkbook(bais);
+			XSSFWorkbook productWb = new XSSFWorkbook(bais);
+			XSSFWorkbook memberWb = new XSSFWorkbook(new FileInputStream(memberPath));
 			FileOutputStream fos = new FileOutputStream(file);
 			BufferedOutputStream bos = new BufferedOutputStream(fos);
 			HSSFWorkbook outWb = templatePath == null ? new HSSFWorkbook() : new HSSFWorkbook(new FileInputStream(templatePath));){
+			
+			CellStyle dateStyle = outWb.createCellStyle();
+			dateStyle.setDataFormat(outWb.getCreationHelper().createDataFormat().getFormat("yyyy/MM/dd"));
 			
 			Sheet categorySheet = outWb.getSheet("categories") == null ? outWb.createSheet("categories") : outWb.getSheet("categories"); // 第一個Sheet是產品類別
 			if(outWb.getSheet("brand") == null){ // 第二個Sheet是產品品牌
 				outWb.createSheet("brand");
 			}
 			Sheet productSheet = outWb.getSheet("products") == null ? outWb.createSheet("products") : outWb.getSheet("products"); // 第三個Sheet是產品(品項)
-			if(outWb.getSheet("clients") == null){ // 第四個Sheet是客戶
-				outWb.createSheet("clients");
-			}
+			Sheet clientSheet = outWb.getSheet("clients") == null ? outWb.createSheet("clients") : outWb.getSheet("clients"); // 第四個Sheet是客戶
 			if(outWb.getSheet("vendors") == null){ // 第五個Sheet是供應商
 				outWb.createSheet("vendors");
 			}
 			
-			Sheet generalSheet = wb.getSheetAt(0); // 一般商品
+			Sheet generalSheet = productWb.getSheetAt(0); // 一般商品
 			Iterator<Row> generalSheetRows = generalSheet.iterator();
 			int rowNum = 0;
 			Set<String> categories = new LinkedHashSet<>();
@@ -224,7 +345,7 @@ public class OnePosProductExcelAccessor {
 				storeImage(tempImgDir, noVal);
 			}
 			
-			Sheet serialSheet = wb.getSheetAt(1);
+			Sheet serialSheet = productWb.getSheetAt(1);
 			Iterator<Row> serialRows = serialSheet.iterator();
 			while(serialRows.hasNext()){
 				Row row = serialRows.next();
@@ -261,7 +382,7 @@ public class OnePosProductExcelAccessor {
 				storeImage(tempImgDir, noVal);
 			}
 			
-			Sheet jewelrySheet = wb.getSheetAt(2);
+			Sheet jewelrySheet = productWb.getSheetAt(2);
 			Iterator<Row> jewelryRows = jewelrySheet.iterator();
 			while(jewelryRows.hasNext()){
 				Row row = jewelryRows.next();
@@ -291,6 +412,66 @@ public class OnePosProductExcelAccessor {
 				
 				storeImage(tempImgDir, noVal);
 			}
+			Sheet memberSheet = memberWb.getSheetAt(0);// 將會員轉為OnePos所需客戶格式
+			Iterator<Row> memberRows = memberSheet.iterator();
+			Date builtDate = new Date(System.currentTimeMillis());
+			while(memberRows.hasNext()){
+				Row row = memberRows.next();
+				int rowCount = row.getRowNum();
+				if(rowCount == 0 || isRowEmpty(row, Member.COLUMN_COUNT)){
+					continue;
+				}
+				String clientId = "TW" + StringUtils.leftPad(String.valueOf(rowCount), 4, "0");
+				String clientName = getCellStrVal(row, Member.真實姓名);
+				String address = getCellStrVal(row, Member.地址);
+				String mobile = getCellStrVal(row, Member.手機電話);
+				String tel = getDefualtTelNumIfBothEmpty(mobile, getCellStrVal(row, Member.室內電話));
+				String email = getCellStrVal(row, Member.電子信箱);
+				String level = "1";// 價格級別，1是一般價，2是VIP價
+				Date birthday = getCellDateVal(row, Member.出生年月日);
+				
+				Row cRow = clientSheet.createRow(rowCount);
+				addCellStrValIfNotBlank(cRow, OnePosClient.客戶編號, clientId);
+				addCellStrValIfNotBlank(cRow, OnePosClient.客戶名稱, clientName);
+				addCellStrValIfNotBlank(cRow, OnePosClient.電話1, mobile);
+				addCellStrValIfNotBlank(cRow, OnePosClient.電話2, tel);
+				addCellStrValIfNotBlank(cRow, OnePosClient.電郵, email);
+				addCellStrValIfNotBlank(cRow, OnePosClient.級別, level);
+				
+				if(birthday!=null){
+					Cell birthdayCell = cRow.createCell(OnePosClient.生日日期);
+					birthdayCell.setCellType(HSSFCell.CELL_TYPE_NUMERIC);
+					birthdayCell.setCellValue(birthday);	
+					birthdayCell.setCellStyle(dateStyle);
+				}
+				
+				Cell builtDateCell = cRow.createCell(OnePosClient.新增日期);
+				builtDateCell.setCellType(HSSFCell.CELL_TYPE_NUMERIC);
+				builtDateCell.setCellValue(builtDate);
+				builtDateCell.setCellStyle(dateStyle);
+				
+				if(StringUtils.isNotBlank(address)){
+					int addressLen = address.length();
+					if(addressLen >= 150){
+						String address3 = address.substring(100, 150);
+						String address2 = address.substring(50, 100);
+						String address1 = address.substring(0, 50);
+						addAddressCells(cRow, address1, address2, address3);
+					}else if(addressLen >= 100 && addressLen < 150){
+						String address3 = address.substring(100, addressLen);
+						String address2 = address.substring(50, 100);
+						String address1 = address.substring(0, 50);
+						addAddressCells(cRow, address1, address2, address3);
+					}else if(addressLen >= 50 && addressLen < 100){
+						String address2 = address.substring(50, addressLen);
+						String address1 = address.substring(0, 50);
+						addAddressCells(cRow, address1, address2);
+					}else if(addressLen >= 0 && addressLen < 50){
+						String address1 = address.substring(0, addressLen);
+						addAddressCells(cRow, address1);
+					}	
+				}
+			}
 			outWb.write(bos);
 		}catch(Throwable e){
 			throw new RuntimeException(e);
@@ -302,11 +483,135 @@ public class OnePosProductExcelAccessor {
 		
 		String zipPath = tempPath + customDir + ".zip";
 		zipFolder(tempPath + customDir, zipPath);
+		System.out.println("zip path: " + zipPath);
+		System.out.println("import BarCode Count:" + importBarCodeCount);
 		try{
 			FileUtils.forceDelete(new File(tempPath + customDir));
 		}catch(Throwable e){
 			throw new RuntimeException(e);
 		}
+	}	
+	
+	/**
+	 * 如果沒留手機，也沒留室話，就給定室話預設值
+	 * @param mobile
+	 * @param tel
+	 * @return
+	 */
+	private String getDefualtTelNumIfBothEmpty(String mobile, String tel){
+		if(StringUtils.isBlank(mobile) && StringUtils.isBlank(tel)){
+			return "00000";
+		}
+		return tel;
+	}
+	
+	/**
+	 * 判斷該列是否為空
+	 * @param row
+	 * @param colCount
+	 * @return
+	 */
+	private boolean isRowEmpty(Row row, int colCount){
+		boolean empty = true;
+		for(int i = 0; i < colCount; i++){
+			Cell cell = row.getCell(i);
+			if(cell != null){
+				String val = DF.formatCellValue(cell);
+				if(StringUtils.isNotBlank(val)){
+					empty = false;
+					break;
+				}	
+			}
+		}
+		return empty;
+	}
+	private void addCellStrValIfNotBlank(Row cRow, int colIdx, String val){
+		if(StringUtils.isBlank(val)){
+			return;
+		}
+		Cell cell = cRow.createCell(colIdx);
+		cell.setCellType(CELL_TYPE_STRING);
+		cell.setCellValue(val);
+	}
+	
+	private void addCellDateValIfMatched(Row cRow, int colIdx, String val){
+		if(StringUtils.isBlank(val)){
+			return;
+		}
+		Date d = parseStrValtoDate(val);
+		Cell cell = cRow.createCell(colIdx);
+		cell.setCellValue(d);
+	}
+	
+	private void addAddressCells(Row row, String... addresses){
+		List<Integer> idx = Arrays.asList(OnePosClient.地址第1行, OnePosClient.地址第2行, OnePosClient.地址第3行);
+		for(int i = 0; i < addresses.length; i++){
+			Cell cell = row.createCell(idx.get(i));
+			cell.setCellType(CELL_TYPE_STRING);
+			cell.setCellValue(addresses[i]);
+		}
+	}
+	
+	private Date getCellDateVal(Row cRow, int colIdx){
+		Cell cell = cRow.getCell(colIdx);
+		Date d = null;
+		if(cell.getCellType() == XSSFCell.CELL_TYPE_NUMERIC){
+			d = cell.getDateCellValue();
+		}else if(cell.getCellType() == XSSFCell.CELL_TYPE_STRING){
+			String val = cell.getStringCellValue();
+			if(StringUtils.isNotBlank(val)){
+				val = processStr(val);
+				d = parseStrValtoDate(val);
+			}
+		}
+		return d;
+	}
+	
+	private Date parseStrValtoDate(String input){
+		Date d = null;
+		if(StringUtils.isNotBlank(input)){
+			input = processStr(input);
+			String pattern = DatetimeUtil.getDatePattern(input);
+			try{
+				DateFormat df = new SimpleDateFormat(pattern);
+				d = df.parse(input);
+			}catch(Throwable e){
+				throw new RuntimeException(e);
+			}
+		}
+		return d;
+	}
+	
+	private String getCellStrVal(Row cRow, int colIdx){
+		Cell cell = cRow.getCell(colIdx);
+		if(cell == null){
+			System.out.println("cell == null colIdx: " + colIdx);
+			return null;
+		}
+		if(cell.getCellType() == XSSFCell.CELL_TYPE_STRING){
+//			System.out.println("STRING: " + cell.getStringCellValue());
+		}else if(cell.getCellType() == XSSFCell.CELL_TYPE_NUMERIC){
+//			System.out.println("NUMERIC: " + cell.getNumericCellValue());
+		}else if(cell.getCellType() == XSSFCell.CELL_TYPE_BLANK){
+//			System.out.println("BLANK: " + cell.getStringCellValue());
+		}else if(cell.getCellType() == XSSFCell.CELL_TYPE_FORMULA){
+//			System.out.println("FORMULA: " + cell.getCellFormula());
+		}else if(cell.getCellType() == XSSFCell.CELL_TYPE_ERROR){
+//			System.out.println("ERROR: " + cell.getErrorCellValue());
+		}
+		String val = DF.formatCellValue(cell);
+		if(val == null){
+			return null;
+		}
+		val = processStr(val);
+		return val;
+	}
+	
+	private String processStr(String input){
+		input = input.trim();
+		input = input.replace("\n", "");
+		input = input.replace("\r", "");
+		return input;
 	}
 	
 	private void addProductCells(Row pRow, String noVal, String nameEngVal, String catVal, String priceVal){
@@ -333,6 +638,14 @@ public class OnePosProductExcelAccessor {
 		Cell inventoryCell = pRow.createCell(OnePos.性質);
 		inventoryCell.setCellType(CELL_TYPE_STRING);
 		inventoryCell.setCellValue(INVENTORY);
+		
+		String barCode = barCodes.get(noVal);
+		if(StringUtils.isNotBlank(barCode)){
+			Cell barCodeCell = pRow.createCell(OnePos.條碼編號);
+			barCodeCell.setCellType(CELL_TYPE_STRING);
+			barCodeCell.setCellValue(barCode);
+			importBarCodeCount++;
+		}
 	}
 	
 	private static void addValToCategorySheet(Set<String> categories, Sheet categorySheet, String catVal){
@@ -461,15 +774,33 @@ public class OnePosProductExcelAccessor {
 		}
 	}
 	
+	private static void testWriteBarCodeScannable(){
+		AnnotationConfigApplicationContext acac = new AnnotationConfigApplicationContext(RootConfig.class);
+		OnePosInitialExcelAccessor accessor = acac.getBean(OnePosInitialExcelAccessor.class);
+		accessor.writeBarCodeScannable("E:\\angrycat_workitem\\產品\\型號和可掃描條碼對照.xlsx");
+		acac.close();
+		
+	}
+	
+	
+	private static void testStringPad(){
+		String t1 = "1";
+		String t2 = "99";
+		System.out.println(StringUtils.leftPad(t1, 4, "0"));
+		System.out.println(StringUtils.leftPad(t2, 4, "0"));
+	}
+	
 	public static void main(String[]args){
 //		testFileReplaceOldPart();
 //		testPack();
 		testProcess();
+//		testWriteBarCodeScannable();
 //		AnnotationConfigApplicationContext acac = new AnnotationConfigApplicationContext(RootConfig.class);
 //		
 //		OnePosProductExcelAccessor importer = acac.getBean(OnePosProductExcelAccessor.class);
 //		importer.storeImage("E:\\angrycat_workitem\\member\\臺灣OHM商品總庫存清單_T20150923.xlsx", "E:\\angrycat_workitem\\member\\image\\", 2, 0);
 //		
 //		acac.close();
+//		testStringPad();
 	}
 }

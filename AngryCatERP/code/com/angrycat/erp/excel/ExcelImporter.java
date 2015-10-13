@@ -15,6 +15,7 @@ import static com.angrycat.erp.excel.ExcelColumn.Member.轉VIP日期;
 import static com.angrycat.erp.excel.ExcelColumn.Member.郵遞區號;
 import static com.angrycat.erp.excel.ExcelColumn.Member.電子信箱;
 import static com.angrycat.erp.excel.ExcelColumn.Member.生日使用8折優惠;
+import static com.angrycat.erp.excel.ExcelColumn.Member.客戶編號;
 import static com.angrycat.erp.excel.ExcelColumn.Member.COLUMN_COUNT;
 
 import java.io.ByteArrayInputStream;
@@ -56,6 +57,7 @@ import com.angrycat.erp.common.DatetimeUtil;
 import com.angrycat.erp.component.SessionFactoryWrapper;
 import com.angrycat.erp.log.DataChangeLogger;
 import com.angrycat.erp.model.Member;
+import com.angrycat.erp.web.controller.MemberController;
 
 
 @Component
@@ -139,6 +141,7 @@ public class ExcelImporter {
 		String MOBILE_OR_TEL_REQUIRED = "mobileOrTelRequired";
 		String MOBILE_DUPLICATE = "mobileDuplicate";
 		String TEL_DUPLICATE = "telDuplicate";
+		String CLIENT_ID_DUPLICATE = "clientIdDuplicate";
 		int VIP_MAX_YEAR = 2;
 		
 		Map<String, Integer> msg = new LinkedHashMap<>();
@@ -148,6 +151,7 @@ public class ExcelImporter {
 		int rowNum = 0;
 		int readableRowNum = 0;
 		int insertCount = 0;
+		final String DEFAULT_COUNTRY_CODE = "TW";
 		try(ByteArrayInputStream bais = new ByteArrayInputStream(data);){
 			
 			Workbook wb = WorkbookFactory.create(bais);
@@ -160,6 +164,8 @@ public class ExcelImporter {
 			
 			int batchSize = sfw.getBatchSize();
 			String DEFAULT_TEL = "00000";
+			int latestClientNo = MemberController.getLatestClientIdSerialNo(s, DEFAULT_COUNTRY_CODE);
+			
 			while(itr.hasNext()){
 				Row row = itr.next();
 				rowNum = row.getRowNum();
@@ -182,6 +188,19 @@ public class ExcelImporter {
 				Date toVipDate		= parseSqlDateVal(row, 轉VIP日期);
 				String note			= parseStrVal(row, 備註);
 				String vipYear		= parseNumericOrStr(row, VIP延續);
+				String clientId		= parseStrVal(row, 客戶編號);
+				
+				if(StringUtils.isBlank(clientId)){
+					clientId = MemberController.genClientId(DEFAULT_COUNTRY_CODE, ++latestClientNo);
+				}else{
+					Number num = (Number)s.createQuery("SELECT COUNT(m) FROM " + Member.class.getName() + " m WHERE m.clientId = :clientId").setString("clientId", clientId).uniqueResult();
+					int count = num.intValue();
+					if(count > 0){
+						msg.put(CLIENT_ID_DUPLICATE+readableRowNum, readableRowNum);
+						continue;
+					}
+					clientId = clientId.toUpperCase();
+				}
 				
 				if(StringUtils.isBlank(name)){
 					msg.put(NAME_NOT_EXISTED+readableRowNum, readableRowNum);
@@ -227,6 +246,7 @@ public class ExcelImporter {
 				m.setAddress(address);
 				m.setToVipDate(toVipDate);
 				m.setNote(note);
+				m.setClientId(clientId);
 								
 				s.save(m);
 				
@@ -284,8 +304,9 @@ public class ExcelImporter {
 		StringBuffer warning = new StringBuffer();
 		warning = genWarnMsg(msg, warning, NAME_NOT_EXISTED, "姓名不存在");
 		warning = genWarnMsg(msg, warning, MOBILE_OR_TEL_REQUIRED, "手機和室內電話至少要提供一項");
-		warning = genWarnMsg(msg, warning, MOBILE_DUPLICATE, "姓名和行動電話已存在");
-		warning = genWarnMsg(msg, warning, TEL_DUPLICATE, "姓名和室內電話已存在");
+		warning = genWarnMsg(msg, warning, MOBILE_DUPLICATE, "姓名和行動電話已重複");
+		warning = genWarnMsg(msg, warning, TEL_DUPLICATE, "姓名和室內電話已重複");
+		warning = genWarnMsg(msg, warning, CLIENT_ID_DUPLICATE, "客戶編號已重複");
 		
 		String infoMsg = infoTotalCount + "\n" + infoImportCount;
 		if(StringUtils.isNotBlank(warning.toString())){
@@ -301,10 +322,12 @@ public class ExcelImporter {
 		boolean empty = true;
 		for(int i = 0; i < colCount; i++){
 			Cell cell = row.getCell(i);
-			String val = df.formatCellValue(cell);
-			if(StringUtils.isNotBlank(val)){
-				empty = false;
-				break;
+			if(cell != null){
+				String val = df.formatCellValue(cell);
+				if(StringUtils.isNotBlank(val)){
+					empty = false;
+					break;
+				}	
 			}
 		}
 		return empty;

@@ -24,7 +24,6 @@
 		<%@ include file="/vendor/angularjs/1.4.3/i18n/angular-locale_zh-tw.js" %>
 		<%@ include file="/common/ajax/ajax-service.js" %>
 		<%@ include file="/common/date/date-service.js" %>
-		console.log('${member}');
 	</script>
 	<script type="text/javascript" src="<c:url value="/vendor/angular-strap/2.3.1/angular-strap.min.js"/>"></script>
 	<script type="text/javascript" src="<c:url value="/vendor/angular-strap/2.3.1/angular-strap.tpl.min.js"/>"></script>
@@ -55,7 +54,7 @@
  				出生年月日
  			</label>
  			<div class="col-sm-7">
- 				<input id="birthday" 
+ 				<input id="birthday"
  					class="form-control" 
  					ng-model="mainCtrl.member.birthday" 
  					name="birthday" 
@@ -105,6 +104,21 @@
  				</p>
  			</div>
 		</div>
+ 	</div>
+ 	<div class="form-group" ng-if="mainCtrl.login">
+ 		<div class="form-group col-sm-5">
+ 			<label class="col-sm-5 control-label" for="clientId">
+ 				客戶編號<span style="color:red;">*</span>
+ 			</label>
+ 			<div class="col-sm-7">
+ 				<input type="text" ng-model="mainCtrl.member.clientId" id="clientId" name="clientId" class="form-control" client-id-hint/>
+ 			</div> 		
+ 		</div>
+ 		<div class="col-sm-5">
+ 			<div ng-if="hintClientId">
+ 				輸入提示:<span ng-bind="hintClientId"></span>
+ 			</div>
+ 		</div>
  	</div>
  	<div class="form-group">
  		<div class="form-group col-sm-5">
@@ -421,6 +435,28 @@
 			}])
 			.directive('telDuplicated', ['ValidateService', function(ValidateService){
 				return ValidateService.multiCondsValidateDirectiveDefProto('telDuplicated');
+			}])
+			.directive('clientIdHint', ['AjaxService', 'urlPrefix', '$log', function(AjaxService, urlPrefix, $log){
+				return {
+					restrict: 'A',
+					require: 'ngModel',
+					link: function($scope, ele, attrs, ngModelCtrl){
+						$scope.$watch(attrs.ngModel, function(newVal, oldVal){
+							$log.log('clientIdHint: ' + newVal);
+							if(!newVal || newVal == oldVal || newVal.length!=2){
+								$scope.hintClientId = null;
+								return;
+							}
+							newVal = newVal.toUpperCase();
+							AjaxService.get(urlPrefix + '/' + 'hintClientId' + '/' + newVal)
+								.then(function(response){
+									$scope.hintClientId = response.data.hintClientId;
+								}, function(responseErr){
+									$scope.hintClientId = null;
+								});
+						});
+					}
+				};
 			}])
 			;
 </script>

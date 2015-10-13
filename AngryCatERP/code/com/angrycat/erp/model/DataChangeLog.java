@@ -30,6 +30,7 @@ public class DataChangeLog {
 	private List<DataChangeLogDetail> details = new ArrayList<>();
 	private String note;
 	private String action;
+	private String docTitle;
 	
 	@Id
 	@Column(name="id")
@@ -100,5 +101,12 @@ public class DataChangeLog {
 	}
 	public void setAction(String action) {
 		this.action = action;
+	}
+	@Column(name="docTitle")
+	public String getDocTitle() {
+		return docTitle;
+	}
+	public void setDocTitle(String docTitle) {
+		this.docTitle = docTitle;
 	}
 }

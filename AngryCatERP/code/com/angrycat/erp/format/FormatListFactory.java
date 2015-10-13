@@ -10,8 +10,9 @@ import com.angrycat.erp.model.VipDiscountDetail;
 
 public class FormatListFactory {
 	
-	private static List<ObjectFormat> ofMemberBase(String dateFormat){
-		List<ObjectFormat> f = new LinkedList<>();
+	private static FormatList ofMemberBase(String dateFormat){
+		FormatList f = new FormatList();
+		f.setDocTitle("name");
 		
 		PropertyFormat toVipDate = new PropertyFormat("轉VIP起始日", "toVipDate");
 		toVipDate.setDateFormat(dateFormat);
@@ -45,19 +46,19 @@ public class FormatListFactory {
 		return f;
 	}
 	
-	public static List<ObjectFormat> ofMemberForExcelExport(){
-		List<ObjectFormat> f = ofMemberBase("yyyy-MM-dd");
+	public static FormatList ofMemberForExcelExport(){
+		FormatList f = ofMemberBase("yyyy-MM-dd");
 		return f;
 	}
 	
-	private static List<ObjectFormat> ofMemberMaster(){
-		List<ObjectFormat> f = ofMemberBase("yyyy-MM-dd");
+	private static FormatList ofMemberMaster(){
+		FormatList f = ofMemberBase("yyyy-MM-dd");
 		f.add(new PropertyFormat("轉VIP到期日", "toVipEndDate"));
 		return f;
 	}
 	
-	private static List<ObjectFormat> ofMemberDetails(int vipCount){
-		List<ObjectFormat> list = ofMemberMaster();
+	private static FormatList ofMemberDetails(int vipCount){
+		FormatList list = ofMemberMaster();
 		for(int i = 0; i < vipCount; i++){
 			String subject = "VIP折扣"+(i+1)+"_";
 			String field = "vipDiscountDetails["+i+"].";
@@ -73,8 +74,8 @@ public class FormatListFactory {
 	 * @param obj
 	 * @return
 	 */
-	public static <T>List<ObjectFormat> forLog(T obj){
-		List<ObjectFormat> formats = Collections.emptyList();
+	public static <T>FormatList forLog(T obj){
+		FormatList formats = FormatList.emptyList();
 		if(obj.getClass() == Member.class){
 			Member m = (Member)obj;
 			int size = m.getVipDiscountDetails().size();
@@ -90,8 +91,8 @@ public class FormatListFactory {
 	 * @param newObj
 	 * @return
 	 */
-	public static <T>List<ObjectFormat> forUpdateLog(T oldObj, T newObj){
-		List<ObjectFormat> formats = Collections.emptyList();
+	public static <T>FormatList forUpdateLog(T oldObj, T newObj){
+		FormatList formats = FormatList.emptyList();
 		if(oldObj.getClass() == Member.class){
 			Member oldOne = (Member)oldObj;
 			List<VipDiscountDetail> oldDetails = oldOne.getVipDiscountDetails();

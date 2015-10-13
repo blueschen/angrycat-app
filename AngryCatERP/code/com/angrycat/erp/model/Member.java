@@ -41,6 +41,7 @@ public class Member {
 	private Date toVipDate; // 轉VIP起始日
 	private Date toVipEndDate; // VIP到期日
 	private String note;
+	private String clientId;
 	private List<VipDiscountDetail> vipDiscountDetails = new LinkedList<>();
 	
 	@Id
@@ -165,5 +166,12 @@ public class Member {
 	}
 	public void setTel(String tel) {
 		this.tel = tel;
+	}
+	@Column(name="clientId")
+	public String getClientId() {
+		return clientId;
+	}
+	public void setClientId(String clientId) {
+		this.clientId = clientId;
 	}
 }

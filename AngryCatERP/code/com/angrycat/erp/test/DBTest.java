@@ -29,6 +29,7 @@ import com.angrycat.erp.security.User;
 import com.angrycat.erp.security.extend.GroupInfo;
 import com.angrycat.erp.security.extend.UserInfo;
 import com.angrycat.erp.service.QueryBaseService;
+import com.angrycat.erp.web.controller.MemberController;
 
 
 
@@ -338,7 +339,8 @@ public class DBTest extends BaseTest{
 //		testSelfJoin();
 //		testOrderBy();
 //		insertSecurityOther();
-		testMonth();
+//		testMonth();
+		testMax();
 	}
 	// this example can be used to replace subquery
 	private static void testSelfJoin(){
@@ -395,12 +397,16 @@ public class DBTest extends BaseTest{
 			list.forEach(m->{
 				System.out.println("id: " + m.getId() + ", birth: " + m.getBirthday());
 			});
-			
-			
 		});
-		
-		
-		
-		
+	}
+	
+	private static void testMax(){
+		executeApplicationContext(acac->{
+			SessionFactoryWrapper sfw = acac.getBean(SessionFactoryWrapper.class);
+			sfw.executeSession(s->{
+				int no = MemberController.getLatestClientIdSerialNo(s, "TW");
+				System.out.println("no: " + no);
+			});
+		});
 	}
 }

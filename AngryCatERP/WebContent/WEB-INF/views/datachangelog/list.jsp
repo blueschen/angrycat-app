@@ -164,7 +164,7 @@
 	<thead>
 	<tr>
 		<th>更動時間</th>
-		<th>更動模組</th>
+		<th>更動對象</th>
 		<th>使用者帳號</th>
 		<th>使用者姓名</th>
 	</tr>	
@@ -173,7 +173,7 @@
 		<tr class="main-row" ng-click="mainCtrl.toggleDetail($index)">
 			<td><span ng-bind="result.logTime | date : 'yyyy-MM-dd HH:mm:ss' : mainCtrl.TIMEZONE_ID"></span></td>
 			<td>
-				<span ng-bind="result.docId"></span>	
+				<span ng-bind="result.docTitle"></span>	
 			</td>
 			<td><span ng-bind="result.userId"></span></td>
 			<td><span ng-bind="result.userName"></span></td>				

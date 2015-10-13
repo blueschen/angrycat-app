@@ -24,6 +24,7 @@ import javax.servlet.http.HttpServletResponse;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.poi.util.IOUtils;
+import org.hibernate.Session;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Scope;
@@ -93,13 +94,12 @@ public class MemberController {
 			.addWhere(putInt("p.gender=:pGender"))
 			.addWhere(putSqlDate("p.birthday >= :pBirthdayStart"))
 			.addWhere(putSqlDate("p.birthday <= :pBirthdayEnd"))
-			.addWhere(putStr("p.idNo LIKE :pIdNo", START))
+			.addWhere(putStrCaseInsensitive("p.idNo LIKE :pIdNo", ANYWHERE))
 			.addWhere(putStrCaseInsensitive("p.fbNickname LIKE :pFbNickname", ANYWHERE))
 			.addWhere(putStr("p.mobile LIKE :pMobile", START))
 			.addWhere(putStr("p.tel LIKE :pTel", START))
 			.addWhere(putBoolean("p.important = :pImportant"))
-			.addWhere(putInt("month(p.birthday) >= :pBirthdayMonthStart"))
-			.addWhere(putInt("month(p.birthday) <= :pBirthdayMonthEnd"))
+			.addWhere(putInt("month(p.birthday) = :pBirthdayMonthStart"))
 			.addWhere(putSqlDate("p.toVipEndDate >= :pToVipEndDateStart"))
 			.addWhere(putSqlDate("p.toVipEndDate <= :pToVipEndDateEnd"))
 		;
@@ -338,7 +338,7 @@ public class MemberController {
 		Map<String, Boolean> results = new HashMap<>();
 		sfw.executeSession(s->{
 			long count = 0;
-			count = (long)s.createQuery("SELECT COUNT(m.id) FROM " + Member.class.getName() + " m WHERE m.mobile = ? AND m.name = ?").setString(0, mobile).setString(1, name).uniqueResult();
+			count = (long)s.createQuery("SELECT COUNT(m.id) FROM " + Member.class.getName() + " m WHERE m.mobile = :mobile AND m.name = :name").setString("mobile", mobile).setString("name", name).uniqueResult();
 			results.put("isValid", count == 0);
 		});
 		return results;
@@ -349,8 +349,40 @@ public class MemberController {
 		Map<String, Boolean> results = new HashMap<>();
 		sfw.executeSession(s->{
 			long count = 0;
-			count = (long)s.createQuery("SELECT COUNT(m.id) FROM " + Member.class.getName() + " m WHERE m.tel = ? AND m.name = ?").setString(0, tel).setString(1, name).uniqueResult();
+			count = (long)s.createQuery("SELECT COUNT(m.id) FROM " + Member.class.getName() + " m WHERE m.tel = :tel AND m.name = :name").setString("tel", tel).setString("name", name).uniqueResult();
 			results.put("isValid", count == 0);
+		});
+		return results;
+	}
+	
+	
+	public static int getLatestClientIdSerialNo(Session s, String countryCode){
+		int latestSerialNo = 0;
+		List<String> clientIds = s.createQuery("SELECT MAX(m.clientId) FROM " + Member.class.getName() + " m WHERE substring(m.clientId, 1, 2) = :countryCode").setString("countryCode", countryCode).list();
+		if(!clientIds.isEmpty() && clientIds.get(0) != null){
+			String clientId = clientIds.get(0);
+			clientId = clientId.replace(countryCode, "");
+			latestSerialNo = Integer.parseInt(clientId);
+		}
+		return latestSerialNo;
+	}
+	
+	public static String genClientId(String countryCode, int serialNo){
+		return countryCode + StringUtils.leftPad(String.valueOf(serialNo), 4, "0");
+	}
+	
+	private String genNextClientId(Session s, String countryCode){
+		int serialNo = getLatestClientIdSerialNo(s, countryCode);
+		String clientId = genClientId(countryCode, ++serialNo);
+		return clientId;
+	}
+	
+	@RequestMapping(value="/hintClientId/{countryCode}", method=RequestMethod.GET)
+	public @ResponseBody Map<String, String> hintClientId(@PathVariable("countryCode") String countryCode){
+		Map<String, String> results = new HashMap<>();
+		sfw.executeSession(s->{
+			String hintClientId = genNextClientId(s, countryCode);
+			results.put("hintClientId", hintClientId);
 		});
 		return results;
 	}

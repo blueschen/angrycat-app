@@ -20,6 +20,7 @@ public class ExcelColumn {
 		public static final int 郵遞區號			= index++;
 		public static final int 地址				= index++;		
 		public static final int 備註				= index++;
+		public static final int 客戶編號			= index++;
 		public static final int VIP延續			= index++;
 		
 		public static final int COLUMN_COUNT	= index;
@@ -75,5 +76,28 @@ public class ExcelColumn {
 			public static final int 庫存			= idx++;
 			public static final int SHEET1_COLUMN_COUNT = idx;
 		}
+	}
+	
+	public static class OnePosClient{
+		static int idx = 0;
+		public static final int 客戶編號		= idx++;
+		public static final int 客戶名稱		= idx++;
+		public static final int 類別編號		= idx++;
+		public static final int 聯絡人		= idx++;
+		public static final int 公司名稱		= idx++;
+		public static final int 地址第1行		= idx++;
+		public static final int 地址第2行		= idx++;
+		public static final int 地址第3行		= idx++;
+		public static final int 電話1		= idx++;
+		public static final int 電話2		= idx++;
+		public static final int 傳真			= idx++;
+		public static final int 電郵			= idx++;
+		public static final int 級別			= idx++;
+		public static final int 彈出提示		= idx++;
+		public static final int 生日日期		= idx++;
+		public static final int 新增日期		= idx++;
+		public static final int 網址			= idx++;
+		public static final int 預設折扣		= idx++;
+		public static final int COLUMN_COUNT = idx;
 	}
 }

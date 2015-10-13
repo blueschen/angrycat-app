@@ -24,6 +24,7 @@
 		<%@ include file="/common/spinner/spinner-service.js" %>
 		<%@ include file="/common/fileupload/fileupload-service.js" %>
 		<%@ include file="/common/fileupload/fileupload-ajax-directive.js" %>
+		<%@ include file="/common/ajax/ajax-service.js" %>
 	</script>
 	<script type="text/javascript" src="<c:url value="/vendor/angular-strap/2.3.1/angular-strap.min.js"/>"></script>
 	<script type="text/javascript" src="<c:url value="/vendor/angular-strap/2.3.1/angular-strap.tpl.min.js"/>"></script>
@@ -97,7 +98,7 @@
  	</div>
  	<div class="form-group" ng-class="{'has-error': (memberListForm.pBirthdayStart.$dirty && memberListForm.pBirthdayStart.$invalid) || (memberListForm.pBirthdayEnd.$dirty && memberListForm.pBirthdayEnd.$invalid)}">
  		<label class="col-sm-2 control-label" id="birthDur">
- 			出生日期
+ 			出生日期起迄日
 		</label>
 		<div class="col-sm-3">
  			<input id="pBirthdayStart" 
@@ -127,7 +128,7 @@
 		</div>
  	</div>
  	<div class="form-group">
- 		<label class="col-sm-2 control-label" id="pBirthdayMonth">
+ 		<label class="col-sm-2 control-label" for="pBirthdayMonth">
  			生日月份
  		</label>
  		<div class="col-sm-3">
@@ -136,17 +137,7 @@
 				ng-options="v.value as v.label for v in mainCtrl.months"
 				id="pBirthdayMonthStart"
 				class="form-control"
-				aria-labelledby="pBirthdayMonth">
-				<option value="">==請選擇==</option>	
-			</select>
- 		</div>
- 		<div class="col-sm-3">
- 			<select 
-				ng-model="mainCtrl.conditionConfig.conds.condition_pBirthdayMonthEnd" 
-				ng-options="v.value as v.label for v in mainCtrl.months"
-				id="pBirthdayMonthEnd"
-				class="form-control"
-				aria-labelledby="pBirthdayMonth">
+				id="pBirthdayMonth">
 				<option value="">==請選擇==</option>	
 			</select>
  		</div> 		
@@ -241,15 +232,15 @@
  	<div class="btn-group" role="group">
  		<input type="button" value="新增" onclick="document.location.href = '${urlPrefix}/add';" class="btn btn-default"/>
  	</div>
- 	<div class="btn-group" role="group">
+ 	<div class="btn-group" role="group" ng-if="mainCtrl.isAdmin()">
  		<erp-file-ajax-btn file-id="uploadMember" btn="上傳會員檔案" accept-type=".xlsx" input-name="uploadExcelFile" request-url="${urlPrefix}/uploadExcel">
 			<erp-file-ajax-callback></erp-file-ajax-callback>
 		</erp-file-ajax-btn>
  	</div>
- 	<div class="btn-group" role="group">
+ 	<div class="btn-group" role="group" ng-if="mainCtrl.isAdmin()">
  		<input type="button" ng-click="mainCtrl.copyCondition()" class="btn btn-default"  ng-disabled="memberListForm.$dirty && memberListForm.$invalid" value="下載會員檔案"/>
  	</div>
- 	<div class="btn-group" role="group">
+ 	<div class="btn-group" role="group" ng-if="mainCtrl.isAdmin()">
  		<input type="button" ng-click="mainCtrl.downloadTemplate()" class="btn btn-default" value="下載範本"/>
  	</div>
  </div>
@@ -311,6 +302,7 @@
 	angular.module('angryCatMemberListApp', ['ui.bootstrap', 'erp.fileupload.ajax.directive', 'mgcrea.ngStrap'])
 		.constant('urlPrefix', '${urlPrefix}')
 		.constant('moduleName', '${moduleName}')
+		.constant('currentUserId', '${sessionUser.userId}')
 		.factory('AuthInterceptor', ['$q', function($q){
 			return {
 				responseError: function(responseRejection){
@@ -321,9 +313,10 @@
 				}
 			};
 		}])
-		.config(['$httpProvider', function($httpProvider){
+		.config(['$httpProvider', '$compileProvider', function($httpProvider, $compileProvider){
 			$httpProvider.defaults.headers.common['X-Requested-With'] = 'XMLHttpRequest'; // to tell server this is a ajax request
 			$httpProvider.interceptors.push('AuthInterceptor');
+			$compileProvider.debugInfoEnabled(false); // after set false, angular.element(htmlEle).scope() will return undefined to improve performance
 		}])
 		.factory('MemberService', ['$http', 'urlPrefix', function($http, urlPrefix){
 			var queryAllUrl = urlPrefix + '/queryAll.json',
@@ -401,12 +394,14 @@
 				}				
 			};
 		}])
-		.controller('MainCtrl', ['$log', '$scope', 'MemberService', '$window', 'urlPrefix', 'moduleName', function($log, $scope, MemberService, $window, urlPrefix, moduleName){			
+		.controller('MainCtrl', ['$log', '$scope', 'MemberService', '$window', 'urlPrefix', 'moduleName', 'currentUserId', function($log, $scope, MemberService, $window, urlPrefix, moduleName, currentUserId){			
 			var self = this;
 				
 			self.genders = [{label: '男', value: 0}, {label: '女', value: 1}];
 			self.VIPs = [{label: '是', value: true}, {label: '否', value: false}];
-			
+			self.isAdmin = function(){
+				return currentUserId == 'admin' || currentUserId == 'root';
+			};
 			MemberService.queryAll()
 				.then(function(response){
 					self.conditionConfig = response.data;
@@ -482,7 +477,7 @@
 					document.location.href = '${pageContext.request.contextPath}/datachangelog/list?docId=' + attrs.toChangeLog + '&docType=com.angrycat.erp.model.Member';
 				});
 			};
-		}])		
+		}])
 		.directive('erpFileAjaxCallback', ['$log', function($log){
 			return {
 				restrict: 'E',
@@ -516,7 +511,34 @@
 					}
 				}
 			};
-		}]);
+		}])
+		.directive('queryTrigger', ['AjaxService', 'urlPrefix', function(AjaxService, urlPrefix){
+			return {
+				restrict: 'A',
+				controller: function($scope){
+					
+				},
+				controllerAs: 'queryTriggerCtrl',
+				link: function($scope, element, attrs, queryTriggerCtrl){
+					var queryAllUrl = urlPrefix + '/queryAll.json',
+						queryByCondsUrl = urlPrefix + '/queryCondtional.json',
+						deleteItemsUrl = urlPrefix + '/deleteItems.json',
+						copyConditionUrl = urlPrefix + '/copyCondition.json',
+						resetConditionUrl = urlPrefix + '/resetConditions.json',
+						mainCtrl = $scope.mainCtrl;
+					
+					mainCtrl.queryAll = function(){
+						return AjaxService.post(queryAllUrl)
+							.then(function(response){
+								mainCtrl.conditionConfig = response.data;
+							}, function(responseErr){
+								alert(JSON.stringify(responseErr));
+							});
+					};
+				}
+			};
+		}])
+		;
 </script>
 
 </body>
