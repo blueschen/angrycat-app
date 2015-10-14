@@ -42,16 +42,16 @@ public class UserInsertService {
 	public void insertUser(){
 		sfw.executeTransaction(s->{
 			UserInfo userInfo = new UserInfo();
-			userInfo.setCode("System_root");
-			userInfo.setName("系統管理員");
-			userInfo.setNameEng("System manager");
+			userInfo.setCode("System_admin");
+			userInfo.setName("System admin");
+			userInfo.setNameEng("System admin");
 			s.save(userInfo);
 			s.flush();
 			
 			User user = new User();
-			user.setUserId("root");
-			user.setPassword("sysmanager");
-			user.setDefaultGroup(newOneIfNotFound(s, "UserGroup"));
+			user.setUserId("admin");
+			user.setPassword("admin");
+			user.setDefaultGroup(newOneIfNotFound(s, "System"));
 			user.setInfo(userInfo);
 			s.save(user);
 			s.flush();

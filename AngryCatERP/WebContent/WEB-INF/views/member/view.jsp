@@ -106,17 +106,21 @@
 		</div>
  	</div>
  	<div class="form-group" ng-if="mainCtrl.login">
- 		<div class="form-group col-sm-5">
+ 		<div class="form-group col-sm-5" ng-class="{'has-error': memberForm.clientId.$invalid}">
  			<label class="col-sm-5 control-label" for="clientId">
  				客戶編號<span style="color:red;">*</span>
  			</label>
  			<div class="col-sm-7">
- 				<input type="text" ng-model="mainCtrl.member.clientId" id="clientId" name="clientId" class="form-control" client-id-hint/>
+ 				<input type="text" ng-model="mainCtrl.member.clientId" id="clientId" name="clientId" class="form-control" maxlength="6" client-id-hint client-id-duplicated/>
  			</div> 		
  		</div>
  		<div class="col-sm-5">
+ 			<div ng-if="!mainCtrl.member.clientId"><span style="color:red">請輸入國碼為大寫英文兩碼，阿拉伯數字四碼</span></div>
  			<div ng-if="hintClientId">
  				輸入提示:<span ng-bind="hintClientId"></span>
+ 			</div>
+ 			<div ng-if="clientIdDuplicatedWarning">
+ 				<span style="color:red" ng-bind="clientIdDuplicatedWarning"></span>
  			</div>
  		</div>
  	</div>
@@ -203,14 +207,16 @@
  		</div>
  		<div class="form-group col-sm-5">
 			<label class="col-sm-3 control-label" for="postalCode">
- 				郵遞區號	
+ 				郵遞區號
  			</label>
  			<div class="col-sm-7">
  				<input type="text" ng-model="mainCtrl.member.postalCode" id="postalCode" class="form-control"/>
  			</div>
 		</div>
-		<div class="form-group col-sm-5" ng-class="{'has-error': memberForm.today.$invalid}" ng-if="false">
-			<label class="col-sm-3 control-label" for="today">
+ 	</div>
+ 	<div class="form-group" ng-if="false">
+ 		<div class="form-group col-sm-5" ng-class="{'has-error': memberForm.today.$invalid}">
+			<label class="col-sm-5 control-label" for="today">
  				假如今天是	
  			</label>
  			<div class="col-sm-7">
@@ -261,11 +267,11 @@
 			<input type="hidden" ng-value="detail.toVipDate" ng-model="detail.toVipDate"/>
 			<input type="hidden" ng-value="detail.memberId" ng-model="detail.memberId"/>
 			<div class="form-group">
-				<label for="effectiveStart{{$index}}">有效起日</label>
+				<label for="effectiveStart{{$index}}">VIP有效起始日</label>
 				<input id="effectiveStart{{$index}}" type="text" class="form-control" ng-model="detail.effectiveStart" readonly="readonly"/>
 			</div>
 			<div class="form-group">
-				<label for="effectiveEnd{{$index}}">有效迄日</label>
+				<label for="effectiveEnd{{$index}}">VIP有效結束日</label>
 				<input id="effectiveEnd{{$index}}" type="text" class="form-control" ng-model="detail.effectiveEnd" readonly="readonly"/>
 			</div>
 			<div class="form-group">
@@ -305,7 +311,7 @@
 				ADD_COUNT_MAX = 2;
 			self.discount = {today: DateService.toTodayString()};
 			self.member = {};
-			
+
 			if(targetData){
 				self.member = JSON.parse(targetData);
 			}
@@ -456,6 +462,31 @@
 								});
 						});
 					}
+				};
+			}])
+			.directive('clientIdDuplicated', ['AjaxService', 'urlPrefix', function(AjaxService, urlPrefix){
+				return {
+					restrict: 'A',
+					require: 'ngModel',
+					link: function($scope, ele, attrs, ngModelCtrl){
+						$scope.$watch(attrs.ngModel, function(newVal, oldVal){
+							if(!newVal || newVal == oldVal || newVal.length!=6){
+								$scope.clientIdDuplicatedWarning = null;
+								return;
+							}
+							newVal = newVal.toUpperCase();
+							AjaxService.get(urlPrefix + '/' + 'clientIdDuplicated' + '/' + newVal)
+								.then(function(response){
+									alert(typeof response.data.isValid);
+									var invalid = response.data.isValid ? false : true;
+									if(invalid){
+										$scope.clientIdDuplicatedWarning = '客戶編號已存在';
+									}
+								}, function(responseErr){
+									$scope.hintClientId = null;
+								});
+						});
+					}					
 				};
 			}])
 			;

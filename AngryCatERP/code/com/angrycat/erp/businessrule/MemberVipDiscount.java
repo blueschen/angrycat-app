@@ -77,18 +77,21 @@ public class MemberVipDiscount implements Serializable {
 			member.setToVipDate(accessVIPStartDate());
 			member.setImportant(true);
 			Date toVipDate = member.getToVipDate();
-			Calendar toVip = DateUtils.toCalendar(toVipDate);
-			int toVipYear = toVip.get(Calendar.YEAR);
-			int toVipMonth = toVip.get(Calendar.MONTH);
-			
+
 			firstEffectiveStart = getFirstMinuteOfDay(toVipDate);
-			if(toVipMonth == birthMonth){
-				firstEffectiveEnd = addOneYearToLastMinute(toVipDate);
-			}else if(toVipMonth < birthMonth){// 轉VIP的時候，尚未到當年生日
-				firstEffectiveEnd = getLastDateOfMonth(toVipYear, birthMonth+1);
-			}else{// 轉VIP的時候，當年生日已經過了
-				firstEffectiveEnd = getLastDateOfMonth(toVipYear+1, birthMonth+1);
-			}
+			firstEffectiveEnd = addOneYearToLastMinute(toVipDate);
+			
+			// 計算VIP起始日不以生日為基準，所以將下列程式碼註解起來
+//			Calendar toVip = DateUtils.toCalendar(toVipDate);
+//			int toVipYear = toVip.get(Calendar.YEAR);
+//			int toVipMonth = toVip.get(Calendar.MONTH);
+//			if(toVipMonth == birthMonth){
+//				firstEffectiveEnd = addOneYearToLastMinute(toVipDate);
+//			}else if(toVipMonth < birthMonth){// 轉VIP的時候，尚未到當年生日
+//				firstEffectiveEnd = getLastDateOfMonth(toVipYear, birthMonth+1);
+//			}else{// 轉VIP的時候，當年生日已經過了
+//				firstEffectiveEnd = getLastDateOfMonth(toVipYear+1, birthMonth+1);
+//			}
 		}
 		
 		if(!(member.getVipDiscountDetails() instanceof LinkedList)){// 如果不是型別LinkedList，則手動轉換

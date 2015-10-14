@@ -1,7 +1,5 @@
 package com.angrycat.erp.format;
 
-import java.util.Collections;
-import java.util.LinkedList;
 import java.util.List;
 
 import com.angrycat.erp.model.Member;
@@ -42,6 +40,7 @@ public class FormatListFactory {
 		f.add(new PropertyFormat("郵遞區號", "postalCode"));
 		f.add(new PropertyFormat("地址", "address"));		
 		f.add(new PropertyFormat("備註", "note"));
+		f.add(new PropertyFormat("客戶編號", "clientId"));
 		
 		return f;
 	}
@@ -60,10 +59,10 @@ public class FormatListFactory {
 	private static FormatList ofMemberDetails(int vipCount){
 		FormatList list = ofMemberMaster();
 		for(int i = 0; i < vipCount; i++){
-			String subject = "VIP折扣"+(i+1)+"_";
+			String subject = "VIP紀錄"+(i+1)+"_";
 			String field = "vipDiscountDetails["+i+"].";
-			list.add(new DetailPropertyFormat(subject + "有效起日", field+"effectiveStart"));
-			list.add(new DetailPropertyFormat(subject + "有效迄日", field+"effectiveEnd"));
+			list.add(new DetailPropertyFormat(subject + "有效起始日", field+"effectiveStart"));
+			list.add(new DetailPropertyFormat(subject + "有效結束日", field+"effectiveEnd"));
 			list.add(new DetailPropertyFormat(subject + "折扣使用日期", field+"discountUseDate"));
 			list.add(new DetailPropertyFormat(subject + "轉VIP日", field+"toVipDate"));
 		}

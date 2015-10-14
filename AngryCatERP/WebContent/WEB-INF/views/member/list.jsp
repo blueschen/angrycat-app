@@ -52,7 +52,7 @@
 						<a href="${pageContext.request.contextPath}/datachangelog/list">異動紀錄查詢</a>
 					</li>
 					<li ng-class="{'active': mainCtrl.moduleName == 'datadeletelog'}">
-						<a href="${pageContext.request.contextPath}/datadeletelog/list">刪除紀錄查詢</a>
+						<a href="${pageContext.request.contextPath}/datadeletelog/list">已刪除資料異動紀錄查詢</a>
 					</li>
 				</ul>
 				<ul class="nav navbar-nav navbar-right">

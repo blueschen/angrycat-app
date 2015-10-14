@@ -80,7 +80,11 @@ public class QueryBaseService<T, R> extends ConditionalQuery<T> implements Condi
 		setRoot(root);
 		init();
 	}
-	
+	/**
+	 * User一般指的是在Web環境下的Session User，QueryBaseService在異動紀錄的時候會用到。
+	 * QueryBaseService非Web環境、或沒有User的情況下應當可以運作，所以只有提供setter加入User。
+	 * @param user
+	 */
 	public void setUser(User user){
 		this.user = user;
 	}

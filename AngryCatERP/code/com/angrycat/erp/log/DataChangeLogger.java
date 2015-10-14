@@ -1,7 +1,6 @@
 package com.angrycat.erp.log;
 
 import java.sql.Timestamp;
-import java.util.List;
 
 import org.apache.commons.beanutils.PropertyUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -12,9 +11,9 @@ import org.springframework.context.annotation.Scope;
 import org.springframework.orm.hibernate4.LocalSessionFactoryBean;
 import org.springframework.stereotype.Component;
 
+import com.angrycat.erp.common.CommonUtil;
 import com.angrycat.erp.format.FormatList;
 import com.angrycat.erp.format.FormatListFactory;
-import com.angrycat.erp.format.ObjectFormat;
 import com.angrycat.erp.model.DataChangeLog;
 import com.angrycat.erp.model.DataChangeLogDetail;
 import com.angrycat.erp.security.User;
@@ -26,9 +25,9 @@ public class DataChangeLogger {
 	private static final User DEFAULT_USER;
 	static{
 		DEFAULT_USER = new User();
-		DEFAULT_USER.setUserId("userNotFound");
+		DEFAULT_USER.setUserId("visitor");
 		DEFAULT_USER.setInfo(new UserInfo());
-		DEFAULT_USER.getInfo().setName("未登錄者");
+		DEFAULT_USER.getInfo().setName("遊客");
 	}
 	@Autowired
 	private LocalSessionFactoryBean sf;
@@ -53,14 +52,10 @@ public class DataChangeLogger {
 		log.setDocType(docType);
 		String docTitleConfig = formatList.getDocTitle();
 		if(StringUtils.isNotBlank(docTitleConfig)){
-			try{
-				Object existed = getObjectExisted(oldObject, newObject);
-				String docTitle = (String)PropertyUtils.getProperty(existed, docTitleConfig);
-				if(StringUtils.isNotBlank(docTitle)){
-					log.setDocTitle(docTitle);
-				}
-			}catch(Throwable e){
-				throw new RuntimeException(e);
+			Object existed = getObjectExisted(oldObject, newObject);
+			String docTitle = (String)CommonUtil.getProperty(existed, docTitleConfig);
+			if(StringUtils.isNotBlank(docTitle)){
+				log.setDocTitle(docTitle);
 			}
 		}
 		log.setLogTime(new Timestamp(System.currentTimeMillis()));
@@ -107,14 +102,9 @@ public class DataChangeLogger {
 	public void logAction(ActionType action, Object oldObject, Object newObject, Session s, FormatList formatList){
 		Object example = getObjectExisted(oldObject, newObject);
 		String id = sf.getObject().getClassMetadata(example.getClass()).getIdentifierPropertyName();
-		try {
-			String idVal = (String)PropertyUtils.getProperty(example, id);
-			log(idVal, example.getClass().getName(), oldObject, newObject, formatList, s, action);
-		} catch (Throwable e) {
-			throw new RuntimeException(e);
-		}
+		String idVal = (String)CommonUtil.getProperty(example, id);
+		log(idVal, example.getClass().getName(), oldObject, newObject, formatList, s, action);
 	}
-	
 	private Object getObjectExisted(Object oldObject, Object newObject){
 		Object existed = oldObject != null ? oldObject : newObject;
 		return existed;

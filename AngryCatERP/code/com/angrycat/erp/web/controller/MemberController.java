@@ -184,12 +184,12 @@ public class MemberController {
 			produces={"application/xml", "application/json"},
 			headers="Accept=*/*")
 	public @ResponseBody Member saveOrMerge(@RequestBody Member member){
-		addUserToComponent();
+		User user = addUserToComponent();
 		sfw.executeSaveOrUpdate(s->{
 			Member oldSnapshot = null;
 			if(StringUtils.isBlank(member.getId())){// add
 				int detailCount = member.getVipDiscountDetails().size();
-				if(detailCount > 0){// 連同明細一起新增
+				if(detailCount > 0 && user != null){// 連同明細一起新增；新增VIP紀錄要有最低登錄權限
 					List<VipDiscountDetail> detail = member.getVipDiscountDetails();
 					member.setVipDiscountDetails(new LinkedList<VipDiscountDetail>());
 					s.save(member);
@@ -198,6 +198,9 @@ public class MemberController {
 						d.setMemberId(member.getId());
 					});
 					member.getVipDiscountDetails().addAll(detail);
+				}
+				if(StringUtils.isBlank(member.getClientId())){
+					member.setClientId(genNextClientId(s, "TW"));
 				}
 			}else{// update
 				findMemberService.getSimpleExpressions().get("pId").setValue(member.getId());
@@ -355,6 +358,16 @@ public class MemberController {
 		return results;
 	}
 	
+	@RequestMapping(value="/clientIdDuplicated/{clientId}", method=RequestMethod.GET)
+	public @ResponseBody Map<String, Boolean> clientIdDuplicated(@PathVariable("clientId") String clientId){
+		Map<String, Boolean> results = new HashMap<>();
+		sfw.executeSession(s->{
+			long count = 0;
+			count = (long)s.createQuery("SELECT COUNT(m.id) FROM " + Member.class.getName() + " m WHERE m.clientId = :clientId").setString("clientId", clientId).uniqueResult();
+			results.put("isValid", count == 0);
+		});
+		return results;
+	}
 	
 	public static int getLatestClientIdSerialNo(Session s, String countryCode){
 		int latestSerialNo = 0;
@@ -366,7 +379,9 @@ public class MemberController {
 		}
 		return latestSerialNo;
 	}
-	
+	/**
+	 * 用兩碼國碼和序號產生六碼客戶編號
+	 */
 	public static String genClientId(String countryCode, int serialNo){
 		return countryCode + StringUtils.leftPad(String.valueOf(serialNo), 4, "0");
 	}
@@ -405,13 +420,15 @@ public class MemberController {
 	 * 接下來要考量的，就是新增、修改、匯入、刪除這些動作都要重新檢查一遍。
 	 * 理論上發生上述情況的可能性非常低，一旦發生直接的影響就是修改動作的log會看不出來使用者。
 	 */
-	private void addUserToComponent(){
+	private User addUserToComponent(){
+		User user = null;
 		if(dataChangeLogger.getUser() == null){
-			User user = WebUtils.getSessionUser();
+			user = WebUtils.getSessionUser();
 			dataChangeLogger.setUser(user);
 			memberQueryService.setUser(user);
 			findMemberService.setUser(user);
 		}
+		return user;
 	}
 	
 	private void reset(){

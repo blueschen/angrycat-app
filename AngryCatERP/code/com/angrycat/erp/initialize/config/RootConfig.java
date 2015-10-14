@@ -1,5 +1,6 @@
 package com.angrycat.erp.initialize.config;
 
+import java.util.Map;
 import java.util.Properties;
 
 import javax.annotation.PostConstruct;
@@ -17,6 +18,7 @@ import org.springframework.orm.hibernate4.LocalSessionFactoryBean;
 import org.springframework.transaction.PlatformTransactionManager;
 import org.springframework.transaction.annotation.EnableTransactionManagement;
 
+import com.angrycat.erp.common.CommonUtil;
 import com.mchange.v2.c3p0.ComboPooledDataSource;
 
 @Configuration
@@ -88,4 +90,13 @@ public class RootConfig {
 		return htm;
 	}
 
+	@Bean
+	public Map<String, String> displayCountries(){
+		return CommonUtil.getDisplayCountry();
+	}
+	
+	@Bean
+	public String displayJsonCountries(){
+		return CommonUtil.parseToJson(displayCountries());
+	}
 }

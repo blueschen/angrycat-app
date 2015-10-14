@@ -54,6 +54,7 @@ import com.angrycat.erp.excel.ExcelColumn.Product.Sheet2;
 import com.angrycat.erp.excel.ExcelColumn.Product.Sheet3;
 import com.angrycat.erp.initialize.config.RootConfig;
 import com.angrycat.erp.service.http.HttpService;
+import com.angrycat.erp.web.controller.MemberController;
 
 /**
  * @author JerryLin<br>
@@ -83,9 +84,11 @@ public class OnePosInitialExcelAccessor {
 	@Autowired
 	private HttpService httpService;
 	private boolean imgProcessEnabled;
+	private boolean clientProcessEnabled;
 	private String templatePath;
 	private Map<String, String> barCodes = getBarCodes();
 	private int importBarCodeCount = 0;
+	private Date builtDate = new Date(System.currentTimeMillis());
 	
 	public boolean isImgProcessEnabled() {
 		return imgProcessEnabled;
@@ -99,8 +102,22 @@ public class OnePosInitialExcelAccessor {
 	public void setTemplatePath(String templatePath) {
 		this.templatePath = templatePath;
 	}
-	
-	private void storeImage(String src, String jpgDestDir, int sheetIdex, int cellIdx){
+	public boolean isClientProcessEnabled() {
+		return clientProcessEnabled;
+	}
+	public void setClientProcessEnabled(boolean clientProcessEnabled) {
+		this.clientProcessEnabled = clientProcessEnabled;
+	}
+	/**
+	 * 匯入Excel，根據指定的Sheet和Column，找到產品型號。
+	 * 依照OHM官方提供的規則，只要有型號，就可以在網路上找到對應的圖片。
+	 * 圖片找到後，把他存放在指定資料夾位置。
+	 * @param src: 來源Excel
+	 * @param jpgDestDir: 圖片存放目錄
+	 * @param sheetIdex: Sheet位置
+	 * @param colIdx: Column位置
+	 */
+	private void storeImage(String src, String jpgDestDir, int sheetIdex, int colIdx){
 		try(InputStream is = new FileInputStream(src);
 		XSSFWorkbook wb = new XSSFWorkbook(is);){
 			Sheet sheet = wb.getSheetAt(sheetIdex);
@@ -112,7 +129,7 @@ public class OnePosInitialExcelAccessor {
 				if(rowNum == 0){
 					continue;
 				}
-				Cell cell = row.getCell(cellIdx);
+				Cell cell = row.getCell(colIdx);
 				String no = cell.getStringCellValue();
 				storeImage(jpgDestDir, no);
 			}
@@ -121,6 +138,11 @@ public class OnePosInitialExcelAccessor {
 		}
 	}
 	
+	/**
+	 * 用產品型號兜出圖片URL，找到之後放在指定目錄
+	 * @param jpgDestDir
+	 * @param no
+	 */
 	private void storeImage(String jpgDestDir, String no){
 		if(!imgProcessEnabled){
 			return;
@@ -228,7 +250,7 @@ public class OnePosInitialExcelAccessor {
 				
 				Cell cBarCode = row.createCell(COL_IDX_BARCODE);
 				cBarCode.setCellType(XSSFCell.CELL_TYPE_STRING);
-				cBarCode.setCellValue("*" + b.getValue() + "*");
+				cBarCode.setCellValue("*" + b.getValue() + "*"); // 如果要透過免費的條碼字型製作條碼，條碼數字在輸出前，前後要加上星號。
 				
 				Cell cBarCodeNo = row.createCell(COL_IDX_BARCODE_NO);
 				cBarCodeNo.setCellType(XSSFCell.CELL_TYPE_STRING);
@@ -253,6 +275,7 @@ public class OnePosInitialExcelAccessor {
 			byte[] data = IOUtils.toByteArray(fis);
 			OnePosInitialExcelAccessor accessor = acac.getBean(OnePosInitialExcelAccessor.class);
 //			accessor.setImgProcessEnabled(true);
+			accessor.setClientProcessEnabled(true);
 			accessor.setTemplatePath("E:\\angrycat_workitem\\member\\v36 ONE-POS Data Quick Import  快速匯入 - Empty .xls");
 			accessor.process(data);
 			
@@ -270,9 +293,9 @@ public class OnePosInitialExcelAccessor {
 	}
 	
 	/**
-	 * 將公司內部產品的Excel轉成OnePos需要的Excel匯入格式，<br>
-	 * 如果有額外設定的話(imgProcessEnabled = true)，<br>
-	 * 可以抓取對應的圖檔之後改名。<br>
+	 * 將公司內部產品的Excel轉成OnePos需要的Excel匯入格式。
+	 * 如果有額外設定的話(imgProcessEnabled = true)，可以抓取對應的圖檔之後改名。
+	 * 客戶的資料源是另一張Excel。
 	 * 
 	 * @param data: 原始資料源是"臺灣OHM商品總庫存清單(類別)_T20150924.xlsx"
 	 */
@@ -294,10 +317,10 @@ public class OnePosInitialExcelAccessor {
 		
 		try(ByteArrayInputStream bais = new ByteArrayInputStream(data);
 			XSSFWorkbook productWb = new XSSFWorkbook(bais);
-			XSSFWorkbook memberWb = new XSSFWorkbook(new FileInputStream(memberPath));
+			XSSFWorkbook memberWb = clientProcessEnabled ? new XSSFWorkbook(new FileInputStream(memberPath)) : new XSSFWorkbook();
 			FileOutputStream fos = new FileOutputStream(file);
 			BufferedOutputStream bos = new BufferedOutputStream(fos);
-			HSSFWorkbook outWb = templatePath == null ? new HSSFWorkbook() : new HSSFWorkbook(new FileInputStream(templatePath));){
+			HSSFWorkbook outWb = templatePath == null ? new HSSFWorkbook() : new HSSFWorkbook(new FileInputStream(templatePath));){// 要產品OnePos匯入格式，最好使用OnePos提供範本
 			
 			CellStyle dateStyle = outWb.createCellStyle();
 			dateStyle.setDataFormat(outWb.getCreationHelper().createDataFormat().getFormat("yyyy/MM/dd"));
@@ -412,64 +435,34 @@ public class OnePosInitialExcelAccessor {
 				
 				storeImage(tempImgDir, noVal);
 			}
-			Sheet memberSheet = memberWb.getSheetAt(0);// 將會員轉為OnePos所需客戶格式
-			Iterator<Row> memberRows = memberSheet.iterator();
-			Date builtDate = new Date(System.currentTimeMillis());
-			while(memberRows.hasNext()){
-				Row row = memberRows.next();
-				int rowCount = row.getRowNum();
-				if(rowCount == 0 || isRowEmpty(row, Member.COLUMN_COUNT)){
-					continue;
-				}
-				String clientId = "TW" + StringUtils.leftPad(String.valueOf(rowCount), 4, "0");
-				String clientName = getCellStrVal(row, Member.真實姓名);
-				String address = getCellStrVal(row, Member.地址);
-				String mobile = getCellStrVal(row, Member.手機電話);
-				String tel = getDefualtTelNumIfBothEmpty(mobile, getCellStrVal(row, Member.室內電話));
-				String email = getCellStrVal(row, Member.電子信箱);
-				String level = "1";// 價格級別，1是一般價，2是VIP價
-				Date birthday = getCellDateVal(row, Member.出生年月日);
-				
-				Row cRow = clientSheet.createRow(rowCount);
-				addCellStrValIfNotBlank(cRow, OnePosClient.客戶編號, clientId);
-				addCellStrValIfNotBlank(cRow, OnePosClient.客戶名稱, clientName);
-				addCellStrValIfNotBlank(cRow, OnePosClient.電話1, mobile);
-				addCellStrValIfNotBlank(cRow, OnePosClient.電話2, tel);
-				addCellStrValIfNotBlank(cRow, OnePosClient.電郵, email);
-				addCellStrValIfNotBlank(cRow, OnePosClient.級別, level);
-				
-				if(birthday!=null){
-					Cell birthdayCell = cRow.createCell(OnePosClient.生日日期);
-					birthdayCell.setCellType(HSSFCell.CELL_TYPE_NUMERIC);
-					birthdayCell.setCellValue(birthday);	
-					birthdayCell.setCellStyle(dateStyle);
-				}
-				
-				Cell builtDateCell = cRow.createCell(OnePosClient.新增日期);
-				builtDateCell.setCellType(HSSFCell.CELL_TYPE_NUMERIC);
-				builtDateCell.setCellValue(builtDate);
-				builtDateCell.setCellStyle(dateStyle);
-				
-				if(StringUtils.isNotBlank(address)){
-					int addressLen = address.length();
-					if(addressLen >= 150){
-						String address3 = address.substring(100, 150);
-						String address2 = address.substring(50, 100);
-						String address1 = address.substring(0, 50);
-						addAddressCells(cRow, address1, address2, address3);
-					}else if(addressLen >= 100 && addressLen < 150){
-						String address3 = address.substring(100, addressLen);
-						String address2 = address.substring(50, 100);
-						String address1 = address.substring(0, 50);
-						addAddressCells(cRow, address1, address2, address3);
-					}else if(addressLen >= 50 && addressLen < 100){
-						String address2 = address.substring(50, addressLen);
-						String address1 = address.substring(0, 50);
-						addAddressCells(cRow, address1, address2);
-					}else if(addressLen >= 0 && addressLen < 50){
-						String address1 = address.substring(0, addressLen);
-						addAddressCells(cRow, address1);
-					}	
+			if(clientProcessEnabled){
+				Sheet memberSheet = memberWb.getSheetAt(0);// 將會員轉為OnePos所需客戶格式
+				Iterator<Row> memberRows = memberSheet.iterator();
+				while(memberRows.hasNext()){
+					Row row = memberRows.next();
+					int rowCount = row.getRowNum();
+					if(rowCount == 0 || isRowEmpty(row, Member.COLUMN_COUNT)){
+						continue;
+					}
+					String clientId = MemberController.genClientId("TW", rowCount);
+					String clientName = getCellStrVal(row, Member.真實姓名);
+					String address = getCellStrVal(row, Member.地址);
+					String mobile = getCellStrVal(row, Member.手機電話);
+					String tel = getDefualtTelNumIfBothEmpty(mobile, getCellStrVal(row, Member.室內電話));
+					String email = getCellStrVal(row, Member.電子信箱);
+					Date birthday = getCellDateVal(row, Member.出生年月日);
+					
+					com.angrycat.erp.model.Member member = new com.angrycat.erp.model.Member();
+					member.setClientId(clientId);
+					member.setName(clientName);
+					member.setAddress(address);
+					member.setMobile(mobile);
+					member.setTel(tel);
+					member.setEmail(email);
+					member.setBirthday(new java.sql.Date(birthday.getTime()));
+					
+					Row cRow = clientSheet.createRow(rowCount);
+					addClient(cRow, dateStyle, member);
 				}
 			}
 			outWb.write(bos);
@@ -491,6 +484,69 @@ public class OnePosInitialExcelAccessor {
 			throw new RuntimeException(e);
 		}
 	}	
+	
+	/**
+	 * 將會員資料轉為OnePos客戶匯入格式，抽出這段邏輯是便於讓不同資料源可以共用
+	 * @param cRow
+	 * @param dateStyle
+	 * @param member
+	 * @return
+	 */
+	public static Row addClient(Row cRow, CellStyle dateStyle, com.angrycat.erp.model.Member member){
+		String clientId = member.getClientId();
+		String clientName = member.getName();
+		String address = member.getAddress();
+		String mobile = member.getMobile();
+		String tel = member.getTel();
+		String email = member.getEmail();
+		String level = "1";// 價格級別，1是一般價，2是VIP價
+		Date birthday = member.getBirthday();
+		Date builtDate = new Date(System.currentTimeMillis());
+		
+		addCellStrValIfNotBlank(cRow, OnePosClient.客戶編號, clientId);
+		addCellStrValIfNotBlank(cRow, OnePosClient.客戶名稱, clientName);
+		addCellStrValIfNotBlank(cRow, OnePosClient.電話1, mobile);
+		addCellStrValIfNotBlank(cRow, OnePosClient.電話2, tel);
+		addCellStrValIfNotBlank(cRow, OnePosClient.電郵, email);
+		addCellStrValIfNotBlank(cRow, OnePosClient.級別, level);
+		
+		if(birthday!=null){
+			Cell birthdayCell = cRow.createCell(OnePosClient.生日日期);
+			birthdayCell.setCellType(HSSFCell.CELL_TYPE_NUMERIC);
+			birthdayCell.setCellValue(birthday);	
+			birthdayCell.setCellStyle(dateStyle);
+		}
+		
+		Cell builtDateCell = cRow.createCell(OnePosClient.新增日期);
+		builtDateCell.setCellType(HSSFCell.CELL_TYPE_NUMERIC);
+		builtDateCell.setCellValue(builtDate);
+		builtDateCell.setCellStyle(dateStyle);
+		
+		if(StringUtils.isNotBlank(address)){
+			int addressLen = address.length();
+			if(addressLen >= 150){
+				String address3 = address.substring(100, 150);
+				String address2 = address.substring(50, 100);
+				String address1 = address.substring(0, 50);
+				addAddressCells(cRow, address1, address2, address3);
+			}else if(addressLen >= 100 && addressLen < 150){
+				String address3 = address.substring(100, addressLen);
+				String address2 = address.substring(50, 100);
+				String address1 = address.substring(0, 50);
+				addAddressCells(cRow, address1, address2, address3);
+			}else if(addressLen >= 50 && addressLen < 100){
+				String address2 = address.substring(50, addressLen);
+				String address1 = address.substring(0, 50);
+				addAddressCells(cRow, address1, address2);
+			}else if(addressLen >= 0 && addressLen < 50){
+				String address1 = address.substring(0, addressLen);
+				addAddressCells(cRow, address1);
+			}	
+		}
+		
+		return cRow;
+	}
+	
 	
 	/**
 	 * 如果沒留手機，也沒留室話，就給定室話預設值
@@ -525,7 +581,7 @@ public class OnePosInitialExcelAccessor {
 		}
 		return empty;
 	}
-	private void addCellStrValIfNotBlank(Row cRow, int colIdx, String val){
+	private static void addCellStrValIfNotBlank(Row cRow, int colIdx, String val){
 		if(StringUtils.isBlank(val)){
 			return;
 		}
@@ -543,7 +599,7 @@ public class OnePosInitialExcelAccessor {
 		cell.setCellValue(d);
 	}
 	
-	private void addAddressCells(Row row, String... addresses){
+	private static void addAddressCells(Row row, String... addresses){
 		List<Integer> idx = Arrays.asList(OnePosClient.地址第1行, OnePosClient.地址第2行, OnePosClient.地址第3行);
 		for(int i = 0; i < addresses.length; i++){
 			Cell cell = row.createCell(idx.get(i));
