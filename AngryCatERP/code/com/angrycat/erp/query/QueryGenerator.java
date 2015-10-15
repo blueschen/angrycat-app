@@ -17,7 +17,7 @@ public class QueryGenerator implements Serializable {
 	 * 
 	 */
 	private static final long serialVersionUID = -1362448226556637517L;
-	
+	public static final String DEFAULT_IDENTIFIER = "id";
 
 	private String select;
 	private String from;
@@ -110,6 +110,44 @@ public class QueryGenerator implements Serializable {
 		}
 		return StringUtils.join(contents, "\n");
 	}
-
-
+	public String toCompleteStrWithIdOrderBy(){
+		List<String> contents = new ArrayList<>();
+		if(StringUtils.isNotBlank(select)){
+			contents.add("SELECT " + select);
+		}
+		if(StringUtils.isNotBlank(from)){
+			contents.add("FROM " + from);
+		}
+		if(StringUtils.isNotBlank(join)){
+			contents.add(join);
+		}
+		if(StringUtils.isNotBlank(where)){
+			contents.add("WHERE " + where);
+		}
+		String adjustOrderBy = getOrderByAddId();
+		adjustOrderBy = adjustOrderBy.replace("\n", "");
+		contents.add(adjustOrderBy);
+		if(StringUtils.isNotBlank(groupBy)){
+			contents.add("GROUP BY " + groupBy);
+		}
+		if(StringUtils.isNotBlank(having)){
+			contents.add("HAVING " + having);
+		}
+		if(contents.isEmpty()){
+			return "";
+		}
+		return StringUtils.join(contents, "\n");
+	}
+	/**
+	 * 如果沒有排序條件，就加入id降冪排序；
+	 * 如果已經有排序條件，而且裡面沒有id，就把id降冪排序加在最後。
+	 * 獨立這段邏輯，是希望能夠與分頁查詢ConditionalQuery.executeQueryPageable(Session s)中的結果一致
+	 * @return
+	 */
+	public String getOrderByAddId(){
+		String identifier = getRootAlias() + "." + DEFAULT_IDENTIFIER;
+		String orderBy = StringUtils.isNotBlank(getOrderBy()) ? ("\nORDER BY "+getOrderBy()) : "\nORDER BY " + identifier + " DESC";
+		orderBy = !orderBy.contains(identifier) ? (orderBy + ", " + identifier + " DESC") : orderBy;
+		return orderBy;
+	}
 }

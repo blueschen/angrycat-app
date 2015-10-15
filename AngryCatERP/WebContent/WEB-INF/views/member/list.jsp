@@ -12,9 +12,8 @@
 	<meta content="width=device-width, initial-scale=1.0" name="viewport">
 	<title><s:message code="model.name.member"/></title>
 	
-	<link rel="stylesheet" href='<c:url value="/vendor/bootstrap/3.1.1/css/bootstrap.css"/>'/>
-	<link rel="stylesheet" href='<c:url value="/vendor/bootstrap/3.1.1/css/bootstrap-theme.css"/>'/>
-	<link rel="stylesheet" href='<c:url value="/vendor/bootstrap/3.1.1/css/bootstrap-responsive.css"/>'/>
+	<link rel="stylesheet" href='<c:url value="/vendor/bootstrap/3.3.5/css/bootstrap.css"/>'/>
+	<link rel="stylesheet" href='<c:url value="/vendor/bootstrap/3.3.5/css/bootstrap-theme.css"/>'/>
 	<link rel="stylesheet" href='<c:url value="/common/spinner/spinner.css"/>'/>
 	
 	<script type="text/javascript">
@@ -219,7 +218,15 @@
 			</select>
  		</div>
  	</div>
- 	 <div class="btn-toolbar" role="toolbar">
+ 	<div class="form-group">
+ 		<label class="col-sm-2 control-label" for="pClientId" >
+ 			客戶編號
+ 		</label>
+ 		<div class="col-sm-6">
+ 			<input type="text" ng-model="mainCtrl.conditionConfig.conds.condition_pClientId" id="pClientId" class="form-control">
+ 		</div>
+ 	</div>
+ 	<div class="btn-toolbar" role="toolbar">
  	<div class="btn-group" role="group">
  		<button type="submit" ng-click="mainCtrl.query()" class="btn btn-default" ng-disabled="memberListForm.$dirty && memberListForm.$invalid">查詢</button>
  	</div>
@@ -238,8 +245,11 @@
 		</erp-file-ajax-btn>
  	</div>
  	<div class="btn-group" role="group" ng-if="mainCtrl.isAdmin()">
- 		<input type="button" ng-click="mainCtrl.copyCondition()" class="btn btn-default"  ng-disabled="memberListForm.$dirty && memberListForm.$invalid" value="下載會員檔案"/>
+ 		<input type="button" ng-click="mainCtrl.downloadExcel()" class="btn btn-default"  ng-disabled="memberListForm.$dirty && memberListForm.$invalid" value="下載會員檔案"/>
  	</div>
+ 	<div class="btn-group" role="group" ng-if="mainCtrl.isAdmin()">
+ 		<input type="button" ng-click="mainCtrl.downloadOnePos()" class="btn btn-default"  ng-disabled="memberListForm.$dirty && memberListForm.$invalid" value="下載OnePos匯入檔案"/>
+ 	</div> 	
  	<div class="btn-group" role="group" ng-if="mainCtrl.isAdmin()">
  		<input type="button" ng-click="mainCtrl.downloadTemplate()" class="btn btn-default" value="下載範本"/>
  	</div>
@@ -254,7 +264,7 @@
 		<td>姓名</td>
 		<td>FB暱稱</td>
 		<td>性別</td>
-		<td>生日</td>
+		<td query-order-label="生日" query-order-by="p.birthday"></td>					   
 		<td>VIP</td>
 		<td>成為VIP時間</td>
 		<td>郵遞區號</td>
@@ -410,7 +420,7 @@
 				});
 
 			self.query = function(){
-				MemberService.queryByConds(self.conditionConfig)
+				return MemberService.queryByConds(self.conditionConfig)
 				.then(function(response){
 					self.conditionConfig = response.data;
 				},function(errResponse){
@@ -439,11 +449,17 @@
 					$log.log('failed!!!!!' + JSON.stringify(errResponse));
 				});
 			};
-			self.copyCondition = function(){
+			self.downloadExcel = function(){
 				MemberService.copyCondition(self.conditionConfig)
 					.then(function(){
 						$window.location.href = urlPrefix + '/downloadExcel';
 					});
+			};
+			self.downloadOnePos = function(){
+				MemberService.copyCondition(self.conditionConfig)
+				.then(function(){
+					$window.location.href = urlPrefix + '/downloadOnePos';
+				});
 			};
 			self.downloadTemplate = function(){
 				$window.location.href = urlPrefix + '/downloadTemplate';
@@ -512,29 +528,42 @@
 				}
 			};
 		}])
-		.directive('queryTrigger', ['AjaxService', 'urlPrefix', function(AjaxService, urlPrefix){
+		.directive('queryOrderBy', ['urlPrefix', 'MemberService', function(urlPrefix, MemberService){
 			return {
 				restrict: 'A',
-				controller: function($scope){
-					
+				template: function(element, attrs){
+					var label = attrs.queryOrderLabel;
+					return '<span>'+label+'<i></i></span>';
 				},
-				controllerAs: 'queryTriggerCtrl',
-				link: function($scope, element, attrs, queryTriggerCtrl){
-					var queryAllUrl = urlPrefix + '/queryAll.json',
-						queryByCondsUrl = urlPrefix + '/queryCondtional.json',
-						deleteItemsUrl = urlPrefix + '/deleteItems.json',
-						copyConditionUrl = urlPrefix + '/copyCondition.json',
-						resetConditionUrl = urlPrefix + '/resetConditions.json',
+				link: function($scope, element, attrs){
+					var asc = null,
+						orderBy = attrs.queryOrderBy,
 						mainCtrl = $scope.mainCtrl;
-					
-					mainCtrl.queryAll = function(){
-						return AjaxService.post(queryAllUrl)
+					function queryOrderBy(event){
+						if(asc){
+							asc = false;
+						}else{
+							asc = true;
+						}
+						var orderType = orderBy + (asc ? ' ASC' : ' DESC');
+						mainCtrl.conditionConfig.conds.orderType = orderType;
+						MemberService.queryByConds(mainCtrl.conditionConfig)
 							.then(function(response){
+								var target = angular.element(angular.element(element.children()[0]).children()[0]);
+								if(asc){
+									target.attr('class', 'glyphicon glyphicon-triangle-top');
+								}else{
+									target.attr('class', 'glyphicon glyphicon-triangle-bottom');
+								}
 								mainCtrl.conditionConfig = response.data;
-							}, function(responseErr){
-								alert(JSON.stringify(responseErr));
+							},function(responseErr){
+								alert('排序查詢發生錯誤: ' + JSON.stringify(responseErr));
 							});
-					};
+					}
+					element.on('click', queryOrderBy);
+					$scope.$on('$destroy', function(){
+						element.off('click', queryOrderBy);
+					});
 				}
 			};
 		}])

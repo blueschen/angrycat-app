@@ -15,9 +15,8 @@
 	
 	<title><s:message code="model.name.${modelName}"/></title>
 
-	<link rel="stylesheet" href='<c:url value="/vendor/bootstrap/3.1.1/css/bootstrap.css"/>'/>
-	<link rel="stylesheet" href='<c:url value="/vendor/bootstrap/3.1.1/css/bootstrap-theme.css"/>'/>
-	<link rel="stylesheet" href='<c:url value="/vendor/bootstrap/3.1.1/css/bootstrap-responsive.css"/>'/>
+	<link rel="stylesheet" href='<c:url value="/vendor/bootstrap/3.3.5/css/bootstrap.css"/>'/>
+	<link rel="stylesheet" href='<c:url value="/vendor/bootstrap/3.3.5/css/bootstrap-theme.css"/>'/>
     
 	<script type="text/javascript">		
 		<%@ include file="/vendor/angularjs/1.4.3/angular.min.js" %>
@@ -448,7 +447,6 @@
 					require: 'ngModel',
 					link: function($scope, ele, attrs, ngModelCtrl){
 						$scope.$watch(attrs.ngModel, function(newVal, oldVal){
-							$log.log('clientIdHint: ' + newVal);
 							if(!newVal || newVal == oldVal || newVal.length!=2){
 								$scope.hintClientId = null;
 								return;

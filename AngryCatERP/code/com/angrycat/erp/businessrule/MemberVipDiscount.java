@@ -119,7 +119,7 @@ public class MemberVipDiscount implements Serializable {
 				detail.setEffectiveEnd(nextEffectiveEnd);
 				currentEffectiveEnd = nextEffectiveEnd;
 			}
-			((LinkedList)member.getVipDiscountDetails()).addFirst(detail); // 最新一筆插到最前面
+			((LinkedList<VipDiscountDetail>)member.getVipDiscountDetails()).addFirst(detail); // 最新一筆插到最前面
 		}
 		member.setToVipEndDate(currentEffectiveEnd); // 同一批最後一筆VIP紀錄的結束日，就是真正的VIP有效截止日，將這筆資料回寫會員主表
 	}

@@ -51,4 +51,17 @@ public class BaseTest {
 			multilinePrint(d);
 		});
 	}
+	
+	private static void testSubstr(){
+		String t1 = "rettt.xls";
+		String t2 = "eettrrggd.xlsx";
+		System.out.println(t1.lastIndexOf("."));
+		System.out.println(t1.length());
+		System.out.println(t1.substring(t1.lastIndexOf(".")+1, t1.length()));
+		
+	}
+	
+	public static void main(String[]args){
+		testSubstr();
+	}
 }

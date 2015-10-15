@@ -1,6 +1,7 @@
 package com.angrycat.erp.query;
 
 import java.io.Serializable;
+import java.util.List;
 import java.util.Map;
 import java.util.function.Predicate;
 
@@ -24,6 +25,7 @@ public interface QueryConfigurable extends Serializable {
 //	public Criteria addGroupBy(String target);
 //	public Criteria addHaving(Criterion criterion);
 	public QueryConfigurable addOrder(Order order);
+	public List<Order> getOrders();
 	public void addOrderAfterClear(Order order);
 	
 	public Map<String, SimpleExpression> getSimpleExpressions();

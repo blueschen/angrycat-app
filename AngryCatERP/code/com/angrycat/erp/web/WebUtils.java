@@ -1,5 +1,7 @@
 package com.angrycat.erp.web;
 
+import java.io.File;
+
 import javax.servlet.ServletContext;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpSession;
@@ -31,5 +33,14 @@ public final class WebUtils {
 			user = (User)hs.getAttribute(SESSION_USER);
 		}
 		return user;
+	}
+	public static String getWebRootDir(){
+		String root = WebUtils.currentServletContext().getRealPath("/");
+		return root;
+	}
+	public static String getWebRootFile(String fileName){
+		String root = getWebRootDir();
+		String filePath = root + File.separator + fileName; 
+		return filePath;
 	}
 }

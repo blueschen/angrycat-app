@@ -105,7 +105,7 @@ public class MemberVipDiscount_20150930 implements Serializable {
 				detail.setEffectiveEnd(nextEffectiveEnd);
 				currentEffectiveEnd = nextEffectiveEnd;
 			}
-			((LinkedList)member.getVipDiscountDetails()).addFirst(detail);
+			((LinkedList<VipDiscountDetail>)member.getVipDiscountDetails()).addFirst(detail);
 		}
 		member.setToVipEndDate(currentEffectiveEnd);
 	}

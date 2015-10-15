@@ -95,7 +95,7 @@ public class QueryBaseService<T, R> extends ConditionalQuery<T> implements Condi
 		Session s = sfw.currentSession();
 		
 		QueryGenerator gen = toQueryGenerator();
-		String hql = gen.toCompleteStr();
+		String hql = gen.toCompleteStrWithIdOrderBy();
 		Map<String, Object> params = gen.getParams();
 		
 		ScrollableResults rs = s.createQuery(hql).setProperties(params).scroll(ScrollMode.FORWARD_ONLY);
@@ -187,6 +187,7 @@ public class QueryBaseService<T, R> extends ConditionalQuery<T> implements Condi
 		});
 		setCurrentPage(1);
 		setCountPerPage(10);
+		getOrders().clear();
 		return getConditionConfig();
 	}
 	

@@ -88,7 +88,6 @@ public class OnePosInitialExcelAccessor {
 	private String templatePath;
 	private Map<String, String> barCodes = getBarCodes();
 	private int importBarCodeCount = 0;
-	private Date builtDate = new Date(System.currentTimeMillis());
 	
 	public boolean isImgProcessEnabled() {
 		return imgProcessEnabled;

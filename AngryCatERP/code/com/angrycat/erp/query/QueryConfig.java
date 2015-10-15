@@ -160,7 +160,10 @@ public class QueryConfig implements QueryConfigurable {
 		orders.add(order);
 		return this;
 	}
-
+	@Override
+	public List<Order> getOrders(){
+		return orders;
+	}
 	@Override
 	public Map<String, SimpleExpression> getSimpleExpressions() {
 		return this.simpleExpressions;

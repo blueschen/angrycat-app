@@ -11,10 +11,9 @@
 	<meta content="width=device-width, initial-scale=1.0" name="viewport">
 	<title>異動紀錄查詢</title>
 	
-	<link rel="stylesheet" href='<c:url value="/vendor/bootstrap/3.1.1/css/bootstrap.css"/>'/>
-	<link rel="stylesheet" href='<c:url value="/vendor/bootstrap/3.1.1/css/bootstrap-theme.css"/>'/>
+	<link rel="stylesheet" href='<c:url value="/vendor/bootstrap/3.3.5/css/bootstrap.css"/>'/>
+	<link rel="stylesheet" href='<c:url value="/vendor/bootstrap/3.3.5/css/bootstrap-theme.css"/>'/>
 	<link rel="stylesheet" href='<c:url value="/vendor/bootstrap/3.1.1/css/bootstrap-responsive.css"/>'/>
-	
 	<script type="text/javascript">
 		<%@ include file="/vendor/angularjs/1.4.3/angular.min.js" %>
 		<%@ include file="/vendor/angularjs/1.4.3/i18n/angular-locale_zh-tw.js" %>
@@ -148,7 +147,7 @@
  </div>
  </form>
 
-<div class="table-responsive">
+<div>
 	<div class="row">
 		<div class="col-sm-3"></div>
 	</div>

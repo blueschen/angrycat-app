@@ -24,8 +24,6 @@ public class ConditionalQuery<T> extends QueryConfig implements
 	private int countPerPage = 10;
 	private PageNavigator pageNavigator;
 	
-	private static final String DEFAULT_IDENTIFIER = "id";
-	
 	public ConditionalQuery(SessionFactory sessionFactory){
 		this.sessionFactory = sessionFactory;
 	}
@@ -44,7 +42,7 @@ public class ConditionalQuery<T> extends QueryConfig implements
 		String alias = generator.getRootAlias();
 		String fromTarget = generator.getFrom();
 		String selectTarget = generator.getSelect();
-		String id = DEFAULT_IDENTIFIER;
+		String id = QueryGenerator.DEFAULT_IDENTIFIER;
 		String identifier = alias + "." + id;
 		
 		String selectTotalCount = "SELECT COUNT(DISTINCT " + identifier + ")";
@@ -56,8 +54,9 @@ public class ConditionalQuery<T> extends QueryConfig implements
 		
 		String selectDistinctRootId = "SELECT DISTINCT " + identifier;
 		String selectDistinctRootIdFrom = selectTotalCountFrom.replace(selectTotalCount, selectDistinctRootId);
-		String orderBy = StringUtils.isNotBlank(generator.getOrderBy()) ? ("\nORDER BY "+generator.getOrderBy()) : "\nORDER BY " + identifier + " DESC";
-		orderBy = !orderBy.contains(identifier) ? (orderBy + ", " + identifier + " DESC") : orderBy;
+		String orderBy = generator.getOrderByAddId();
+//		String orderBy = StringUtils.isNotBlank(generator.getOrderBy()) ? ("\nORDER BY "+generator.getOrderBy()) : "\nORDER BY " + identifier + " DESC";
+//		orderBy = !orderBy.contains(identifier) ? (orderBy + ", " + identifier + " DESC") : orderBy;
 		String getIds = selectDistinctRootIdFrom + join + where + orderBy;
 //		System.out.println("getIds:\n" + getIds);
 		

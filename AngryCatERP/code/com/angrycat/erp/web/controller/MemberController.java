@@ -43,8 +43,8 @@ import com.angrycat.erp.businessrule.MemberVipDiscount;
 import com.angrycat.erp.businessrule.VipDiscountUseStatus;
 import com.angrycat.erp.common.CommonUtil;
 import com.angrycat.erp.component.SessionFactoryWrapper;
-import com.angrycat.erp.excel.ExcelExporter;
 import com.angrycat.erp.excel.ExcelImporter;
+import com.angrycat.erp.excel.MemberExcelExporter;
 import com.angrycat.erp.jackson.mixin.MemberIgnoreDetail;
 import com.angrycat.erp.log.DataChangeLogger;
 import com.angrycat.erp.model.Member;
@@ -75,7 +75,7 @@ public class MemberController {
 	private ExcelImporter excelImporter;
 	
 	@Autowired
-	private ExcelExporter excelExporter;
+	private MemberExcelExporter excelExporter;
 	
 	@Autowired
 	private MemberVipDiscount discount;
@@ -102,6 +102,7 @@ public class MemberController {
 			.addWhere(putInt("month(p.birthday) = :pBirthdayMonthStart"))
 			.addWhere(putSqlDate("p.toVipEndDate >= :pToVipEndDateStart"))
 			.addWhere(putSqlDate("p.toVipEndDate <= :pToVipEndDateEnd"))
+			.addWhere(putStrCaseInsensitive("p.clientId LIKE :pClientId", ANYWHERE))
 		;
 		
 		findMemberService
@@ -274,7 +275,7 @@ public class MemberController {
 	
 	@RequestMapping(value="/downloadExcel", method={RequestMethod.POST, RequestMethod.GET})
 	public void downloadExcel(HttpServletResponse response){
-		File tempFile = excelExporter.execute(memberQueryService);
+		File tempFile = excelExporter.normal(memberQueryService);
 		
 		try(FileInputStream fis = new FileInputStream(tempFile);){
 			writeExcelToResponse(response, fis, "member.xlsx");
@@ -289,8 +290,25 @@ public class MemberController {
 		}
 	}
 	
+	@RequestMapping(value="/downloadOnePos", method={RequestMethod.POST, RequestMethod.GET})
+	public void downloadOnePos(HttpServletResponse response){
+		File tempFile = excelExporter.onePos(memberQueryService);
+		
+		try(FileInputStream fis = new FileInputStream(tempFile);){
+			writeExcelToResponse(response, fis, "onePosClients.xls");
+		}catch(Throwable t){
+			throw new RuntimeException(t);
+		}finally{
+			try{
+				FileUtils.forceDelete(tempFile);
+			}catch(Throwable t){
+				throw new RuntimeException(t);
+			}
+		}
+	}
+	
 	private void writeExcelToResponse(HttpServletResponse response, FileInputStream fis, String fileName) throws Throwable{
-		response.setContentType("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet");
+		response.setContentType(getMimeType(fileName));
 		response.setHeader("Pragma", "");
 		response.setHeader("cache-control", "");
 		response.setHeader("Content-Disposition", "attachment; filename="+fileName);
@@ -298,6 +316,17 @@ public class MemberController {
 		ServletOutputStream sos = response.getOutputStream();
 		IOUtils.copy(fis, sos);
 		sos.close();
+	}
+	
+	private String getMimeType(String fileName){
+		String extension = fileName.substring(fileName.lastIndexOf(".")+1, fileName.length());
+		String mimeType = "application/octet-stream";
+		if("xls".equals(extension)){
+			mimeType = "application/xls";
+		}else if("xlsx".equals(extension)){
+			mimeType = "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet";
+		}
+		return mimeType;
 	}
 	
 	@RequestMapping(value="/updateMemberDiscount", method=RequestMethod.POST)
@@ -309,8 +338,7 @@ public class MemberController {
 	
 	@RequestMapping(value="/downloadTemplate", method={RequestMethod.GET, RequestMethod.POST})
 	public void downloadTemplate(HttpServletResponse response){
-		String root = WebUtils.currentServletContext().getRealPath("/");
-		String filePath = root + File.separator + "member_sample.xlsx";
+		String filePath = WebUtils.getWebRootFile("member_sample.xlsx");
 		try(FileInputStream fis = new FileInputStream(filePath);){
 			writeExcelToResponse(response, fis, "member_template.xlsx");
 		}catch(Throwable t){
@@ -437,5 +465,4 @@ public class MemberController {
 		this.useStatus.setToday(null);
 		addUserToComponent();
 	}
-	
 }
