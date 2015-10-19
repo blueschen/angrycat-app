@@ -202,6 +202,8 @@ public class MemberController {
 				}
 				if(StringUtils.isBlank(member.getClientId())){
 					member.setClientId(genNextClientId(s, "TW"));
+				}else{
+					member.setClientId(member.getClientId().toUpperCase());
 				}
 			}else{// update
 				findMemberService.getSimpleExpressions().get("pId").setValue(member.getId());

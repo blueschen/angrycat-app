@@ -34,11 +34,18 @@ import org.apache.poi.hssf.usermodel.HSSFCell;
 import org.apache.poi.hssf.usermodel.HSSFWorkbook;
 import org.apache.poi.ss.usermodel.Cell;
 import org.apache.poi.ss.usermodel.CellStyle;
+import org.apache.poi.ss.usermodel.ClientAnchor;
+import org.apache.poi.ss.usermodel.CreationHelper;
+import org.apache.poi.ss.usermodel.DataFormat;
 import org.apache.poi.ss.usermodel.DataFormatter;
+import org.apache.poi.ss.usermodel.Drawing;
+import org.apache.poi.ss.usermodel.Picture;
 import org.apache.poi.ss.usermodel.Row;
 import org.apache.poi.ss.usermodel.Sheet;
+import org.apache.poi.ss.usermodel.Workbook;
 import org.apache.poi.util.IOUtils;
 import org.apache.poi.xssf.usermodel.XSSFCell;
+import org.apache.poi.xssf.usermodel.XSSFSheet;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.AnnotationConfigApplicationContext;
@@ -88,6 +95,7 @@ public class OnePosInitialExcelAccessor {
 	private String templatePath;
 	private Map<String, String> barCodes = getBarCodes();
 	private int importBarCodeCount = 0;
+	private String outFormat = ".xlsx";
 	
 	public boolean isImgProcessEnabled() {
 		return imgProcessEnabled;
@@ -106,6 +114,12 @@ public class OnePosInitialExcelAccessor {
 	}
 	public void setClientProcessEnabled(boolean clientProcessEnabled) {
 		this.clientProcessEnabled = clientProcessEnabled;
+	}
+	public String getOutFormat() {
+		return outFormat;
+	}
+	public void setOutFormat(String outFormat) {
+		this.outFormat = outFormat;
 	}
 	/**
 	 * 匯入Excel，根據指定的Sheet和Column，找到產品型號。
@@ -257,6 +271,108 @@ public class OnePosInitialExcelAccessor {
 			}
 			
 			wb.write(fos);
+		}catch(Throwable e){
+			throw new RuntimeException(e);
+		}
+	}
+	
+	public void writeBarCodeScannable(String src, String dest, String imgPathTemplate){
+		// ohm-tw-catalog-barcodes-151015.csv、ohm-tw-catalog-barcodes-151015.pdf
+		try(FileInputStream fis = new FileInputStream(src);
+			XSSFWorkbook inWb = new XSSFWorkbook(fis);
+			FileOutputStream fos = new FileOutputStream(dest);
+			Workbook outWb = ".xlsx".equals(outFormat) ? new XSSFWorkbook(): new HSSFWorkbook()){
+			
+			DataFormat df = outWb.createDataFormat();
+			CellStyle cs = outWb.createCellStyle();
+			cs.setDataFormat(df.getFormat("@")); // 文字格式
+			
+			Sheet destSheet = outWb.createSheet("product");
+			
+			destSheet.setColumnWidth(3, 15*ExcelImgProcessor.COL_WIDTH_UNIT);
+			
+			Row firstRow = destSheet.createRow(0);
+			Cell c1 = firstRow.createCell(0);
+			c1.setCellValue("Barcode");
+			Cell c2 = firstRow.createCell(1);
+			c2.setCellValue("EAN13");
+			Cell c3 = firstRow.createCell(2);
+			c3.setCellValue("SKU");
+			Cell c4 = firstRow.createCell(3);
+			c4.setCellValue("Image");
+			Cell c5 = firstRow.createCell(4);
+			c5.setCellValue("Name");
+			Cell c6 = firstRow.createCell(5);
+			c6.setCellValue("MSRP");
+			
+			ExcelImgProcessor eip = new ExcelImgProcessor(outWb, destSheet);
+			
+			Sheet srcSheet = inWb.getSheetAt(0);
+			Iterator<Row> srcRows = srcSheet.iterator();
+			while(srcRows.hasNext()){
+				Row srcRow = srcRows.next();
+				int rowNum = srcRow.getRowNum();
+				if(rowNum == 0){
+					continue;
+				}
+				String barCodeVal = getCellStrVal(srcRow, 0);
+				String skuVal = getCellStrVal(srcRow, 1);
+				String nameVal = getCellStrVal(srcRow, 2);
+				String msrpVal = getCellStrVal(srcRow, 3);
+				
+				Row destRow = destSheet.createRow(rowNum);
+				destRow.setHeight((short)(70*ExcelImgProcessor.ROW_HEIGHT_UNIT));
+				Cell barCodeScannable = destRow.createCell(0);
+				barCodeScannable.setCellValue("*"+barCodeVal+"*");
+				barCodeScannable.setCellStyle(cs);
+				
+				Cell barCodeNum = destRow.createCell(1);
+				barCodeNum.setCellValue(barCodeVal);
+				barCodeNum.setCellStyle(cs);
+				
+				Cell sku = destRow.createCell(2);
+				sku.setCellValue(skuVal);
+				sku.setCellStyle(cs);
+				
+				Cell image = destRow.createCell(3);
+				int picIdx = eip.addImgFitToCell(imgPathTemplate.replace("{sku}", skuVal), rowNum, 3, imgPath->{
+					String no = imgPath.substring(imgPath.lastIndexOf("\\")+1, imgPath.lastIndexOf("."));
+					String url = URL_TEMPLATE.replace("{no}", no);
+					System.out.println("url: " + url);
+					File file = new File(imgPath);
+					try(FileOutputStream img = new FileOutputStream(file)){
+						httpService.sendPost(url, bis->{
+							try{
+								IOUtils.copy(bis, img);
+							}catch(Throwable e){
+								throw new RuntimeException(e);
+							}
+						});
+					}catch(Throwable e){
+						throw new RuntimeException(e);
+					}
+					return file;
+				});
+				
+				if(".xls".equals(outFormat) && picIdx > 0){
+					eip.addCommentImg(picIdx, rowNum, 3);
+				}
+				
+				Cell name = destRow.createCell(4);
+				name.setCellValue(nameVal);
+				name.setCellStyle(cs);
+				
+				Cell msrp = destRow.createCell(5);
+				msrp.setCellValue(msrpVal);
+				msrp.setCellStyle(cs);
+			}
+			destSheet.autoSizeColumn(0);
+			destSheet.autoSizeColumn(1);
+			destSheet.autoSizeColumn(2);
+			destSheet.autoSizeColumn(4);
+			destSheet.autoSizeColumn(5);
+			outWb.write(fos);
+			
 		}catch(Throwable e){
 			throw new RuntimeException(e);
 		}
@@ -637,7 +753,7 @@ public class OnePosInitialExcelAccessor {
 		return d;
 	}
 	
-	private String getCellStrVal(Row cRow, int colIdx){
+	private static String getCellStrVal(Row cRow, int colIdx){
 		Cell cell = cRow.getCell(colIdx);
 		if(cell == null){
 			System.out.println("cell == null colIdx: " + colIdx);
@@ -662,7 +778,7 @@ public class OnePosInitialExcelAccessor {
 		return val;
 	}
 	
-	private String processStr(String input){
+	private static String processStr(String input){
 		input = input.trim();
 		input = input.replace("\n", "");
 		input = input.replace("\r", "");
@@ -834,9 +950,15 @@ public class OnePosInitialExcelAccessor {
 		OnePosInitialExcelAccessor accessor = acac.getBean(OnePosInitialExcelAccessor.class);
 		accessor.writeBarCodeScannable("E:\\angrycat_workitem\\產品\\型號和可掃描條碼對照.xlsx");
 		acac.close();
-		
 	}
 	
+	private static void testWriteBarCodeScannable2(){
+		AnnotationConfigApplicationContext acac = new AnnotationConfigApplicationContext(RootConfig.class);
+		OnePosInitialExcelAccessor accessor = acac.getBean(OnePosInitialExcelAccessor.class);
+		accessor.setOutFormat(".xls");
+		accessor.writeBarCodeScannable("E:\\angrycat_workitem\\產品\\barCode\\2015_10_16\\ohm-tw-catalog-barcodes-151015.xlsx", "E:\\angrycat_workitem\\產品\\barCode\\2015_10_16\\型號和可掃描條碼對照.xls", "E:\\angrycat_workitem\\產品\\barCode\\2015_10_16\\image\\{sku}.jpg");
+		acac.close();
+	}
 	
 	private static void testStringPad(){
 		String t1 = "1";
@@ -845,10 +967,117 @@ public class OnePosInitialExcelAccessor {
 		System.out.println(StringUtils.leftPad(t2, 4, "0"));
 	}
 	
+	
+	private static void testAddImgToExcel(){
+		addImgToExcel("C:\\Users\\JerryLin\\Desktop\\pic\\images.jpg", "C:\\Users\\JerryLin\\Desktop\\pic\\pic.xlsx", 1, 1, 1, 1);
+	}
+	
+	private static void testAddImgsToExcel(){
+		addImgsToExcel(Arrays.asList("C:\\Users\\JerryLin\\Desktop\\pic\\images.jpg", "C:\\Users\\JerryLin\\Desktop\\pic\\images2.jpg", "C:\\Users\\JerryLin\\Desktop\\pic\\images3.jpg"), "C:\\Users\\JerryLin\\Desktop\\pic\\pic.xlsx", 2);
+	}
+	/**
+	 * 將圖片放在指定的欄位位置，並輸出Excel
+	 * @param imgPaths
+	 * @param outPath
+	 * @param colIdx
+	 */
+	private static void addImgsToExcel(List<String> imgPaths, String outPath, int colIdx){
+		final int COL_WIDTH_UNIT = 256;// 欄位寬度單位為字元(character)寬度的1/256
+		final int ROW_HEIGHT_UNIT = 20;// 欄位高度單位為點距(point)的1/20
+		try(Workbook wb = new XSSFWorkbook();
+			FileOutputStream fos = new FileOutputStream(outPath)){
+			
+			Sheet sheet = wb.createSheet("My Excel With Pic");
+			sheet.setColumnWidth(colIdx, 15*COL_WIDTH_UNIT);
+			Drawing drawing = sheet.createDrawingPatriarch();
+			CreationHelper helper = wb.getCreationHelper();
+			
+			for(int i = 0; i < imgPaths.size(); i++){
+				String imgPath = imgPaths.get(i);
+				try(FileInputStream fis = new FileInputStream(imgPath);){
+					byte[] bytes = IOUtils.toByteArray(fis);
+					int picIdx = wb.addPicture(bytes, Workbook.PICTURE_TYPE_JPEG);
+					fis.close();
+					
+					Row row = sheet.createRow(i);
+					row.setHeight((short)(50*ROW_HEIGHT_UNIT));
+					
+					ClientAnchor anchor = helper.createClientAnchor();
+					anchor.setDx1(0);
+					anchor.setDy1(0);
+					anchor.setDx2(0);
+					anchor.setDy2(0);
+					anchor.setCol1(colIdx);
+					anchor.setRow1(i);
+					anchor.setCol2(colIdx+1);
+					anchor.setRow2(i+1);
+					
+					drawing.createPicture(anchor, picIdx);
+				}catch(Throwable e){
+					throw new RuntimeException(e);
+				}
+			}
+			wb.write(fos);
+			
+		}catch(Throwable e){
+			throw new RuntimeException(e);
+		}
+	}
+	
+	private static void addImgToExcel(String imgPath, String outPath, int leftTopColIdx, int leftTopRowIdx, int rightBottomColIdx, int rightBottomRowIdx){
+		final int COL_WIDTH_UNIT = 256;
+		final int ROW_HEIGHT_UNIT = 20;
+		try(Workbook wb = new XSSFWorkbook();
+			FileInputStream fis = new FileInputStream(imgPath);
+			FileOutputStream fos = new FileOutputStream(outPath)){
+			byte[] bytes = IOUtils.toByteArray(fis);
+			int picIdx1 = wb.addPicture(bytes, Workbook.PICTURE_TYPE_JPEG);
+			int picIdx2 = wb.addPicture(bytes, Workbook.PICTURE_TYPE_JPEG);
+			fis.close();
+			
+			Sheet sheet = wb.createSheet("My Excel With Pic");
+			sheet.setColumnWidth(0, 10*COL_WIDTH_UNIT);
+			Row row = sheet.createRow(0);
+			row.setHeight((short)(200*ROW_HEIGHT_UNIT));
+			Drawing drawing = sheet.createDrawingPatriarch();
+			
+			CreationHelper helper = wb.getCreationHelper();
+			ClientAnchor anchor1 = helper.createClientAnchor();
+			anchor1.setDx1(0);
+			anchor1.setDy1(0);
+			anchor1.setDx2(0);
+			anchor1.setDy2(0);
+			anchor1.setCol1(0);
+			anchor1.setRow1(0);
+			anchor1.setCol2(1);
+			anchor1.setRow2(1);
+			
+			Picture pic1 = drawing.createPicture(anchor1, picIdx1);
+//			pic1.resize();
+			
+//			ClientAnchor anchor2 = helper.createClientAnchor();
+//			anchor2.setCol1(leftTopColIdx);
+//			anchor2.setRow1(++leftTopRowIdx);
+//			anchor2.setCol2(rightBottomColIdx);
+//			anchor2.setRow2(++rightBottomRowIdx);
+//			
+//			Picture pic2 = drawing.createPicture(anchor2, picIdx1);
+//			pic2.resize();
+			
+			wb.write(fos);
+			
+		}catch(Throwable e){
+			throw new RuntimeException(e);
+		}
+		
+		
+	}
+	
+	
 	public static void main(String[]args){
 //		testFileReplaceOldPart();
 //		testPack();
-		testProcess();
+//		testProcess();
 //		testWriteBarCodeScannable();
 //		AnnotationConfigApplicationContext acac = new AnnotationConfigApplicationContext(RootConfig.class);
 //		
@@ -857,5 +1086,8 @@ public class OnePosInitialExcelAccessor {
 //		
 //		acac.close();
 //		testStringPad();
+//		testAddImgToExcel();
+//		testAddImgsToExcel();
+		testWriteBarCodeScannable2();
 	}
 }

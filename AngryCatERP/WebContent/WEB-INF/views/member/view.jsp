@@ -274,7 +274,7 @@
 				<input id="effectiveEnd{{$index}}" type="text" class="form-control" ng-model="detail.effectiveEnd" readonly="readonly"/>
 			</div>
 			<div class="form-group">
-				<label for="useStatus{{$index}}">使用狀態</label>
+				<label for="useStatus{{$index}}">生日折扣使用狀態</label>
 					<select
 						ng-model="detail.useStatus"
 						ng-options="u.value as u.label for u in mainCtrl.useOptions"
@@ -287,7 +287,7 @@
 					</select>
 			</div>
 			<div class="form-group">
-				<label for="discountUseDate{{$index}}">使用日期</label>
+				<label for="discountUseDate{{$index}}">生日折扣使用日期</label>
 				<input type="text" ng-model="detail.discountUseDate" class="form-control" readonly="readonly" id="discountUseDate{{$index}}"/>
 			</div>
 			<div class="form-group" ng-show="mainCtrl.showRemoveBtn(detail)">
