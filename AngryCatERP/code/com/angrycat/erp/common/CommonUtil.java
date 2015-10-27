@@ -122,6 +122,6 @@ public final class CommonUtil {
 		return propertyVal;
 	}
 	public static void main(String[]args){
-
+		testGenDisplayCountry();
 	}
 }

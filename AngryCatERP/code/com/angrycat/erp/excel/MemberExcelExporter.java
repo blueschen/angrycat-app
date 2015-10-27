@@ -112,7 +112,7 @@ public class MemberExcelExporter {
 					}
 				}
 				wb.write(fos);
-				boolean tempDeleted = wb.dispose();
+				boolean tempDeleted = wb.dispose(); // SXSSF需要手動清理暫存檔
 				System.out.println("SXSSFWorkbook temp " + (tempDeleted ? "" : "NOT") + " deleted");
 			}catch(Throwable t){
 				throw new RuntimeException(t);

@@ -51,6 +51,9 @@
 					<li ng-class="{'active': mainCtrl.moduleName == 'member'}">
 						<a href="${pageContext.request.contextPath}/member/list">會員查詢</a>
 					</li>
+					<li>
+						<a href="${pageContext.request.contextPath}/member/add">會員新增</a>
+					</li>
 					<li ng-class="{'active': mainCtrl.moduleName == 'datachangelog'}">
 						<a href="${pageContext.request.contextPath}/datachangelog/list">異動紀錄查詢</a>
 					</li>

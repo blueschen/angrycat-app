@@ -88,6 +88,10 @@ public class OnePosInitialExcelAccessor {
 	private static final String DEFAULT_IMG_DIR = "C:"+File.separator+"ONE-POS DB"+File.separator+"Project"+File.separator;
 	private static final DataFormatter DF = new DataFormatter();
 	private static final String INVENTORY = "I";
+	public static final String NON_INVENTORY = "N";
+	public static final String CAT_GIFT = "GIFT";
+	public static final String CAT_ACT = "ACT";
+	public static final String BRAND_ID = "OHM";
 	@Autowired
 	private HttpService httpService;
 	private boolean imgProcessEnabled;
@@ -239,7 +243,7 @@ public class OnePosInitialExcelAccessor {
 		try(XSSFWorkbook wb = new XSSFWorkbook();
 		FileOutputStream fos = new FileOutputStream(dest)){
 			
-			Sheet sheet = wb.createSheet("可掃描條碼表");
+			Sheet sheet = wb.createSheet("商品條碼表");
 			Row firstRow = sheet.createRow(rowNum++);
 			int COL_IDX_MODEL_ID = 0;
 			int COL_IDX_BARCODE = 1;
@@ -287,11 +291,11 @@ public class OnePosInitialExcelAccessor {
 			CellStyle cs = outWb.createCellStyle();
 			cs.setDataFormat(df.getFormat("@")); // 文字格式
 			
-			Sheet destSheet = outWb.createSheet("product");
+			Sheet productSheet = outWb.createSheet("product");
 			
-			destSheet.setColumnWidth(3, 15*ExcelImgProcessor.COL_WIDTH_UNIT);
+			productSheet.setColumnWidth(3, 10*ExcelImgProcessor.COL_WIDTH_UNIT);
 			
-			Row firstRow = destSheet.createRow(0);
+			Row firstRow = productSheet.createRow(0);
 			Cell c1 = firstRow.createCell(0);
 			c1.setCellValue("Barcode");
 			Cell c2 = firstRow.createCell(1);
@@ -305,14 +309,14 @@ public class OnePosInitialExcelAccessor {
 			Cell c6 = firstRow.createCell(5);
 			c6.setCellValue("MSRP");
 			
-			ExcelImgProcessor eip = new ExcelImgProcessor(outWb, destSheet);
+			ExcelImgProcessor eip = new ExcelImgProcessor(outWb, productSheet);
 			
 			Sheet srcSheet = inWb.getSheetAt(0);
 			Iterator<Row> srcRows = srcSheet.iterator();
 			while(srcRows.hasNext()){
 				Row srcRow = srcRows.next();
 				int rowNum = srcRow.getRowNum();
-				if(rowNum == 0){
+				if(rowNum == 0 || rowNum != 1){
 					continue;
 				}
 				String barCodeVal = getCellStrVal(srcRow, 0);
@@ -320,19 +324,19 @@ public class OnePosInitialExcelAccessor {
 				String nameVal = getCellStrVal(srcRow, 2);
 				String msrpVal = getCellStrVal(srcRow, 3);
 				
-				Row destRow = destSheet.createRow(rowNum);
-				destRow.setHeight((short)(70*ExcelImgProcessor.ROW_HEIGHT_UNIT));
+				Row destRow = productSheet.createRow(rowNum);
+				destRow.setHeight((short)(40*ExcelImgProcessor.ROW_HEIGHT_UNIT));
 				Cell barCodeScannable = destRow.createCell(0);
 				barCodeScannable.setCellValue("*"+barCodeVal+"*");
-				barCodeScannable.setCellStyle(cs);
+//				barCodeScannable.setCellStyle(cs);
 				
 				Cell barCodeNum = destRow.createCell(1);
 				barCodeNum.setCellValue(barCodeVal);
-				barCodeNum.setCellStyle(cs);
+//				barCodeNum.setCellStyle(cs);
 				
 				Cell sku = destRow.createCell(2);
 				sku.setCellValue(skuVal);
-				sku.setCellStyle(cs);
+//				sku.setCellStyle(cs);
 				
 				Cell image = destRow.createCell(3);
 				int picIdx = eip.addImgFitToCell(imgPathTemplate.replace("{sku}", skuVal), rowNum, 3, imgPath->{
@@ -354,28 +358,92 @@ public class OnePosInitialExcelAccessor {
 					return file;
 				});
 				
-				if(".xls".equals(outFormat) && picIdx > 0){
-					eip.addCommentImg(picIdx, rowNum, 3);
-				}
+//				if(".xls".equals(outFormat) && picIdx > 0){// Apache POI的HSSF才有支援註解背景圖片
+//					eip.addCommentImg(picIdx, rowNum, 3);
+//				}
 				
 				Cell name = destRow.createCell(4);
 				name.setCellValue(nameVal);
-				name.setCellStyle(cs);
+//				name.setCellStyle(cs);
 				
 				Cell msrp = destRow.createCell(5);
 				msrp.setCellValue(msrpVal);
-				msrp.setCellStyle(cs);
+//				msrp.setCellStyle(cs);
 			}
-			destSheet.autoSizeColumn(0);
-			destSheet.autoSizeColumn(1);
-			destSheet.autoSizeColumn(2);
-			destSheet.autoSizeColumn(4);
-			destSheet.autoSizeColumn(5);
+			productSheet.autoSizeColumn(0);
+			productSheet.autoSizeColumn(1);
+			productSheet.autoSizeColumn(2);
+			productSheet.autoSizeColumn(4);
+			productSheet.autoSizeColumn(5);
+					
 			outWb.write(fos);
 			
 		}catch(Throwable e){
 			throw new RuntimeException(e);
 		}
+	}
+	
+	
+	public void writeDiscountBarCode(String dest){
+		try(FileOutputStream fos = new FileOutputStream(dest);
+			Workbook outWb = ".xlsx".equals(outFormat) ? new XSSFWorkbook(): new HSSFWorkbook()){
+			
+			Sheet discountSheet = outWb.createSheet("discount");
+			
+			discountSheet.setColumnWidth(3, 10*ExcelImgProcessor.COL_WIDTH_UNIT);
+			
+			Row _1stRow = discountSheet.createRow(0);
+			Cell h0 = _1stRow.createCell(0);
+			h0.setCellValue("可掃描條碼");
+			Cell h1 = _1stRow.createCell(1);
+			h1.setCellValue("條碼");
+			Cell h2 = _1stRow.createCell(2);
+			h2.setCellValue("類別編號");
+			Cell h3 = _1stRow.createCell(3);
+			h3.setCellValue("折扣編號");
+			Cell h4 = _1stRow.createCell(4);
+			h4.setCellValue("名稱");
+			Cell h5 = _1stRow.createCell(5);
+			h5.setCellValue("售價");
+
+			DataFormat df = outWb.createDataFormat();
+			CellStyle cs = outWb.createCellStyle();
+			cs.setDataFormat(df.getFormat("@")); // 文字格式
+			List<OnePosDiscountItem> items = OnePosDiscountItem.getDefaultItems();
+			for(int i = 0; i < items.size(); i++){
+				OnePosDiscountItem item = items.get(i);
+				Row row = discountSheet.createRow(i+1);
+				
+				Cell i0 = row.createCell(0);
+				i0.setCellValue(item.getScannableBarCode());
+				i0.setCellStyle(cs);
+				
+				Cell i1 = row.createCell(1);
+				i1.setCellValue(item.getBarCode());
+				i1.setCellStyle(cs);
+				
+				Cell i2 = row.createCell(2);
+				i2.setCellValue(item.getCategoryId());
+				i2.setCellStyle(cs);
+				
+				Cell i3 = row.createCell(3);
+				i3.setCellValue(item.getId());
+				i3.setCellStyle(cs);
+				
+				Cell i4 = row.createCell(4);
+				i4.setCellValue(item.getName());
+				i4.setCellStyle(cs);
+				
+				Cell i5 = row.createCell(5);
+				i5.setCellValue(Integer.parseInt(item.getPrice()));
+			}
+			
+			outWb.write(fos);
+		}catch(Throwable e){
+			throw new RuntimeException(e);
+		}
+		
+		
 	}
 	
 	private static void testProcess(){
@@ -475,7 +543,7 @@ public class OnePosInitialExcelAccessor {
 					continue;
 				}
 				
-				addValToCategorySheet(categories, categorySheet, catVal);
+				addValToCategorySheet(categories, categorySheet, catVal, catVal);
 				
 				Row pRow = productSheet.createRow(rowNum);
 				addProductCells(pRow, noVal, nameEngVal, catVal, priceVal);
@@ -508,7 +576,7 @@ public class OnePosInitialExcelAccessor {
 					continue;
 				}
 				
-				addValToCategorySheet(categories, categorySheet, catVal);
+				addValToCategorySheet(categories, categorySheet, catVal, catVal);
 				
 				Row pRow = productSheet.createRow(++rowNum);
 				addProductCells(pRow, noVal, nameEngVal, catVal, priceVal);
@@ -543,13 +611,24 @@ public class OnePosInitialExcelAccessor {
 					continue;
 				}
 				
-				addValToCategorySheet(categories, categorySheet, catVal);
+				addValToCategorySheet(categories, categorySheet, catVal, catVal);
 				
 				Row pRow = productSheet.createRow(++rowNum);
 				addProductCells(pRow, noVal, nameEngVal, catVal, priceVal);
 				
 				storeImage(tempImgDir, noVal);
 			}
+
+			// 手動新增商品類別和商品
+			addValToCategorySheet(categories, categorySheet, CAT_GIFT, "禮卷");
+			addValToCategorySheet(categories, categorySheet, CAT_ACT, "活動");
+			
+			List<OnePosDiscountItem> items = OnePosDiscountItem.getDefaultItems();
+			for(OnePosDiscountItem item : items){
+				Row pRow = productSheet.createRow(++rowNum);
+				addDiscountItemCells(pRow, item);
+			}
+			
 			if(clientProcessEnabled){
 				Sheet memberSheet = memberWb.getSheetAt(0);// 將會員轉為OnePos所需客戶格式
 				Iterator<Row> memberRows = memberSheet.iterator();
@@ -574,7 +653,9 @@ public class OnePosInitialExcelAccessor {
 					member.setMobile(mobile);
 					member.setTel(tel);
 					member.setEmail(email);
-					member.setBirthday(new java.sql.Date(birthday.getTime()));
+					if(birthday != null){
+						member.setBirthday(new java.sql.Date(birthday.getTime()));
+					}
 					
 					Row cRow = clientSheet.createRow(rowCount);
 					addClient(cRow, dateStyle, member);
@@ -785,6 +866,7 @@ public class OnePosInitialExcelAccessor {
 		return input;
 	}
 	
+	
 	private void addProductCells(Row pRow, String noVal, String nameEngVal, String catVal, String priceVal){
 		Cell productIdCell = pRow.createCell(OnePos.產品編號);
 		productIdCell.setCellType(CELL_TYPE_STRING);
@@ -817,25 +899,71 @@ public class OnePosInitialExcelAccessor {
 			barCodeCell.setCellValue(barCode);
 			importBarCodeCount++;
 		}
+		
+		Cell brandIdCell = pRow.createCell(OnePos.品牌編號);
+		brandIdCell.setCellType(CELL_TYPE_STRING);
+		brandIdCell.setCellValue(BRAND_ID);
 	}
 	
-	private static void addValToCategorySheet(Set<String> categories, Sheet categorySheet, String catVal){
-		if(StringUtils.isBlank(catVal)){
+	/**
+	 * 新增固定金額折抵項目，在OnePos下面，把固定金額折抵項目當作商品項匯入，所以新增折抵就是新增商品項目，但金額為負數
+	 * @param pRow
+	 * @param noVal
+	 * @param nameEngVal
+	 * @param catVal
+	 * @param priceVal
+	 */
+	private void addDiscountItemCells(Row pRow, OnePosDiscountItem item){
+		Cell productIdCell = pRow.createCell(OnePos.產品編號);
+		productIdCell.setCellType(CELL_TYPE_STRING);
+		productIdCell.setCellValue(item.getId());
+		
+		Cell productNameCell = pRow.createCell(OnePos.產品名稱);
+		productNameCell.setCellType(CELL_TYPE_STRING);
+		productNameCell.setCellValue(item.getName());
+		
+		Cell catNoCell = pRow.createCell(OnePos.類別編號);
+		catNoCell.setCellType(CELL_TYPE_STRING);
+		catNoCell.setCellValue(item.getCategoryId());
+		
+//		Cell modelCell = pRow.createCell(OnePos.型號);
+//		modelCell.setCellType(CELL_TYPE_STRING);
+//		modelCell.setCellValue(noVal);
+		
+		Cell priceCell = pRow.createCell(OnePos.售價);
+		priceCell.setCellType(CELL_TYPE_NUMERIC);
+		priceCell.setCellValue(StringUtils.isNotBlank(item.getPrice()) ? Integer.parseInt(item.getPrice()) : 0);
+		
+		Cell inventoryCell = pRow.createCell(OnePos.性質);
+		inventoryCell.setCellType(CELL_TYPE_STRING);
+		inventoryCell.setCellValue(NON_INVENTORY);
+		
+		Cell barCodeCell = pRow.createCell(OnePos.條碼編號);
+		barCodeCell.setCellType(CELL_TYPE_STRING);
+		barCodeCell.setCellValue(item.getBarCode());
+		
+		Cell brandIdCell = pRow.createCell(OnePos.品牌編號);
+		brandIdCell.setCellType(CELL_TYPE_STRING);
+		brandIdCell.setCellValue(item.getBrandId());
+	}
+	
+	private static void addValToCategorySheet(Set<String> categories, Sheet categorySheet, String catId, String catName){
+		if(StringUtils.isBlank(catId)){
 			return;
 		}
 		int beforeCatCount = categories.size();
-		categories.add(catVal);
+		categories.add(catId);
 		int afterCatCount = categories.size();
 		if(beforeCatCount != afterCatCount){
 			int rowNum = afterCatCount;
 			Row catRow = categorySheet.createRow(rowNum);
 			Cell catNoCell = catRow.createCell(0);
 			catNoCell.setCellType(CELL_TYPE_STRING);
-			catNoCell.setCellValue(catVal);
+			catNoCell.setCellValue(catId);
 			
 			Cell catNameCell = catRow.createCell(1);
 			catNameCell.setCellType(CELL_TYPE_STRING);
-			catNameCell.setCellValue(catVal);
+			catNameCell.setCellValue(catName);
 		}
 	}
 	
@@ -955,8 +1083,8 @@ public class OnePosInitialExcelAccessor {
 	private static void testWriteBarCodeScannable2(){
 		AnnotationConfigApplicationContext acac = new AnnotationConfigApplicationContext(RootConfig.class);
 		OnePosInitialExcelAccessor accessor = acac.getBean(OnePosInitialExcelAccessor.class);
-		accessor.setOutFormat(".xls");
-		accessor.writeBarCodeScannable("E:\\angrycat_workitem\\產品\\barCode\\2015_10_16\\ohm-tw-catalog-barcodes-151015.xlsx", "E:\\angrycat_workitem\\產品\\barCode\\2015_10_16\\型號和可掃描條碼對照.xls", "E:\\angrycat_workitem\\產品\\barCode\\2015_10_16\\image\\{sku}.jpg");
+		accessor.setOutFormat(".xlsx");
+		accessor.writeBarCodeScannable("E:\\angrycat_workitem\\產品\\barCode\\2015_10_16\\ohm-tw-catalog-barcodes-151015.xlsx", "E:\\angrycat_workitem\\產品\\barCode\\2015_10_16\\型號和可掃描條碼對照test.xlsx", "E:\\angrycat_workitem\\產品\\barCode\\2015_10_16\\image\\{sku}.jpg");
 		acac.close();
 	}
 	
@@ -1074,6 +1202,14 @@ public class OnePosInitialExcelAccessor {
 	}
 	
 	
+	private static void testWriteDiscountBarCode(){
+		AnnotationConfigApplicationContext acac = new AnnotationConfigApplicationContext(RootConfig.class);
+		OnePosInitialExcelAccessor accessor = acac.getBean(OnePosInitialExcelAccessor.class);
+		accessor.setOutFormat(".xlsx");
+		accessor.writeDiscountBarCode("E:\\angrycat_workitem\\產品\\barCode\\2015_10_27\\折扣條碼.xlsx");
+		acac.close();
+	}
+	
 	public static void main(String[]args){
 //		testFileReplaceOldPart();
 //		testPack();
@@ -1088,6 +1224,7 @@ public class OnePosInitialExcelAccessor {
 //		testStringPad();
 //		testAddImgToExcel();
 //		testAddImgsToExcel();
-		testWriteBarCodeScannable2();
+//		testWriteBarCodeScannable2();
+		testWriteDiscountBarCode();
 	}
 }

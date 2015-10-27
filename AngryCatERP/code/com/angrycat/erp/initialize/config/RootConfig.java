@@ -1,5 +1,8 @@
 package com.angrycat.erp.initialize.config;
 
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Properties;
 
@@ -33,6 +36,7 @@ public class RootConfig {
 	public void init(){
 		String serverRoot = System.getProperty("catalina.home");
 		if(StringUtils.isNotBlank(serverRoot)){
+//			System.setProperty("catalina.home", "/usr/local/apache-tomcat-8.0.23");
 			System.setProperty("catalina.home", "C:/dts/apache-tomcat-8.0.23");
 //			System.setProperty("catalina.home", "/usr/local/apache-tomcat-8.0.23_test1");
 		}
@@ -96,7 +100,18 @@ public class RootConfig {
 	}
 	
 	@Bean
+	/**
+	 * 製作前端AngularJS下拉選單所需要的物件型態
+	 * @return
+	 */
 	public String displayJsonCountries(){
-		return CommonUtil.parseToJson(displayCountries());
+		List<Map<String, String>> results = new ArrayList<>();
+		displayCountries().forEach((country, language)->{
+			Map<String, String> item = new HashMap<>();
+			item.put("label", language);
+			item.put("value", country);
+			results.add(item);
+		});
+		return CommonUtil.parseToJson(results);
 	}
 }

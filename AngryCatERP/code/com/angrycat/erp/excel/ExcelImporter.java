@@ -15,7 +15,7 @@ import static com.angrycat.erp.excel.ExcelColumn.Member.轉VIP日期;
 import static com.angrycat.erp.excel.ExcelColumn.Member.郵遞區號;
 import static com.angrycat.erp.excel.ExcelColumn.Member.電子信箱;
 import static com.angrycat.erp.excel.ExcelColumn.Member.生日使用8折優惠;
-import static com.angrycat.erp.excel.ExcelColumn.Member.客戶編號;
+import static com.angrycat.erp.excel.ExcelColumn.Member.國家代碼;
 import static com.angrycat.erp.excel.ExcelColumn.Member.COLUMN_COUNT;
 
 import java.io.ByteArrayInputStream;
@@ -74,8 +74,24 @@ public class ExcelImporter {
 	public static void main(String[]args){
 //		readAndWrite("C:\\angrycat_workitem\\OHM Beads TW (AngryCat) 一般會員資料.xlsx", "C:\\angrycat_workitem\\test.xlsx");
 //		read("E:\\angrycat_workitem\\member\\2015_10_05\\OHM Beads TW (AngryCat) 一般會員資料_update.xlsx", 0, 0);
+		testPattern();
 	}
 
+	private static void testPattern(){
+		String pattern = "[A-Z]{2}";
+
+		String t1 = "TW";
+		String t2 = "TW ";
+		String t3 = "";
+		String t4 = "123";
+		String t5 = "1TW";
+		
+		System.out.println(Pattern.matches(pattern, t1));
+		System.out.println(Pattern.matches(pattern, t2));
+		System.out.println(Pattern.matches(pattern, t3));
+		System.out.println(Pattern.matches(pattern, t4));
+		System.out.println(Pattern.matches(pattern, t5));
+	}
 	
 	private static void isFound(String pattern, String input){
 		Pattern pat = Pattern.compile(pattern);
@@ -142,6 +158,7 @@ public class ExcelImporter {
 		String MOBILE_DUPLICATE = "mobileDuplicate";
 		String TEL_DUPLICATE = "telDuplicate";
 		String CLIENT_ID_DUPLICATE = "clientIdDuplicate";
+		String COUNTRY_CODE_FORMAT_NOT_CORRECT = "countryCodeFormatNotCorrect";
 		int VIP_MAX_YEAR = 2;
 		
 		Map<String, Integer> msg = new LinkedHashMap<>();
@@ -164,7 +181,6 @@ public class ExcelImporter {
 			
 			int batchSize = sfw.getBatchSize();
 			String DEFAULT_TEL = "00000";
-			int latestClientNo = MemberController.getLatestClientIdSerialNo(s, DEFAULT_COUNTRY_CODE);
 			
 			while(itr.hasNext()){
 				Row row = itr.next();
@@ -188,20 +204,18 @@ public class ExcelImporter {
 				Date toVipDate		= parseSqlDateVal(row, 轉VIP日期);
 				String note			= parseStrVal(row, 備註);
 				String vipYear		= parseNumericOrStr(row, VIP延續);
-				String clientId		= parseStrVal(row, 客戶編號);
+				String countryCode	= parseStrVal(row, 國家代碼);
+				String clientId		= null;
 				
-				if(StringUtils.isBlank(clientId)){
-					clientId = MemberController.genClientId(DEFAULT_COUNTRY_CODE, ++latestClientNo);
+				if(StringUtils.isNotBlank(countryCode) && !Pattern.matches("[A-Z]{2}", countryCode)){
+					msg.put(COUNTRY_CODE_FORMAT_NOT_CORRECT+readableRowNum, readableRowNum);
+					continue;
 				}else{
-					Number num = (Number)s.createQuery("SELECT COUNT(m) FROM " + Member.class.getName() + " m WHERE m.clientId = :clientId").setString("clientId", clientId).uniqueResult();
-					int count = num.intValue();
-					if(count > 0){
-						msg.put(CLIENT_ID_DUPLICATE+readableRowNum, readableRowNum);
-						continue;
+					if(StringUtils.isBlank(countryCode)){
+						countryCode = DEFAULT_COUNTRY_CODE;
 					}
-					clientId = clientId.toUpperCase();
+					clientId = MemberController.genNextClientId(s, countryCode);
 				}
-				
 				if(StringUtils.isBlank(name)){
 					msg.put(NAME_NOT_EXISTED+readableRowNum, readableRowNum);
 					continue;
@@ -307,6 +321,7 @@ public class ExcelImporter {
 		warning = genWarnMsg(msg, warning, MOBILE_DUPLICATE, "姓名和行動電話已重複");
 		warning = genWarnMsg(msg, warning, TEL_DUPLICATE, "姓名和室內電話已重複");
 		warning = genWarnMsg(msg, warning, CLIENT_ID_DUPLICATE, "客戶編號已重複");
+		warning = genWarnMsg(msg, warning, COUNTRY_CODE_FORMAT_NOT_CORRECT, "國碼應為兩碼大寫英文字母");
 		
 		String infoMsg = infoTotalCount + "\n" + infoImportCount;
 		if(StringUtils.isNotBlank(warning.toString())){

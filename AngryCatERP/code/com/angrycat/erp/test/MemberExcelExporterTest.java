@@ -12,13 +12,13 @@ import com.angrycat.erp.initialize.config.RootConfig;
 public class MemberExcelExporterTest {
 	public static void main(String[]args){
 		try {
-			File f = TempFile.createTempFile("aaa", "bbb");
+			File f = TempFile.createTempFile("aaa", "bbb"); // 用這個方法可以找到SXSSF產生的暫存檔位置，SXSSFWorkbook提供setCompressTempFiles(true)方法壓縮暫存檔，也有dispose刪掉暫存檔
 			System.out.println("temp dir: " + f.getAbsolutePath());
 		} catch (IOException e) { 
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
-		testOnePos();
+		testNormal();
 	}
 	public static void testNormal(){
 		AnnotationConfigApplicationContext aa = new AnnotationConfigApplicationContext(RootConfig.class);

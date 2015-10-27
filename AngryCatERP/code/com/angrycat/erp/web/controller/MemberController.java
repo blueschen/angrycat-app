@@ -202,6 +202,8 @@ public class MemberController {
 				}
 				if(StringUtils.isBlank(member.getClientId())){
 					member.setClientId(genNextClientId(s, "TW"));
+				}else if(member.getClientId().length()==2){
+					member.setClientId(genNextClientId(s, member.getClientId())); // 前端先暫存國碼，後端再轉為流水碼
 				}else{
 					member.setClientId(member.getClientId().toUpperCase());
 				}
@@ -416,7 +418,7 @@ public class MemberController {
 		return countryCode + StringUtils.leftPad(String.valueOf(serialNo), 4, "0");
 	}
 	
-	private String genNextClientId(Session s, String countryCode){
+	public static String genNextClientId(Session s, String countryCode){
 		int serialNo = getLatestClientIdSerialNo(s, countryCode);
 		String clientId = genClientId(countryCode, ++serialNo);
 		return clientId;

@@ -104,16 +104,30 @@
  			</div>
 		</div>
  	</div>
- 	<div class="form-group" ng-if="mainCtrl.login">
- 		<div class="form-group col-sm-5" ng-class="{'has-error': memberForm.clientId.$invalid}">
+ 	<div class="form-group">
+ 		<div class="form-group col-sm-5" ng-if="mainCtrl.login && mainCtrl.member.id">
  			<label class="col-sm-5 control-label" for="clientId">
- 				客戶編號<span style="color:red;">*</span>
+ 				客戶編號
  			</label>
  			<div class="col-sm-7">
- 				<input type="text" ng-model="mainCtrl.member.clientId" id="clientId" name="clientId" class="form-control" maxlength="6" client-id-hint client-id-duplicated/>
+ 				<span ng-bind="mainCtrl.member.clientId" id="clientId"></span>
  			</div> 		
  		</div>
- 		<div class="col-sm-5">
+ 		<div class="form-group col-sm-5" ng-if="!mainCtrl.member.id">
+  			<label class="col-sm-5 control-label" for="country">
+ 				country
+ 			</label>
+ 			<div class="col-sm-7">
+ 				<select 
+					ng-model="mainCtrl.member.clientId" 
+					ng-options="a.value as a.label for a in mainCtrl.countries"
+					id="country"
+				 	class="form-control">
+			</select>
+ 			</div> 			
+ 		</div>
+ 		<!--
+ 		 <div class="col-sm-5">
  			<div ng-if="!mainCtrl.member.clientId"><span style="color:red">請輸入國碼為大寫英文兩碼，阿拉伯數字四碼</span></div>
  			<div ng-if="hintClientId">
  				輸入提示:<span ng-bind="hintClientId"></span>
@@ -122,6 +136,7 @@
  				<span style="color:red" ng-bind="clientIdDuplicatedWarning"></span>
  			</div>
  		</div>
+ 		 -->
  	</div>
  	<div class="form-group">
  		<div class="form-group col-sm-5">
@@ -250,7 +265,7 @@
  	</div>
  	<div class="form-group">
  		<div class="col-sm-offset-3">
- 			<input type="submit" value="{{mainCtrl.member.id | saveOrModify}}" ng-click="mainCtrl.save()" ng-disabled="memberForm.$invalid || mainCtrl.isTelAndMobileNotExisted()" class="btn btn-default"/>
+ 			<input type="submit" value="儲存" ng-click="mainCtrl.save()" ng-disabled="memberForm.$invalid || mainCtrl.isTelAndMobileNotExisted()" class="btn btn-default"/>
  			<input type="button" value="關閉" onclick="document.location.href='${urlPrefix}/list'" class="btn btn-default" ng-if="mainCtrl.login"/>
  			<button type="button" class="btn btn-default" ng-click="mainCtrl.addMemberDiscount()" ng-if="mainCtrl.login" ng-disabled="memberForm.$invalid || mainCtrl.isTelAndMobileNotExisted()">
 				增加VIP紀錄
@@ -302,7 +317,8 @@
 		.constant('urlPrefix', '${urlPrefix}')
 		.constant('login', "${sessionScope['sessionUser']}" ? true : false)
 		.constant('targetData', '${member}')
-		.controller('MainCtrl', ['$scope', 'DateService', 'AjaxService', 'urlPrefix', 'login', 'targetData', function($scope, DateService, AjaxService, urlPrefix, login, targetData){
+		.constant('displayJsonCountries', '${displayJsonCountries}')
+		.controller('MainCtrl', ['$scope', 'DateService', 'AjaxService', 'urlPrefix', 'login', 'targetData', 'displayJsonCountries', function($scope, DateService, AjaxService, urlPrefix, login, targetData, displayJsonCountries){
 			var self = this,
 				saveUrl = urlPrefix + '/save.json',
 				updateMemberDiscountUrl = urlPrefix + '/updateMemberDiscount.json',
@@ -314,9 +330,15 @@
 			if(targetData){
 				self.member = JSON.parse(targetData);
 			}
-			self.actionMsg = function (input){
-				return input ? '儲存': '修改';
-			};
+			if(displayJsonCountries){
+				self.countries = JSON.parse(displayJsonCountries);
+				if(!targetData){
+					self.member = {};
+					self.member.clientId = 'TW';
+				}else if(!self.member.id){
+					self.member.clientId = 'TW';
+				}
+			}
 			self.isInVipEffectiveDur = function(){
 				if(!self.member.toVipDate || !self.member.toVipEndDate){
 					self.member.important = false;
@@ -334,10 +356,10 @@
 				AjaxService.post(saveUrl, self.member)
 					.then(function(response){
 						self.member = response.data;
-						alert(self.actionMsg(isNew)+'成功!!');
+						alert('儲存成功!!');
 					},
 					function(errResponse){
-						alert(self.actionMsg(isNew)+'失敗，錯誤訊息: ' + JSON.stringify(errResponse));
+						alert('儲存失敗，錯誤訊息: ' + JSON.stringify(errResponse));
 					});	
 			};
 			self.addMemberDiscount = function(){
@@ -402,11 +424,6 @@
 			};
 			self.isMobileNotNumeric = function(){
 				return $scope.memberForm.mobile.$dirty && $scope.memberForm.mobile.$error.pattern;
-			};
-		}])
-		.filter('saveOrModify', [function(){
-			return function(input){
-				return input ? '修改': '儲存';
 			};
 		}])
 		.factory('ValidateService', ['$log', 'AjaxService', 'urlPrefix', '$window', function($log, AjaxService, urlPrefix, $window){
@@ -475,7 +492,6 @@
 							newVal = newVal.toUpperCase();
 							AjaxService.get(urlPrefix + '/' + 'clientIdDuplicated' + '/' + newVal)
 								.then(function(response){
-									alert(typeof response.data.isValid);
 									var invalid = response.data.isValid ? false : true;
 									if(invalid){
 										$scope.clientIdDuplicatedWarning = '客戶編號已存在';

@@ -47,6 +47,9 @@
 					<li ng-class="{'active': mainCtrl.moduleName == 'member'}">
 						<a href="${pageContext.request.contextPath}/member/list">會員查詢</a>
 					</li>
+					<li>
+						<a href="${pageContext.request.contextPath}/member/add">會員新增</a>
+					</li>
 					<li ng-class="{'active': mainCtrl.moduleName == 'datachangelog'}">
 						<a href="${pageContext.request.contextPath}/datachangelog/list">異動紀錄查詢</a>
 					</li>
@@ -233,12 +236,6 @@
  	<div class="btn-group" role="group">
  		<input type="button" value="清除" ng-click="mainCtrl.clear()" class="btn btn-default"/>
  	</div>
- 	<div class="btn-group" role="group">
- 		<input type="button" value="刪除" ng-click="mainCtrl.deleteItems()" class="btn btn-default"/>
- 	</div>
- 	<div class="btn-group" role="group">
- 		<input type="button" value="新增" onclick="document.location.href = '${urlPrefix}/add';" class="btn btn-default"/>
- 	</div>
  	<div class="btn-group" role="group" ng-if="mainCtrl.isAdmin()">
  		<erp-file-ajax-btn file-id="uploadMember" btn="上傳會員檔案" accept-type=".xlsx" input-name="uploadExcelFile" request-url="${urlPrefix}/uploadExcel">
 			<erp-file-ajax-callback></erp-file-ajax-callback>
@@ -305,7 +302,11 @@
 			first-text="&laquo;"
 			last-text="&raquo;"
 			boundary-links="true"></pagination>
-	
+<div class="btn-toolbar" role="toolbar">
+ 	<div class="btn-group" role="group">
+ 		<input type="button" value="刪除" ng-click="mainCtrl.deleteItems()" class="btn btn-default"/>
+ 	</div>
+</div>	
 </div>
 
 <script type="text/javascript">
