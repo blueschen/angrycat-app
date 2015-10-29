@@ -89,8 +89,9 @@ public class OnePosInitialExcelAccessor {
 	private static final DataFormatter DF = new DataFormatter();
 	private static final String INVENTORY = "I";
 	public static final String NON_INVENTORY = "N";
-	public static final String CAT_GIFT = "GIFT";
-	public static final String CAT_ACT = "ACT";
+	public static final String CAT_GIFT = "GIFT"; // 代表禮券
+	public static final String CAT_ACT = "ACT"; // 代表活動
+	public static final String CAT_PDIS = "PDIS"; // 代表比例折扣(非固定金額折扣)
 	public static final String BRAND_ID = "OHM";
 	@Autowired
 	private HttpService httpService;
@@ -100,6 +101,8 @@ public class OnePosInitialExcelAccessor {
 	private Map<String, String> barCodes = getBarCodes();
 	private int importBarCodeCount = 0;
 	private String outFormat = ".xlsx";
+	private String memberPath = "E:\\angrycat_workitem\\member\\2015_10_05\\OHM Beads TW (AngryCat) 一般會員資料_update.xlsx"; // 會員資料的位置
+	private String wipesPath = ""; // 拭金拭銀布資料的位置
 	
 	public boolean isImgProcessEnabled() {
 		return imgProcessEnabled;
@@ -496,7 +499,6 @@ public class OnePosInitialExcelAccessor {
 		String tempDir = tempPath + customDir + File.separator;
 		System.out.println("process tempDir: " + tempDir);
 		String tempImgDir = tempDir + "image" + File.separator;
-		String memberPath = "E:\\angrycat_workitem\\member\\2015_10_05\\OHM Beads TW (AngryCat) 一般會員資料_update.xlsx";
 		try{
 			FileUtils.forceMkdir(new File(tempImgDir));
 		}catch(Throwable e){
@@ -630,6 +632,7 @@ public class OnePosInitialExcelAccessor {
 			// 手動新增商品類別和商品
 			addValToCategorySheet(categories, categorySheet, CAT_GIFT, "禮卷");
 			addValToCategorySheet(categories, categorySheet, CAT_ACT, "活動");
+			addValToCategorySheet(categories, categorySheet, CAT_PDIS, "比例折扣");
 			
 			List<OnePosDiscountItem> items = OnePosDiscountItem.getDefaultItems();
 			for(OnePosDiscountItem item : items){

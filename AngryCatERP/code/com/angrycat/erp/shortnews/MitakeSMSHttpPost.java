@@ -5,6 +5,8 @@ import java.io.DataOutputStream;
 import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
 import java.net.URL;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -80,7 +82,8 @@ public class MitakeSMSHttpPost {
 	public static void main(String[]args){
 //		MitakeSMSHttpPost SMS = new MitakeSMSHttpPost();
 //		SMS.testSendPostShortMsg();
-		testSendBirthMonthMsg();
+//		testSendBirthMonthMsg();
+		testGetLocalDateTime();
 	}
 	private static String betweenBraces(String name){
 		return "{" + name + "}";
@@ -231,7 +234,7 @@ public class MitakeSMSHttpPost {
 		AnnotationConfigApplicationContext acac = new AnnotationConfigApplicationContext(RootConfig.class);
 		MitakeSMSHttpPost bean = acac.getBean(MitakeSMSHttpPost.class);
 		bean.setTestMode(true);
-		bean.sendBirthMonthMsg(11, "這是11月份生日簡訊測試，真是開心，等你跟我講ASCII Code 6、我還不想知道 可是真的是這樣嗎???");
+		bean.sendBirthMonthMsg(11, "這是11月份生日簡訊測試，真是開心，等你跟我講、我還不想知道 可是真的是這樣嗎???");
 		
 		acac.close();
 	}
@@ -273,5 +276,14 @@ public class MitakeSMSHttpPost {
 				throw new RuntimeException(e);
 			}
 		});
+	}
+	
+	private static String getLocalDateTime(){
+		LocalDateTime t = LocalDateTime.now();
+		return t.format(DateTimeFormatter.ofPattern("yyyy-MM-dd hh:mm:ss"));
+	}
+	
+	private static void testGetLocalDateTime(){
+		System.out.println(getLocalDateTime());
 	}
 }

@@ -458,51 +458,6 @@
 			.directive('telDuplicated', ['ValidateService', function(ValidateService){
 				return ValidateService.multiCondsValidateDirectiveDefProto('telDuplicated');
 			}])
-			.directive('clientIdHint', ['AjaxService', 'urlPrefix', '$log', function(AjaxService, urlPrefix, $log){
-				return {
-					restrict: 'A',
-					require: 'ngModel',
-					link: function($scope, ele, attrs, ngModelCtrl){
-						$scope.$watch(attrs.ngModel, function(newVal, oldVal){
-							if(!newVal || newVal == oldVal || newVal.length!=2){
-								$scope.hintClientId = null;
-								return;
-							}
-							newVal = newVal.toUpperCase();
-							AjaxService.get(urlPrefix + '/' + 'hintClientId' + '/' + newVal)
-								.then(function(response){
-									$scope.hintClientId = response.data.hintClientId;
-								}, function(responseErr){
-									$scope.hintClientId = null;
-								});
-						});
-					}
-				};
-			}])
-			.directive('clientIdDuplicated', ['AjaxService', 'urlPrefix', function(AjaxService, urlPrefix){
-				return {
-					restrict: 'A',
-					require: 'ngModel',
-					link: function($scope, ele, attrs, ngModelCtrl){
-						$scope.$watch(attrs.ngModel, function(newVal, oldVal){
-							if(!newVal || newVal == oldVal || newVal.length!=6){
-								$scope.clientIdDuplicatedWarning = null;
-								return;
-							}
-							newVal = newVal.toUpperCase();
-							AjaxService.get(urlPrefix + '/' + 'clientIdDuplicated' + '/' + newVal)
-								.then(function(response){
-									var invalid = response.data.isValid ? false : true;
-									if(invalid){
-										$scope.clientIdDuplicatedWarning = '客戶編號已存在';
-									}
-								}, function(responseErr){
-									$scope.hintClientId = null;
-								});
-						});
-					}					
-				};
-			}])
 			;
 </script>
 </body>

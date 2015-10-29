@@ -390,17 +390,6 @@ public class MemberController {
 		return results;
 	}
 	
-	@RequestMapping(value="/clientIdDuplicated/{clientId}", method=RequestMethod.GET)
-	public @ResponseBody Map<String, Boolean> clientIdDuplicated(@PathVariable("clientId") String clientId){
-		Map<String, Boolean> results = new HashMap<>();
-		sfw.executeSession(s->{
-			long count = 0;
-			count = (long)s.createQuery("SELECT COUNT(m.id) FROM " + Member.class.getName() + " m WHERE m.clientId = :clientId").setString("clientId", clientId).uniqueResult();
-			results.put("isValid", count == 0);
-		});
-		return results;
-	}
-	
 	public static int getLatestClientIdSerialNo(Session s, String countryCode){
 		int latestSerialNo = 0;
 		List<String> clientIds = s.createQuery("SELECT MAX(m.clientId) FROM " + Member.class.getName() + " m WHERE substring(m.clientId, 1, 2) = :countryCode").setString("countryCode", countryCode).list();
@@ -422,16 +411,6 @@ public class MemberController {
 		int serialNo = getLatestClientIdSerialNo(s, countryCode);
 		String clientId = genClientId(countryCode, ++serialNo);
 		return clientId;
-	}
-	
-	@RequestMapping(value="/hintClientId/{countryCode}", method=RequestMethod.GET)
-	public @ResponseBody Map<String, String> hintClientId(@PathVariable("countryCode") String countryCode){
-		Map<String, String> results = new HashMap<>();
-		sfw.executeSession(s->{
-			String hintClientId = genNextClientId(s, countryCode);
-			results.put("hintClientId", hintClientId);
-		});
-		return results;
 	}
 	
 	@RequestMapping(value="/resetConditions", 
