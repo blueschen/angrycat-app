@@ -183,11 +183,12 @@ public class OnePosInitialExcelAccessor {
 	}
 	
 	/**
-	 * 型號和條碼.xlsx這張Excel表是整理ohm-catalog-barcode-150601.pdf而來
+	 * ohm-tw-catalog-barcodes-151015.xlsx這張Excel表是整理ohm-tw-catalog-barcodes-151015.csv轉來
 	 * @return
 	 */
 	private Map<String, String> getBarCodes(){
-		String path = "E:\\angrycat_workitem\\產品\\型號和條碼.xlsx";
+//		String path = "E:\\angrycat_workitem\\產品\\型號和條碼.xlsx";
+		String path = "E:\\angrycat_workitem\\產品\\barCode\\2015_10_16\\ohm-tw-catalog-barcodes-151015.xlsx";
 		Map<String, String> barCodes = Collections.emptyMap();
 		File file = new File(path);
 		if(!file.exists()){
@@ -203,12 +204,7 @@ public class OnePosInitialExcelAccessor {
 				Row row = rows.next();
 				Cell cell = row.getCell(0);
 				if(cell!=null){
-					String val = DF.formatCellValue(cell);
-					if(StringUtils.isBlank(val)){
-						continue;
-					}
-					String[] data = val.split(" ");
-					String barCode = data[0];
+					String barCode = DF.formatCellValue(cell);
 					if(StringUtils.isBlank(barCode)){
 						continue;
 					}
@@ -217,7 +213,11 @@ public class OnePosInitialExcelAccessor {
 						System.out.println("ignored barCode: " + barCode);
 						continue;
 					}
-					String sku = data[1];
+					Cell skuCell = row.getCell(1);
+					if(skuCell == null){
+						continue;
+					}
+					String sku = DF.formatCellValue(skuCell);
 					if(StringUtils.isBlank(sku)){
 						continue;
 					}
@@ -238,7 +238,7 @@ public class OnePosInitialExcelAccessor {
 	 * 資料源為ohm-catalog-barcode-150601.pdf
 	 * @param dest
 	 */
-	public void writeBarCodeScannable(String dest){
+	public void writeBriefBarCodeScannable(String dest){
 		int rowNum = 0;
 		try(XSSFWorkbook wb = new XSSFWorkbook();
 		FileOutputStream fos = new FileOutputStream(dest)){
@@ -279,8 +279,16 @@ public class OnePosInitialExcelAccessor {
 			throw new RuntimeException(e);
 		}
 	}
-	
-	public void writeBarCodeScannable(String src, String dest, String imgPathTemplate){
+	/**
+	 * 根據Kit給的"最新"xlsx檔(可能是csv轉)，匯整可掃描條碼
+	 * 可以根據設定的路徑抓圖，並把圖嵌入Excel
+	 * 如果沒有在本地取得圖，就會發HTTP去抓，抓成功後會放在指定路徑，再把圖嵌入Excel
+	 * 也可以只用來抓圖而已
+	 * @param src: 來源xlsx，此格式是以Kit提供ohm-tw-catalog-barcodes-151015.csv為基礎
+	 * @param dest: 目的xlsx，此格式是模仿Kit提供ohm-tw-catalog-barcodes-151015.pdf而來
+	 * @param imgPathTemplate: 圖片存取路徑模板，將產品型號帶入，就可以得到圖片路徑。
+	 */
+	public void writeCompleteBarCodeScannable(String src, String dest, String imgPathTemplate){
 		// ohm-tw-catalog-barcodes-151015.csv、ohm-tw-catalog-barcodes-151015.pdf
 		try(FileInputStream fis = new FileInputStream(src);
 			XSSFWorkbook inWb = new XSSFWorkbook(fis);
@@ -383,7 +391,10 @@ public class OnePosInitialExcelAccessor {
 		}
 	}
 	
-	
+	/**
+	 * 產出折扣的條碼資料
+	 * @param dest
+	 */
 	public void writeDiscountBarCode(String dest){
 		try(FileOutputStream fos = new FileOutputStream(dest);
 			Workbook outWb = ".xlsx".equals(outFormat) ? new XSSFWorkbook(): new HSSFWorkbook()){
@@ -436,14 +447,11 @@ public class OnePosInitialExcelAccessor {
 				
 				Cell i5 = row.createCell(5);
 				i5.setCellValue(Integer.parseInt(item.getPrice()));
-			}
-			
+			}		
 			outWb.write(fos);
 		}catch(Throwable e){
 			throw new RuntimeException(e);
 		}
-		
-		
 	}
 	
 	private static void testProcess(){
@@ -452,9 +460,9 @@ public class OnePosInitialExcelAccessor {
 		AnnotationConfigApplicationContext acac = new AnnotationConfigApplicationContext(RootConfig.class);
 		String t1 = "E:\\angrycat_workitem\\產品\\臺灣OHM商品總庫存清單(類別)_T20150924.xlsx";
 		String t2 = "E:\\angrycat_workitem\\member\\臺灣OHM商品總庫存清單(類別)_T20150924 - 複製.xlsx";
-		
+		String t3 = "E:\\angrycat_workitem\\產品\\臺灣OHM商品總庫存清單(類別)_T20151028.xlsx";
 		try(
-			FileInputStream fis = new FileInputStream(t1)){
+			FileInputStream fis = new FileInputStream(t3)){
 			byte[] data = IOUtils.toByteArray(fis);
 			OnePosInitialExcelAccessor accessor = acac.getBean(OnePosInitialExcelAccessor.class);
 //			accessor.setImgProcessEnabled(true);
@@ -1073,18 +1081,18 @@ public class OnePosInitialExcelAccessor {
 		}
 	}
 	
-	private static void testWriteBarCodeScannable(){
+	private static void testWriteBriefBarCodeScannable(){
 		AnnotationConfigApplicationContext acac = new AnnotationConfigApplicationContext(RootConfig.class);
 		OnePosInitialExcelAccessor accessor = acac.getBean(OnePosInitialExcelAccessor.class);
-		accessor.writeBarCodeScannable("E:\\angrycat_workitem\\產品\\型號和可掃描條碼對照.xlsx");
+		accessor.writeBriefBarCodeScannable("E:\\angrycat_workitem\\產品\\型號和可掃描條碼對照.xlsx");
 		acac.close();
 	}
 	
-	private static void testWriteBarCodeScannable2(){
+	private static void testWriteCompleteBarCodeScannable(){
 		AnnotationConfigApplicationContext acac = new AnnotationConfigApplicationContext(RootConfig.class);
 		OnePosInitialExcelAccessor accessor = acac.getBean(OnePosInitialExcelAccessor.class);
 		accessor.setOutFormat(".xlsx");
-		accessor.writeBarCodeScannable("E:\\angrycat_workitem\\產品\\barCode\\2015_10_16\\ohm-tw-catalog-barcodes-151015.xlsx", "E:\\angrycat_workitem\\產品\\barCode\\2015_10_16\\型號和可掃描條碼對照test.xlsx", "E:\\angrycat_workitem\\產品\\barCode\\2015_10_16\\image\\{sku}.jpg");
+		accessor.writeCompleteBarCodeScannable("E:\\angrycat_workitem\\產品\\barCode\\2015_10_16\\ohm-tw-catalog-barcodes-151015.xlsx", "E:\\angrycat_workitem\\產品\\barCode\\2015_10_16\\型號和可掃描條碼對照test.xlsx", "E:\\angrycat_workitem\\產品\\barCode\\2015_10_16\\image\\{sku}.jpg");
 		acac.close();
 	}
 	
@@ -1213,8 +1221,8 @@ public class OnePosInitialExcelAccessor {
 	public static void main(String[]args){
 //		testFileReplaceOldPart();
 //		testPack();
-//		testProcess();
-//		testWriteBarCodeScannable();
+		testProcess();
+//		testWriteBriefBarCodeScannable();
 //		AnnotationConfigApplicationContext acac = new AnnotationConfigApplicationContext(RootConfig.class);
 //		
 //		OnePosProductExcelAccessor importer = acac.getBean(OnePosProductExcelAccessor.class);
@@ -1224,7 +1232,7 @@ public class OnePosInitialExcelAccessor {
 //		testStringPad();
 //		testAddImgToExcel();
 //		testAddImgsToExcel();
-//		testWriteBarCodeScannable2();
-		testWriteDiscountBarCode();
+//		testWriteCompleteBarCodeScannable();
+//		testWriteDiscountBarCode();
 	}
 }
