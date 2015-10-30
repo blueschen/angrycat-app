@@ -10,7 +10,6 @@ import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
-import java.util.function.Consumer;
 
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -18,6 +17,7 @@ import org.springframework.context.annotation.AnnotationConfigApplicationContext
 import org.springframework.stereotype.Service;
 
 import com.angrycat.erp.component.SessionFactoryWrapper;
+import com.angrycat.erp.function.ConsumerThrowable;
 import com.angrycat.erp.initialize.config.RootConfig;
 import com.angrycat.erp.model.Member;
 @Service
@@ -117,7 +117,7 @@ public class MitakeSMSHttpPost {
 	 * 長簡訊，67個中文字含標點符號為一則扣一點
 	 * 
 	 */
-	public void sendPostShortMsg(Consumer<DataOutputStream> configureSendData, Consumer<BufferedReader> returnMsg){
+	public void sendPostShortMsg(ConsumerThrowable<DataOutputStream> configureSendData, ConsumerThrowable<BufferedReader> returnMsg){
 		init();
 		HttpURLConnection huc = null;
 		DataOutputStream out = null;
@@ -192,29 +192,21 @@ public class MitakeSMSHttpPost {
 				}
 				return list;
 			});
-			try{
-				for(int i = 0; i < members.size(); i++){
-					Member m = members.get(i);
-					int serial = i+1;
-					String mobile = m.getMobile();
-					if(isMobile(mobile)){
-						byte[] config = getRequiredConfig(serial, mobile, content);
-						out.write(config);
-//						out.write("".getBytes(sEncoding));
-					}
+			for(int i = 0; i < members.size(); i++){
+				Member m = members.get(i);
+				int serial = i+1;
+				String mobile = m.getMobile();
+				if(isMobile(mobile)){
+					byte[] config = getRequiredConfig(serial, mobile, content);
+					out.write(config);
+//					out.write("".getBytes(sEncoding));
 				}
-			}catch(Throwable e){
-				throw new RuntimeException(e);
 			}
 		},buReader->{
-			try{
-				String msg = null;
-				System.out.println("發送簡訊後回傳訊息:");
-				while((msg = buReader.readLine()) != null){
-					System.out.println(msg);
-				}
-			}catch(Throwable e){
-				throw new RuntimeException(e);
+			String msg = null;
+			System.out.println("發送簡訊後回傳訊息:");
+			while((msg = buReader.readLine()) != null){
+				System.out.println(msg);
 			}
 		});
 	}
@@ -243,38 +235,32 @@ public class MitakeSMSHttpPost {
 	 */
 	private void testSendPostShortMsg(){
 		sendPostShortMsg(out->{
-			try{
-				out.write("[101]\r\n".getBytes(sEncoding));
-				out.write("DestName=JerryLin\r\n".getBytes(sEncoding));
-				out.write("dstaddr=0972981126\r\n".getBytes(sEncoding));
-				out.write("smbody=我是測試給阿桌\r\n".getBytes(sEncoding));
+			out.write("[101]\r\n".getBytes(sEncoding));
+			out.write("DestName=JerryLin\r\n".getBytes(sEncoding));
+			out.write("dstaddr=0972981126\r\n".getBytes(sEncoding));
+			out.write("smbody=我是測試給阿桌\r\n".getBytes(sEncoding));
 
-				out.write(getActiveResponseConfig());
-				out.write("dlvtime=20151028095800\r\n".getBytes(sEncoding));
+			out.write(getActiveResponseConfig());
+			out.write("dlvtime=20151028095800\r\n".getBytes(sEncoding));
 
-				out.write("[102]\r\n".getBytes(sEncoding));
-				out.write("DestName=給Joyce\r\n".getBytes(sEncoding));
-				out.write("dstaddr=0931387210\r\n".getBytes(sEncoding));
-				out.write("smbody=對面阿桌發測試簡訊\r\n".getBytes(sEncoding));
-				out.write("dlvtime=20151028095800\r\n".getBytes(sEncoding));
-	//
-//				out.write("[103]\r\n".getBytes(sEncoding));
-//				out.write("DestName=小明\r\n".getBytes(sEncoding));
-//				out.write("dstaddr=0999000000\r\n".getBytes(sEncoding));
-//				out.write("smbody=我是測試3\r\n".getBytes(sEncoding));
-//				out.write("dlvtime=20100720120000\r\n".getBytes(sEncoding));
-			}catch(Throwable e){
-				throw new RuntimeException(e);
-			}
+			out.write("[102]\r\n".getBytes(sEncoding));
+			out.write("DestName=給Joyce\r\n".getBytes(sEncoding));
+			out.write("dstaddr=0931387210\r\n".getBytes(sEncoding));
+			out.write("smbody=對面阿桌發測試簡訊\r\n".getBytes(sEncoding));
+			out.write("dlvtime=20151028095800\r\n".getBytes(sEncoding));
+//
+//			out.write("[103]\r\n".getBytes(sEncoding));
+//			out.write("DestName=小明\r\n".getBytes(sEncoding));
+//			out.write("dstaddr=0999000000\r\n".getBytes(sEncoding));
+//			out.write("smbody=我是測試3\r\n".getBytes(sEncoding));
+//			out.write("dlvtime=20100720120000\r\n".getBytes(sEncoding));
+		
 		}, buReader->{
-			try{
-				String sLine = "";
-				while((sLine = buReader.readLine()) != null){
-					System.out.println(sLine);
-				}
-			}catch(Throwable e){
-				throw new RuntimeException(e);
+			String sLine = "";
+			while((sLine = buReader.readLine()) != null){
+				System.out.println(sLine);
 			}
+		
 		});
 	}
 	

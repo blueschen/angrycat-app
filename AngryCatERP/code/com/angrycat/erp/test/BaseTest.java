@@ -3,6 +3,7 @@ package com.angrycat.erp.test;
 import java.util.List;
 import java.util.function.BiConsumer;
 import java.util.function.Consumer;
+import java.util.function.Function;
 
 import org.apache.commons.lang3.builder.ReflectionToStringBuilder;
 import org.apache.commons.lang3.builder.ToStringStyle;
@@ -64,4 +65,8 @@ public class BaseTest {
 	public static void main(String[]args){
 		testSubstr();
 	}
+
+	
+	
+	
 }

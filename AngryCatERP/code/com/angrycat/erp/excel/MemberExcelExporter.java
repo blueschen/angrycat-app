@@ -27,6 +27,7 @@ import com.angrycat.erp.condition.MatchMode;
 import com.angrycat.erp.format.FormatListFactory;
 import com.angrycat.erp.format.ObjectFormat;
 import com.angrycat.erp.model.Member;
+import com.angrycat.erp.onepos.excel.OnePosInitialExcelAccessor;
 import com.angrycat.erp.service.QueryBaseService;
 import com.angrycat.erp.web.WebUtils;
 
