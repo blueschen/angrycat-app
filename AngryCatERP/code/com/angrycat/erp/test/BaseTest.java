@@ -62,8 +62,13 @@ public class BaseTest {
 		
 	}
 	
+	private static void testSystemProperty(){
+		String root = System.getProperty("catalina.home");
+		System.out.println(root);
+	}
+	
 	public static void main(String[]args){
-		testSubstr();
+		testSystemProperty();
 	}
 
 	

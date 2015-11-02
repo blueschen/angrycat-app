@@ -16,11 +16,12 @@ import org.springframework.context.annotation.Scope;
 import org.springframework.orm.hibernate4.LocalSessionFactoryBean;
 import org.springframework.stereotype.Component;
 
+import com.angrycat.erp.initialize.config.RootConfig;
+
 @Component
 @Scope("prototype")
 @Qualifier("sessionFactoryWrapper")
 public class SessionFactoryWrapper {
-	final int DEFAULT_BATCH_SIZE = 100;
 	
 	@Autowired
 	private LocalSessionFactoryBean lsfb;
@@ -56,7 +57,7 @@ public class SessionFactoryWrapper {
 	
 	public int getBatchSize(){
 		String batchSizeStr = lsfb.getConfiguration().getProperty("hibernate.jdbc.batch_size");
-		int batchSize = StringUtils.isNumeric(batchSizeStr) ? Integer.parseInt(batchSizeStr) : DEFAULT_BATCH_SIZE;
+		int batchSize = StringUtils.isNumeric(batchSizeStr) ? Integer.parseInt(batchSizeStr) : Integer.parseInt(RootConfig.DEFAULT_BATCH_SIZE);
 		return batchSize;
 	}
 	

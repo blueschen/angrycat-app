@@ -1,7 +1,14 @@
 package com.angrycat.erp.shortnews;
 
+import static com.angrycat.erp.condition.ConditionFactory.putInt;
+
+
+
 import java.io.BufferedReader;
 import java.io.DataOutputStream;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
 import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
 import java.net.URL;
@@ -11,15 +18,34 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
+
+
+import javax.annotation.PostConstruct;
+
+
+
+import org.apache.catalina.ant.FindLeaksTask;
+import org.apache.commons.io.FileUtils;
+import org.apache.commons.lang.exception.ExceptionUtils;
+import org.apache.commons.lang3.RandomStringUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.poi.hssf.usermodel.HSSFWorkbook;
+import org.apache.poi.ss.usermodel.CellStyle;
+import org.apache.poi.ss.usermodel.Row;
+import org.apache.poi.ss.usermodel.Sheet;
+import org.hibernate.Session;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.AnnotationConfigApplicationContext;
 import org.springframework.stereotype.Service;
 
-import com.angrycat.erp.component.SessionFactoryWrapper;
+
+
 import com.angrycat.erp.function.ConsumerThrowable;
 import com.angrycat.erp.initialize.config.RootConfig;
 import com.angrycat.erp.model.Member;
+import com.angrycat.erp.onepos.excel.OnePosInitialExcelAccessor;
+import com.angrycat.erp.service.QueryBaseService;
 @Service
 /**
  * 三竹簡訊服務
@@ -59,7 +85,8 @@ public class MitakeSMSHttpPost {
 	private static final String TIMEOUT_CONNECT_PROP_NAME = "sun.net.client.defaultConnectTimeout";
 	
 	@Autowired
-	private SessionFactoryWrapper sfw;
+	@Qualifier("queryBaseService")
+	private QueryBaseService<Member, Member> memberQueryService;
 	private String url = GENERAL_CONNECT_URL;
 	private boolean testMode;
 
@@ -70,7 +97,21 @@ public class MitakeSMSHttpPost {
 		this.testMode = testMode;
 	}
 
-	private void init(){
+	@PostConstruct
+	public void initQuery(){
+		memberQueryService.setRootAndInitDefault(Member.class);
+		memberQueryService
+			.addWhere(putInt("month(p.birthday) = :pBirthdayMonthStart"));
+	}
+	/**
+	 * 設定生日月份做為查詢條件
+	 * @param month
+	 */
+	public void setMemberBirthMonth(int month){
+		memberQueryService.getSimpleExpressions().get("pBirthdayMonthStart").setValue(month);
+	}
+	
+	private void initShortMsgConfig(){
 		if(StringUtils.isBlank(System.getProperty(TIMEOUT_READ_PROP_NAME))){
 			System.setProperty(TIMEOUT_READ_PROP_NAME, ""+lTimeout);
 		}
@@ -83,7 +124,9 @@ public class MitakeSMSHttpPost {
 //		MitakeSMSHttpPost SMS = new MitakeSMSHttpPost();
 //		SMS.testSendPostShortMsg();
 //		testSendBirthMonthMsg();
-		testGetLocalDateTime();
+//		testGetLocalDateTime();
+		testQueryMembers();
+//		testSendShortMsgToBirthMonth();
 	}
 	private static String betweenBraces(String name){
 		return "{" + name + "}";
@@ -118,7 +161,7 @@ public class MitakeSMSHttpPost {
 	 * 
 	 */
 	public void sendPostShortMsg(ConsumerThrowable<DataOutputStream> configureSendData, ConsumerThrowable<BufferedReader> returnMsg){
-		init();
+		initShortMsgConfig();
 		HttpURLConnection huc = null;
 		DataOutputStream out = null;
 		BufferedReader buReader = null;
@@ -172,36 +215,60 @@ public class MitakeSMSHttpPost {
 		}
 	}
 	/**
-	 * 發送生日簡訊給當月壽星
-	 * @param birthMonth
+	 * 發送簡訊給會員，如果有特殊查詢條件，應在呼叫此method之前就設定完畢，沒有指定就是查出資料庫所有會員資料。
+	 * 如果中途有例外發生，他會繼續下去，把錯誤資料秀在主控台
 	 * @param content
 	 */
-	public void sendBirthMonthMsg(final int birthMonth, final String content){
+	public void sendShortMsgToMembers(final String content){
 		if(StringUtils.isBlank(content)){
 			return;
 		}else{
 			System.out.println("發送訊息字數: " + content.length());
 		}
 		sendPostShortMsg(out->{
-			List<Member> members = sfw.executeSession(s->{
-				List<Member> list = Collections.emptyList();
-				if(testMode){
-					list = getTestMembers();
-				}else{
-					list = s.createQuery("FROM " + Member.class.getName() + " p WHERE month(p.birthday) = :pBirthdayMonth").setInteger("pBirthdayMonth", birthMonth).list();
+			if(testMode){
+				List<Member> members = getTestMembers();
+				for(int i = 0; i < members.size(); i++){
+					Member m = members.get(i);
+					int serial = i+1;
+					String mobile = m.getMobile();
+					if(isMobile(mobile)){
+						byte[] config = getRequiredConfig(serial, mobile, content);
+						out.write(config);
+//						out.write("".getBytes(sEncoding));
+					}
 				}
-				return list;
-			});
-			for(int i = 0; i < members.size(); i++){
-				Member m = members.get(i);
-				int serial = i+1;
-				String mobile = m.getMobile();
-				if(isMobile(mobile)){
-					byte[] config = getRequiredConfig(serial, mobile, content);
-					out.write(config);
-//					out.write("".getBytes(sEncoding));
-				}
+			}else{
+				memberQueryService.executeScrollableQuery((rs, sfw)->{
+					int batchSize = sfw.getBatchSize();
+					Session s = sfw.currentSession();
+					int currentCount = 0;
+					while(rs.next()){
+						++currentCount;
+						int serial = currentCount;
+						Member member = (Member)rs.get(0);
+						String mobile = member.getMobile();
+						if(isMobile(mobile)){
+							try{
+								byte[] config = getRequiredConfig(serial, mobile, content);
+								out.write(config);
+//								out.write("".getBytes(sEncoding));
+							}catch(Throwable e){
+								// TODO
+								String trace = ExceptionUtils.getStackTrace(e);
+								System.out.println("send short msg error on mobile: " + mobile);
+								System.out.println(trace);
+							}
+						}
+						if(currentCount % batchSize == 0){
+							s.flush();
+							s.clear();
+						}
+					}
+					return null;
+				});
 			}
+
 		},buReader->{
 			String msg = null;
 			System.out.println("發送簡訊後回傳訊息:");
@@ -209,6 +276,56 @@ public class MitakeSMSHttpPost {
 				System.out.println(msg);
 			}
 		});
+	}
+	/**
+	 * 查詢會員，顯示資料，主要是用來測試查詢條件與結果是否相符
+	 */
+	public void queryMembers(){
+		memberQueryService.executeScrollableQuery((rs, sfw)->{
+			int batchSize = sfw.getBatchSize();
+			Session s = sfw.currentSession();
+			int currentCount = 0;
+			while(rs.next()){
+				++currentCount;
+				Member member = (Member)rs.get(0);
+				String mobile = member.getMobile();
+				if(isMobile(mobile)){
+					System.out.println("name: " + member.getName()+ "mobile: " + mobile + ", birth: " + member.getBirthday());
+				}
+				if(currentCount % batchSize == 0){
+					s.flush();
+					s.clear();
+				}
+			}
+			System.out.println("total count: " + currentCount);
+			return null;
+		});
+	}
+	/**
+	 * 發送訊息給指定生日月份的會員
+	 * @param birthMonth
+	 * @param content
+	 */
+	public void sendShortMsgToBirthMonth(int birthMonth, String content){
+		setMemberBirthMonth(birthMonth);
+		if(testMode){
+			queryMembers();
+		}else{
+			sendShortMsgToMembers(content);
+		}
+	}
+	private static void testSendShortMsgToBirthMonth(){
+		AnnotationConfigApplicationContext acac = new AnnotationConfigApplicationContext(RootConfig.class);
+		MitakeSMSHttpPost bean = acac.getBean(MitakeSMSHttpPost.class);
+		bean.setTestMode(true);
+		bean.sendShortMsgToBirthMonth(11, "Happy Birthday!!");
+		acac.close();
+	}
+	private static void testQueryMembers(){
+		AnnotationConfigApplicationContext acac = new AnnotationConfigApplicationContext(RootConfig.class);
+		MitakeSMSHttpPost bean = acac.getBean(MitakeSMSHttpPost.class);
+		bean.queryMembers();
+		acac.close();
 	}
 	/**
 	 * 是否為有效手機號碼
@@ -222,11 +339,14 @@ public class MitakeSMSHttpPost {
 		}
 		return true;
 	}
-	private static void testSendBirthMonthMsg(){
+	/**
+	 * 正式發送前，要先轉換資料庫連線到NAS正式機上
+	 */
+	private static void testSendShortMsg(){
 		AnnotationConfigApplicationContext acac = new AnnotationConfigApplicationContext(RootConfig.class);
 		MitakeSMSHttpPost bean = acac.getBean(MitakeSMSHttpPost.class);
 		bean.setTestMode(true);
-		bean.sendBirthMonthMsg(11, "這是11月份生日簡訊測試，真是開心，等你跟我講、我還不想知道 可是真的是這樣嗎???");
+		bean.sendShortMsgToMembers("這是11月份生日簡訊測試，真是開心，等你跟我講、我還不想知道 可是真的是這樣嗎???");
 		
 		acac.close();
 	}

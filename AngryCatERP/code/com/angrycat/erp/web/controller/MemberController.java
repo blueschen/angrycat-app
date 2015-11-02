@@ -220,9 +220,9 @@ public class MemberController {
 					boolean deleted = false;
 					while(details.hasNext()){// delete vipDiscountDetails in memory
 						boolean deleting = true;
-						VipDiscountDetail detail = details.next();
-						for(VipDiscountDetail d : member.getVipDiscountDetails()){
-							if(detail.getId().equals(d.getId())){
+						VipDiscountDetail detail = details.next(); // data in database 
+						for(VipDiscountDetail d : member.getVipDiscountDetails()){// data in memery (not in relation with session)
+							if(detail.getId().equals(d.getId())){// if both existed, representing not deleted yet
 								deleting = false;
 								break;
 							}
