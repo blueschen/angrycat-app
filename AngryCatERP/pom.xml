@@ -16,6 +16,7 @@
 		<build.sourceEncoding>UTF-8</build.sourceEncoding>
 		<log4j.version>2.3</log4j.version>
 		<java.version>1.8</java.version>
+		<sevenzipjbinding.version>9.20-2.00beta</sevenzipjbinding.version>
 	</properties>
 	
 	<dependencies>
@@ -196,31 +197,32 @@
 			<version>2.1.0</version>
 		</dependency>
 		
+
+		
 	</dependencies>
 	
 	
 	
 	<build>
 		<finalName>AngryCatERP</finalName>
-				    <plugins>
-        <plugin>
-        <groupId>org.apache.maven.plugins</groupId>
-        <artifactId>maven-compiler-plugin</artifactId>
-        <version>3.3</version>
-        <configuration>
-            <source>${java.version}</source>
-            <target>${java.version}</target>
-        </configuration>
-    </plugin>
-      			<plugin>
+		<plugins>
+        	<plugin>
+        		<groupId>org.apache.maven.plugins</groupId>
+        		<artifactId>maven-compiler-plugin</artifactId>
+        		<version>3.3</version>
+        		<configuration>
+            		<source>${java.version}</source>
+            		<target>${java.version}</target>
+        		</configuration>
+    		</plugin>
+      		<plugin>
 				<artifactId>maven-war-plugin</artifactId>
 				<version>2.6</version>
 				<configuration>
 					<warSourceDirectory>WebContent</warSourceDirectory>
 					<failOnMissingWebXml>false</failOnMissingWebXml>
 				</configuration>
-				
 			</plugin>
-    </plugins>
+    	</plugins>
 	</build>
 </project>

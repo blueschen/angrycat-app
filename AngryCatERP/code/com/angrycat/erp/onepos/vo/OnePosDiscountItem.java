@@ -88,13 +88,16 @@ public class OnePosDiscountItem {
 		items.add(new OnePosDiscountItem("CITIBANK100",			"花旗禮卷100元",			CAT_GIFT, 	"-100",		true));
 		items.add(new OnePosDiscountItem("CTBC100",				"中信託禮卷100元", 		CAT_GIFT, 	"-100", 	true));
 		items.add(new OnePosDiscountItem("ESLITE100",			"誠品禮卷100元", 			CAT_GIFT, 	"-100",		true));
+		items.add(new OnePosDiscountItem("ESLITE150",			"誠品禮卷150元", 			CAT_GIFT, 	"-150",		true));
 		items.add(new OnePosDiscountItem("ESLITE200", 			"誠品禮卷200元",			CAT_GIFT, 	"-200", 	true));
+		items.add(new OnePosDiscountItem("ESLITE250", 			"誠品禮卷250元",			CAT_GIFT, 	"-250", 	true));
 		items.add(new OnePosDiscountItem("ESLITE500", 			"誠品禮卷500元", 			CAT_GIFT, 	"-500", 	true));
 		items.add(new OnePosDiscountItem("OHM200",				"OHM禮卷200元", 			CAT_GIFT, 	"-200", 	true));
 		items.add(new OnePosDiscountItem("OHM300",				"OHM禮卷300元", 			CAT_GIFT, 	"-300", 	true));
 		
 		// 固定折抵金額--活動
 		items.add(new OnePosDiscountItem("20151031WHTPREMIUM",	"10/31前買五墜送一手鍊", 	CAT_ACT,	"-2200",	true)); // 20151031表示是這個日期以前的活動，WHT是要贈送的手鍊型號前面開頭碼，PREMIUM代表贈品
+		items.add(new OnePosDiscountItem("20151111WHB088DIS",	"第二波周年慶折扣款墜子", 	CAT_ACT,	"-289",		true)); // 20151111表示活動結束時間，WHB088是折扣產品的型號，DIS代表折扣
 		
 		// 浮動/比例折扣金額--折扣
 		items.add(new OnePosDiscountItem("MEMBERVIPBIRTH001",	"會員VIP生日折扣", 		CAT_PDIS, 	"0", 		false));

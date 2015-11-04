@@ -26,7 +26,7 @@ import com.mchange.v2.c3p0.ComboPooledDataSource;
 
 @Configuration
 @PropertySource("classpath:/application.properties")
-@ComponentScan(basePackages={"com.angrycat.erp.service", "com.angrycat.erp.excel", "com.angrycat.erp.ds", "com.angrycat.erp.component", "com.angrycat.erp.businessrule", "com.angrycat.erp.log", "com.angrycat.erp.shortnews"})
+@ComponentScan(basePackages={"com.angrycat.erp.service", "com.angrycat.erp.excel", "com.angrycat.erp.ds", "com.angrycat.erp.component", "com.angrycat.erp.businessrule", "com.angrycat.erp.log", "com.angrycat.erp.shortnews", "com.angrycat.erp.onepos"})
 @EnableTransactionManagement(proxyTargetClass=true)
 public class RootConfig {
 	public static final String DEFAULT_BATCH_SIZE = "100";
