@@ -1,6 +1,10 @@
 package com.angrycat.erp.shortnews;
 
+import static com.angrycat.erp.condition.ConditionFactory.propertyDesc;
 import static com.angrycat.erp.condition.ConditionFactory.putInt;
+import static com.angrycat.erp.condition.ConditionFactory.putSqlDate;
+import static com.angrycat.erp.condition.ConditionFactory.conjunction;
+import static com.angrycat.erp.condition.ConditionFactory.disjunction;
 
 import java.io.BufferedReader;
 import java.io.DataOutputStream;
@@ -11,6 +15,7 @@ import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 import javax.annotation.PostConstruct;
 
@@ -20,18 +25,23 @@ import org.hibernate.Session;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.AnnotationConfigApplicationContext;
+import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Service;
 
 import com.angrycat.erp.function.ConsumerThrowable;
 import com.angrycat.erp.initialize.config.RootConfig;
 import com.angrycat.erp.model.Member;
+import com.angrycat.erp.query.QueryGenerator;
 import com.angrycat.erp.service.QueryBaseService;
-@Service
+import com.angrycat.erp.service.TimeService;
+
 /**
  * 三竹簡訊服務，主要搭配會員查詢功能
  * @author JerryLin
  *
  */
+@Service
+@Scope("prototype")
 public class MitakeSMSHttpPost {
 	private static final String sGeneralURL = "http://smexpress.mitake.com.tw/SmSendPost.asp"; // 發送多筆一般簡訊 URL
 	private static final String sLongURL = "http://smexpress.mitake.com.tw:7003/SpLmPost"; // 發送多筆長簡訊 URL
@@ -67,6 +77,8 @@ public class MitakeSMSHttpPost {
 	@Autowired
 	@Qualifier("queryBaseService")
 	private QueryBaseService<Member, Member> memberQueryService;
+	@Autowired
+	private TimeService timeService;
 	private String url = GENERAL_CONNECT_URL;
 	private boolean testMode;
 	private int memberCount;
@@ -81,17 +93,7 @@ public class MitakeSMSHttpPost {
 	@PostConstruct
 	public void initQuery(){
 		memberQueryService.setRootAndInitDefault(Member.class);
-		memberQueryService
-			.addWhere(putInt("month(p.birthday) = :pBirthdayMonthStart"));
-	}
-	/**
-	 * 設定生日月份做為查詢條件
-	 * @param month
-	 */
-	public void setMemberBirthMonth(int month){
-		memberQueryService.getSimpleExpressions().get("pBirthdayMonthStart").setValue(month);
-	}
-	
+	}	
 	private void initShortMsgConfig(){
 		if(StringUtils.isBlank(System.getProperty(TIMEOUT_READ_PROP_NAME))){
 			System.setProperty(TIMEOUT_READ_PROP_NAME, ""+lTimeout);
@@ -115,9 +117,9 @@ public class MitakeSMSHttpPost {
 //		testSendBirthMonthMsg();
 //		testGetLocalDateTime();
 //		testQueryMembers();
-//		testSendShortMsgToBirthMonth();
+		testSendShortMsgToBirthMonth();
 //		testSendSelf();
-		testSendShortMsg();
+//		testSendShortMsg();
 	}
 	private static String betweenBraces(String name){
 		return "{" + name + "}";
@@ -295,6 +297,8 @@ public class MitakeSMSHttpPost {
 				String mobile = member.getMobile();
 				if(isMobile(mobile)){
 					System.out.println("name: " + member.getName()+ "mobile: " + mobile + ", birth: " + member.getBirthday());
+				}else{
+					System.out.println("手機有誤 name: " + member.getName()+ "mobile: " + mobile + ", birth: " + member.getBirthday());
 				}
 				if(currentCount % batchSize == 0){
 					s.flush();
@@ -310,8 +314,26 @@ public class MitakeSMSHttpPost {
 	 * @param birthMonth
 	 * @param content
 	 */
-	public void sendShortMsgToBirthMonth(int birthMonth, String content){
-		setMemberBirthMonth(birthMonth);
+	public void sendShortMsgToBirthMonth(int birthMonth, String content){		
+		System.out.println("msg: " + content);
+		// 條件1:生日月份
+		// 條件3:同一筆VIP折扣紀錄到期日等於或大/晚於系統執行時間
+		// 條件4:同一筆VIP折扣紀錄沒有使用過
+		memberQueryService.createAssociationAlias("join p.vipDiscountDetails", "detail", null)
+			.addWhere(putInt("month(p.birthday) = :pBirthday", birthMonth))
+//			.addWhere(putSqlDate("detail.effectiveStart <= :pEffectiveStart", timeService.atStartOfToday())) // 因為設定每個月1日發送簡訊，所以不用考慮有效起始日
+			.addWhere(putSqlDate("detail.effectiveEnd >= :pEffectiveEnd", timeService.atStartOfToday())) // 資料庫VIP結束日存的是當天的起點(00:00:00)，所以不能拿某天系統的當下做為比較基準，這樣同一天的資料會被過濾掉
+			.addWhere(propertyDesc("detail.discountUseDate IS NULL"));
+		
+		QueryGenerator qg = memberQueryService.toQueryGenerator();
+		String query = qg.toCompleteStr();
+		System.out.println("執行hql:\n" + query);
+		System.out.println("查詢條件");
+		Map<String, Object> params = qg.getParams();
+		params.forEach((k,v)->{
+			System.out.println(k + ": " + v);
+		});
+		
 		if(testMode){
 			queryMembers();
 		}else{
@@ -325,7 +347,7 @@ public class MitakeSMSHttpPost {
 		AnnotationConfigApplicationContext acac = new AnnotationConfigApplicationContext(RootConfig.class);
 		MitakeSMSHttpPost bean = acac.getBean(MitakeSMSHttpPost.class);
 		bean.setTestMode(true);
-		int month = 11;
+		int month = 12;
 		String msg = "OHM Beads祝您生日快樂，"+month+"月壽星可享單筆訂單8折優惠，誠品敦南專櫃與網路通路皆可使用，詳情請洽02-27716304";
 		bean.sendShortMsgToBirthMonth(month, msg);
 		acac.close();

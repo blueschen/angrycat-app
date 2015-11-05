@@ -432,9 +432,8 @@ public class MemberController {
 	 * 理論上發生上述情況的可能性非常低，一旦發生直接的影響就是修改動作的log會看不出來使用者。
 	 */
 	private User addUserToComponent(){
-		User user = null;
+		User user = WebUtils.getSessionUser();
 		if(dataChangeLogger.getUser() == null){
-			user = WebUtils.getSessionUser();
 			dataChangeLogger.setUser(user);
 			memberQueryService.setUser(user);
 			findMemberService.setUser(user);

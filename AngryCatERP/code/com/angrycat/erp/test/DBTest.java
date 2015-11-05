@@ -1,11 +1,15 @@
 package com.angrycat.erp.test;
 
 import static com.angrycat.erp.condition.ConditionFactory.propertyDesc;
-import static com.angrycat.erp.condition.ConditionFactory.putStr;
 import static com.angrycat.erp.condition.ConditionFactory.putInt;
+import static com.angrycat.erp.condition.ConditionFactory.putStr;
+import static com.angrycat.erp.condition.ConditionFactory.putSqlDate;
+import static com.angrycat.erp.condition.ConditionFactory.propertyDesc;
 
 import java.sql.Date;
 import java.sql.Timestamp;
+import java.time.LocalDate;
+import java.time.ZoneId;
 import java.util.Iterator;
 import java.util.List;
 
@@ -340,7 +344,9 @@ public class DBTest extends BaseTest{
 //		testOrderBy();
 //		insertSecurityOther();
 //		testMonth();
-		testMax();
+//		testMax();
+//		testQueryMemberDiscount();
+		testLocalDate();
 	}
 	// this example can be used to replace subquery
 	private static void testSelfJoin(){
@@ -400,6 +406,24 @@ public class DBTest extends BaseTest{
 		});
 	}
 	
+	private static void testQueryMemberDiscount(){
+		executeApplicationContext(acac->{
+			QueryBaseService<Member, Member> qbs = (QueryBaseService<Member, Member>)acac.getBean("queryBaseService");
+			qbs.setRootAndInitDefault(Member.class);
+			qbs.createAssociationAlias("join p.vipDiscountDetails", "detail", null)
+				.addWhere(putInt("month(p.birthday) = :pBirthday", 11))
+				.addWhere(putSqlDate("detail.effectiveEnd >= :pEffectiveEnd", new Date(System.currentTimeMillis())))
+				.addWhere(propertyDesc("detail.discountUseDate IS NULL"));
+			
+			QueryGenerator qg = qbs.toQueryGenerator();
+			System.out.println(qg.toCompleteStr());
+			List<Member> list = qbs.executeQueryList();
+			list.forEach(m->{
+				System.out.println("id: " + m.getId() + ", name: " +m.getName()+ ", birth: " + m.getBirthday());
+			});
+		});
+	}
+	
 	private static void testMax(){
 		executeApplicationContext(acac->{
 			SessionFactoryWrapper sfw = acac.getBean(SessionFactoryWrapper.class);
@@ -408,5 +432,11 @@ public class DBTest extends BaseTest{
 				System.out.println("no: " + no);
 			});
 		});
+	}
+	
+	private static void testLocalDate(){
+		LocalDate localDate = LocalDate.now();
+		java.util.Date date = Date.from(localDate.atStartOfDay(ZoneId.systemDefault()).toInstant());
+		System.out.println(date);
 	}
 }
