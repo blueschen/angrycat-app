@@ -281,15 +281,15 @@
 			<input type="hidden" ng-value="detail.toVipDate" ng-model="detail.toVipDate"/>
 			<input type="hidden" ng-value="detail.memberId" ng-model="detail.memberId"/>
 			<div class="form-group">
-				<label for="effectiveStart{{$index}}">VIP有效起始日</label>
+				<label for="effectiveStart{{$index}}" style="font-size:12px;">VIP有效起始日</label>
 				<input id="effectiveStart{{$index}}" type="text" class="form-control" ng-model="detail.effectiveStart" readonly="readonly"/>
 			</div>
 			<div class="form-group">
-				<label for="effectiveEnd{{$index}}">VIP有效結束日</label>
+				<label for="effectiveEnd{{$index}}" style="font-size:12px;">VIP有效結束日</label>
 				<input id="effectiveEnd{{$index}}" type="text" class="form-control" ng-model="detail.effectiveEnd" readonly="readonly"/>
 			</div>
 			<div class="form-group">
-				<label for="useStatus{{$index}}">生日折扣使用狀態</label>
+				<label for="useStatus{{$index}}" style="font-size:12px;">生日折扣使用狀態</label>
 					<select
 						ng-model="detail.useStatus"
 						ng-options="u.value as u.label for u in mainCtrl.useOptions"
@@ -302,7 +302,7 @@
 					</select>
 			</div>
 			<div class="form-group">
-				<label for="discountUseDate{{$index}}">生日折扣使用日期</label>
+				<label for="discountUseDate{{$index}}" style="font-size:12px;">生日折扣使用日期</label>
 				<input type="text" ng-model="detail.discountUseDate" class="form-control" readonly="readonly" id="discountUseDate{{$index}}"/>
 			</div>
 			<div class="form-group" ng-show="mainCtrl.showRemoveBtn(detail)">
