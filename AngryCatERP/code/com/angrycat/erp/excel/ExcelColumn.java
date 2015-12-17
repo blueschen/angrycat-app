@@ -45,6 +45,7 @@ public class ExcelColumn {
 			public static final int 系列名	= idx++;
 			public static final int 圖片		= idx++;
 			public static final int SHEET1_COLUMN_COUNT = idx;
+			
 		}
 		public static class Sheet3{
 			static int idx = 0;
@@ -99,5 +100,9 @@ public class ExcelColumn {
 		public static final int 網址			= idx++;
 		public static final int 預設折扣		= idx++;
 		public static final int COLUMN_COUNT = idx;
+	}
+	
+	public static void main(String[]args){
+		System.out.println(Product.Sheet2.定價);
 	}
 }

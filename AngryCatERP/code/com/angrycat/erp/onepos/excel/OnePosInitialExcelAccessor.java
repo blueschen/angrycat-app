@@ -466,14 +466,16 @@ public class OnePosInitialExcelAccessor {
 		String t1 = "E:\\angrycat_workitem\\產品\\臺灣OHM商品總庫存清單(類別)_T20150924.xlsx";
 		String t2 = "E:\\angrycat_workitem\\member\\臺灣OHM商品總庫存清單(類別)_T20150924 - 複製.xlsx";
 		String t3 = "E:\\angrycat_workitem\\產品\\臺灣OHM商品總庫存清單(類別)_T20151028.xlsx";
+		String t4 = "E:\\angrycat_workitem\\產品\\2015_12_01\\臺灣OHM商品總庫存清單(類別)_T20150924.xlsx";
+		String t5 = "E:\\angrycat_workitem\\產品\\2015_12_16\\臺灣OHM商品總庫存清單(類別)_T20150924.xlsx";
 		try(
-			FileInputStream fis = new FileInputStream(t3)){
+			FileInputStream fis = new FileInputStream(t5)){
 			byte[] data = IOUtils.toByteArray(fis);
 			OnePosInitialExcelAccessor accessor = acac.getBean(OnePosInitialExcelAccessor.class);
 //			accessor.setImgProcessEnabled(true);
 			accessor.setClientProcessEnabled(true);
 			accessor.setTemplatePath("E:\\angrycat_workitem\\member\\v36 ONE-POS Data Quick Import  快速匯入 - Empty .xls");
-			accessor.process(data);
+			accessor.process(data, "1214保養品項");
 			
 		}catch(Throwable e){
 			throw new RuntimeException(e);
@@ -492,10 +494,10 @@ public class OnePosInitialExcelAccessor {
 	 * 將公司內部產品的Excel轉成OnePos需要的Excel匯入格式。
 	 * 如果有額外設定的話(imgProcessEnabled = true)，可以抓取對應的圖檔之後改名。
 	 * 客戶的資料源是另一張Excel。
-	 * 
+	 * 要與getBarCodes()互相配合，要請銷售管理人員另外提供商品條碼清單
 	 * @param data: 原始資料源是"臺灣OHM商品總庫存清單(類別)_T20150924.xlsx"
 	 */
-	public void process(byte[] data){
+	public void process(byte[] data, String sheetName){
 		String tempPath = FileUtils.getTempDirectoryPath();
 		String customDir = RandomStringUtils.randomAlphanumeric(8); 
 		String tempDir = tempPath + customDir + File.separator;
@@ -533,151 +535,204 @@ public class OnePosInitialExcelAccessor {
 			brandId.setCellValue("OHM");
 			Cell brandName = brandRow.createCell(1);
 			brandName.setCellValue("OHM Beads TW");
-			
-			Sheet generalSheet = productWb.getSheetAt(0); // 一般商品
-			Iterator<Row> generalSheetRows = generalSheet.iterator();
-			int rowNum = 0;
-			Set<String> categories = new LinkedHashSet<>();
-			while(generalSheetRows.hasNext()){
-				Row row = generalSheetRows.next();
-				rowNum = row.getRowNum();
-				if(rowNum == 0){// 略過標題列
-					continue;
-				}
-				
-				Cell cat = row.getCell(Sheet1.類別);
-				Cell no = row.getCell(Sheet1.型號);
-				Cell nameEng = row.getCell(Sheet1.英文名字);
-				Cell price = row.getCell(Sheet1.定價);
-				
-				String catVal = retrieveStrVal(cat);
-				String noVal = retrieveStrVal(no);
-				String nameEngVal = retrieveStrVal(nameEng);
-				String priceVal = retrieveStrVal(price);
-				
-				if(StringUtils.isBlank(noVal) || StringUtils.isBlank(catVal)){
-					continue;
-				}
-				
-				addValToCategorySheet(categories, categorySheet, catVal, catVal);
-				
-				Row pRow = productSheet.createRow(rowNum);
-				addProductCells(pRow, noVal, nameEngVal, catVal, priceVal);
-				
-				storeImage(tempImgDir, noVal);
-			}
-			
-			Sheet serialSheet = productWb.getSheetAt(1);
-			Iterator<Row> serialRows = serialSheet.iterator();
-			while(serialRows.hasNext()){
-				Row row = serialRows.next();
-				int rowCount = row.getRowNum();
-				if(rowCount == 0){
-					continue;
-				}
-				
-				Cell cat = row.getCell(Sheet2.類別);
-				Cell no = row.getCell(Sheet2.型號);
-				Cell nameEng = row.getCell(Sheet2.英文名字);
-				Cell price = row.getCell(Sheet2.定價);
-				Cell serialName = row.getCell(Sheet2.系列名);
-				
-				String catVal = retrieveStrVal(cat);
-				String noVal = retrieveStrVal(no);
-				String nameEngVal = retrieveStrVal(nameEng);
-				String priceVal = retrieveStrVal(price);
-				String serialNameVal = retrieveStrVal(serialName);
-				
-				if(StringUtils.isBlank(noVal) || StringUtils.isBlank(catVal)){
-					continue;
-				}
-				
-				addValToCategorySheet(categories, categorySheet, catVal, catVal);
-				
-				Row pRow = productSheet.createRow(++rowNum);
-				addProductCells(pRow, noVal, nameEngVal, catVal, priceVal);
-				
-				Cell remarkCell = pRow.createCell(OnePos.備註欄); // 把系列名稱先放到備註欄，OnePos沒有直接對應的欄位
-				remarkCell.setCellType(CELL_TYPE_STRING);
-				remarkCell.setCellValue(serialNameVal);
-				
-				storeImage(tempImgDir, noVal);
-			}
-			
-			Sheet jewelrySheet = productWb.getSheetAt(2);
-			Iterator<Row> jewelryRows = jewelrySheet.iterator();
-			while(jewelryRows.hasNext()){
-				Row row = jewelryRows.next();
-				int rowCount = row.getRowNum();
-				if(rowCount == 0){
-					continue;
-				}
-				
-				Cell cat = row.getCell(Sheet3.類別);
-				Cell no = row.getCell(Sheet3.型號);
-				Cell nameEng = row.getCell(Sheet3.英文名字);
-				Cell price = row.getCell(Sheet3.定價);
-				
-				String catVal = retrieveStrVal(cat);
-				String noVal = retrieveStrVal(no);
-				String nameEngVal = retrieveStrVal(nameEng);
-				String priceVal = retrieveStrVal(price);
-				
-				if(StringUtils.isBlank(noVal) || StringUtils.isBlank(catVal)){
-					continue;
-				}
-				
-				addValToCategorySheet(categories, categorySheet, catVal, catVal);
-				
-				Row pRow = productSheet.createRow(++rowNum);
-				addProductCells(pRow, noVal, nameEngVal, catVal, priceVal);
-				
-				storeImage(tempImgDir, noVal);
-			}
-
-			// 手動新增商品類別和商品
-			addValToCategorySheet(categories, categorySheet, CAT_GIFT, "禮卷");
-			addValToCategorySheet(categories, categorySheet, CAT_ACT, "活動");
-			addValToCategorySheet(categories, categorySheet, CAT_PDIS, "比例折扣");
-			
-			List<OnePosDiscountItem> items = OnePosDiscountItem.getDefaultItems();
-			for(OnePosDiscountItem item : items){
-				Row pRow = productSheet.createRow(++rowNum);
-				addDiscountItemCells(pRow, item);
-			}
-			
-			if(clientProcessEnabled){
-				Sheet memberSheet = memberWb.getSheetAt(0);// 將會員轉為OnePos所需客戶格式
-				Iterator<Row> memberRows = memberSheet.iterator();
-				while(memberRows.hasNext()){
-					Row row = memberRows.next();
-					int rowCount = row.getRowNum();
-					if(rowCount == 0 || isRowEmpty(row, Member.COLUMN_COUNT)){
+			// 第一次初始匯入
+			if(StringUtils.isBlank(sheetName)){
+				Sheet generalSheet = productWb.getSheetAt(0); // 一般商品
+				Iterator<Row> generalSheetRows = generalSheet.iterator();
+				int rowNum = 0;
+				Set<String> categories = new LinkedHashSet<>();
+				while(generalSheetRows.hasNext()){
+					Row row = generalSheetRows.next();
+					rowNum = row.getRowNum();
+					if(rowNum == 0){// 略過標題列
 						continue;
 					}
-					String clientId = MemberController.genClientId("TW", rowCount);
-					String clientName = getCellStrVal(row, Member.真實姓名);
-					String address = getCellStrVal(row, Member.地址);
-					String mobile = getCellStrVal(row, Member.手機電話);
-					String tel = getDefualtTelNumIfBothEmpty(mobile, getCellStrVal(row, Member.室內電話));
-					String email = getCellStrVal(row, Member.電子信箱);
-					Date birthday = getCellDateVal(row, Member.出生年月日);
 					
-					com.angrycat.erp.model.Member member = new com.angrycat.erp.model.Member();
-					member.setClientId(clientId);
-					member.setName(clientName);
-					member.setAddress(address);
-					member.setMobile(mobile);
-					member.setTel(tel);
-					member.setEmail(email);
-					if(birthday != null){
-						member.setBirthday(new java.sql.Date(birthday.getTime()));
+					Cell cat = row.getCell(Sheet1.類別);
+					Cell no = row.getCell(Sheet1.型號);
+					Cell nameEng = row.getCell(Sheet1.英文名字);
+					Cell price = row.getCell(Sheet1.定價);
+					
+					String catVal = retrieveStrVal(cat);
+					String noVal = retrieveStrVal(no);
+					String nameEngVal = retrieveStrVal(nameEng);
+					String priceVal = retrieveStrVal(price);
+					
+					if(StringUtils.isBlank(noVal) || StringUtils.isBlank(catVal)){
+						continue;
 					}
 					
-					Row cRow = clientSheet.createRow(rowCount);
-					addClient(cRow, dateStyle, member);
+					addValToCategorySheet(categories, categorySheet, catVal, catVal);
+					
+					Row pRow = productSheet.createRow(rowNum);
+					addProductCells(pRow, noVal, nameEngVal, catVal, priceVal);
+					
+					storeImage(tempImgDir, noVal);
 				}
+				
+				Sheet serialSheet = productWb.getSheetAt(1);
+				Iterator<Row> serialRows = serialSheet.iterator();
+				while(serialRows.hasNext()){
+					Row row = serialRows.next();
+					int rowCount = row.getRowNum();
+					if(rowCount == 0){
+						continue;
+					}
+					
+					Cell cat = row.getCell(Sheet2.類別);
+					Cell no = row.getCell(Sheet2.型號);
+					Cell nameEng = row.getCell(Sheet2.英文名字);
+					Cell price = row.getCell(Sheet2.定價);
+					Cell serialName = row.getCell(Sheet2.系列名);
+					
+					String catVal = retrieveStrVal(cat);
+					String noVal = retrieveStrVal(no);
+					String nameEngVal = retrieveStrVal(nameEng);
+					String priceVal = retrieveStrVal(price);
+					String serialNameVal = retrieveStrVal(serialName);
+					
+					if(StringUtils.isBlank(noVal) || StringUtils.isBlank(catVal)){
+						continue;
+					}
+					
+					addValToCategorySheet(categories, categorySheet, catVal, catVal);
+					
+					Row pRow = productSheet.createRow(++rowNum);
+					addProductCells(pRow, noVal, nameEngVal, catVal, priceVal);
+					
+					Cell remarkCell = pRow.createCell(OnePos.備註欄); // 把系列名稱先放到備註欄，OnePos沒有直接對應的欄位
+					remarkCell.setCellType(CELL_TYPE_STRING);
+					remarkCell.setCellValue(serialNameVal);
+					
+					storeImage(tempImgDir, noVal);
+				}
+				
+				Sheet jewelrySheet = productWb.getSheetAt(2);
+				Iterator<Row> jewelryRows = jewelrySheet.iterator();
+				while(jewelryRows.hasNext()){
+					Row row = jewelryRows.next();
+					int rowCount = row.getRowNum();
+					if(rowCount == 0){
+						continue;
+					}
+					
+					Cell cat = row.getCell(Sheet3.類別);
+					Cell no = row.getCell(Sheet3.型號);
+					Cell nameEng = row.getCell(Sheet3.英文名字);
+					Cell price = row.getCell(Sheet3.定價);
+					
+					String catVal = retrieveStrVal(cat);
+					String noVal = retrieveStrVal(no);
+					String nameEngVal = retrieveStrVal(nameEng);
+					String priceVal = retrieveStrVal(price);
+					
+					if(StringUtils.isBlank(noVal) || StringUtils.isBlank(catVal)){
+						continue;
+					}
+					
+					addValToCategorySheet(categories, categorySheet, catVal, catVal);
+					
+					Row pRow = productSheet.createRow(++rowNum);
+					addProductCells(pRow, noVal, nameEngVal, catVal, priceVal);
+					
+					storeImage(tempImgDir, noVal);
+				}
+
+				// 手動新增商品類別和商品
+				addValToCategorySheet(categories, categorySheet, CAT_GIFT, "禮卷");
+				addValToCategorySheet(categories, categorySheet, CAT_ACT, "活動");
+				addValToCategorySheet(categories, categorySheet, CAT_PDIS, "比例折扣");
+				
+				List<OnePosDiscountItem> items = OnePosDiscountItem.getDefaultItems();
+				for(OnePosDiscountItem item : items){
+					Row pRow = productSheet.createRow(++rowNum);
+					addDiscountItemCells(pRow, item);
+				}
+				// 處理會員，未來應改為從資料庫存取 TODO
+				if(clientProcessEnabled){
+					Sheet memberSheet = memberWb.getSheetAt(0);// 將會員轉為OnePos所需客戶格式
+					Iterator<Row> memberRows = memberSheet.iterator();
+					while(memberRows.hasNext()){
+						Row row = memberRows.next();
+						int rowCount = row.getRowNum();
+						if(rowCount == 0 || isRowEmpty(row, Member.COLUMN_COUNT)){
+							continue;
+						}
+						String clientId = MemberController.genClientId("TW", rowCount);
+						String clientName = getCellStrVal(row, Member.真實姓名);
+						String address = getCellStrVal(row, Member.地址);
+						String mobile = getCellStrVal(row, Member.手機電話);
+						String tel = getDefualtTelNumIfBothEmpty(mobile, getCellStrVal(row, Member.室內電話));
+						String email = getCellStrVal(row, Member.電子信箱);
+						Date birthday = getCellDateVal(row, Member.出生年月日);
+						
+						com.angrycat.erp.model.Member member = new com.angrycat.erp.model.Member();
+						member.setClientId(clientId);
+						member.setName(clientName);
+						member.setAddress(address);
+						member.setMobile(mobile);
+						member.setTel(tel);
+						member.setEmail(email);
+						if(birthday != null){
+							member.setBirthday(new java.sql.Date(birthday.getTime()));
+						}
+						
+						Row cRow = clientSheet.createRow(rowCount);
+						addClient(cRow, dateStyle, member);
+					}
+				}
+			}else{// 後來的零散匯入
+				Sheet generalSheet = productWb.getSheet(sheetName); // 指定Sheet
+				Iterator<Row> generalSheetRows = generalSheet.iterator();
+				int rowNum = 0;
+				Set<String> categories = new LinkedHashSet<>();
+				while(generalSheetRows.hasNext()){
+					Row row = generalSheetRows.next();
+					rowNum = row.getRowNum();
+					if(rowNum == 0){// 略過標題列
+						continue;
+					}
+					System.out.println("Sheet2.類別: " + Sheet2.類別 + ", Sheet2.型號: " + Sheet2.型號 + ", Sheet2.英文名字: " + Sheet2.英文名字);
+					Cell cat = row.getCell(Sheet2.類別);
+					Cell no = row.getCell(Sheet2.型號);
+					Cell nameEng = row.getCell(Sheet2.英文名字);
+					Cell price = row.getCell(Sheet2.定價);
+					Cell serialName = row.getCell(Sheet2.系列名);
+					Cell barcode = row.getCell(Sheet2.系列名+1);
+					
+					String catVal = retrieveStrVal(cat);
+					String noVal = retrieveStrVal(no);
+					String nameEngVal = retrieveStrVal(nameEng);
+					String priceVal = retrieveStrVal(price);
+					String serialNameVal = serialName == null ? "" : retrieveStrVal(serialName);
+					String barcodeVal = barcode == null ? "" : retrieveStrVal(barcode);
+					
+					if(StringUtils.isBlank(noVal) || StringUtils.isBlank(catVal)){
+						continue;
+					}					
+					addValToCategorySheet(categories, categorySheet, catVal, catVal);
+					
+					Row pRow = productSheet.createRow(rowNum);
+					System.out.println("noVal: " + noVal + ", nameEngVal: " + nameEngVal + ", catVal: " + catVal + ", priceVal: " + priceVal);
+					addProductCells(pRow, noVal, nameEngVal, catVal, priceVal);
+					
+					if(StringUtils.isNotBlank(serialNameVal)){
+						Cell remarkCell = pRow.createCell(OnePos.備註欄); // 把系列名稱先放到備註欄，OnePos沒有直接對應的欄位
+						remarkCell.setCellType(CELL_TYPE_STRING);
+						remarkCell.setCellValue(serialNameVal);
+					}
+					
+					if(pRow.getCell(OnePos.條碼編號) == null && StringUtils.isNotBlank(barcodeVal)){// 如果此處有barcode，代表匯入欄位有提供
+						Cell barCodeCell = pRow.createCell(OnePos.條碼編號);
+						barCodeCell.setCellType(CELL_TYPE_STRING);
+						barCodeCell.setCellValue(barcodeVal.replace(" ", ""));
+					}
+					
+					storeImage(tempImgDir, noVal);
+				}
+				
 			}
+
 			outWb.write(bos);
 		}catch(Throwable e){
 			throw new RuntimeException(e);
@@ -967,7 +1022,18 @@ public class OnePosInitialExcelAccessor {
 		brandIdCell.setCellType(CELL_TYPE_STRING);
 		brandIdCell.setCellValue(item.getBrandId());
 	}
-	
+	/**
+	 * 在同一批匯入的檔案當中，如果沒有該商品類別，就新增。
+	 * 因為條件不同，所以這個method也不完全適用後來的情況。
+	 * 後來是零散匯入，所以某次新增的商品，也可能沿用舊的商品類別。
+	 * 如果新商品延用舊的類別，除非要把舊的資料全部跑一次，否則這裡的程式無法判別。
+	 * 所幸OnePos的匯入方式有覆蓋及跳過兩種，就商品類別而言，不管選哪種都不會有影響。
+	 * 唯一要記得的是，每次匯入OnePos之前都要先匯入商品類別，再匯入商品，方不會出現匯入失敗的情形。
+	 * @param categories
+	 * @param categorySheet
+	 * @param catId
+	 * @param catName
+	 */
 	private static void addValToCategorySheet(Set<String> categories, Sheet categorySheet, String catId, String catName){
 		if(StringUtils.isBlank(catId)){
 			return;

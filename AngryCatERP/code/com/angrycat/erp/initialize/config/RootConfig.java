@@ -89,6 +89,7 @@ public class RootConfig {
 		}else if(NAS_TOMCAT_TEST4_PATH.equals(serverRoot)){
 			jdbcUrl = nasJdbcUrl + "_test4";
 		}
+		System.out.println("jdbcUrl: " + jdbcUrl);
 		ds.setJdbcUrl(jdbcUrl);
 		ds.setUser(env.getProperty("jdbc.username"));
 		ds.setPassword(env.getProperty("jdbc.password"));

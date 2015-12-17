@@ -347,7 +347,7 @@ public class MitakeSMSHttpPost {
 		AnnotationConfigApplicationContext acac = new AnnotationConfigApplicationContext(RootConfig.class);
 		MitakeSMSHttpPost bean = acac.getBean(MitakeSMSHttpPost.class);
 		bean.setTestMode(true);
-		int month = 12;
+		int month = 1;
 		String msg = "OHM Beads祝您生日快樂，"+month+"月壽星可享單筆訂單8折優惠，誠品敦南專櫃與網路通路皆可使用，詳情請洽02-27716304";
 		bean.sendShortMsgToBirthMonth(month, msg);
 		acac.close();
