@@ -16,8 +16,12 @@ import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.PropertySource;
 import org.springframework.core.env.Environment;
+import org.springframework.mail.MailSender;
+import org.springframework.mail.SimpleMailMessage;
+import org.springframework.mail.javamail.JavaMailSenderImpl;
 import org.springframework.orm.hibernate4.HibernateTransactionManager;
 import org.springframework.orm.hibernate4.LocalSessionFactoryBean;
+import org.springframework.scheduling.annotation.EnableScheduling;
 import org.springframework.transaction.PlatformTransactionManager;
 import org.springframework.transaction.annotation.EnableTransactionManagement;
 
@@ -26,8 +30,9 @@ import com.mchange.v2.c3p0.ComboPooledDataSource;
 
 @Configuration
 @PropertySource("classpath:/application.properties")
-@ComponentScan(basePackages={"com.angrycat.erp.service", "com.angrycat.erp.excel", "com.angrycat.erp.ds", "com.angrycat.erp.component", "com.angrycat.erp.businessrule", "com.angrycat.erp.log", "com.angrycat.erp.shortnews", "com.angrycat.erp.onepos"})
+@ComponentScan(basePackages={"com.angrycat.erp.service", "com.angrycat.erp.excel", "com.angrycat.erp.ds", "com.angrycat.erp.component", "com.angrycat.erp.businessrule", "com.angrycat.erp.log", "com.angrycat.erp.shortnews", "com.angrycat.erp.onepos", "com.angrycat.erp.scheduletask"})
 @EnableTransactionManagement(proxyTargetClass=true)
+@EnableScheduling
 public class RootConfig {
 	public static final String DEFAULT_BATCH_SIZE = "100";
 	
@@ -183,5 +188,20 @@ public class RootConfig {
 			results.add(item);
 		});
 		return CommonUtil.parseToJson(results);
+	}
+	
+	@Bean
+	public MailSender mailSender(){
+		JavaMailSenderImpl mailSender = new JavaMailSenderImpl();
+		mailSender.setHost("msa.hinet.net");
+		mailSender.setPort(25);
+		return mailSender;
+	}
+	
+	@Bean
+	public SimpleMailMessage templateMessage(){
+		SimpleMailMessage templateMessage = new SimpleMailMessage();
+		templateMessage.setFrom("jerrylin@ohmbeads.com.tw");
+		return templateMessage;
 	}
 }

@@ -93,6 +93,14 @@ public class MitakeSMSHttpPost {
 	@PostConstruct
 	public void initQuery(){
 		memberQueryService.setRootAndInitDefault(Member.class);
+		// 條件1:生日月份
+		// 條件3:同一筆VIP折扣紀錄到期日等於或大/晚於系統執行時間
+		// 條件4:同一筆VIP折扣紀錄沒有使用過
+		memberQueryService.createAssociationAlias("join p.vipDiscountDetails", "detail", null)
+			.addWhere(putInt("month(p.birthday) = :pBirthday"))
+//			.addWhere(putSqlDate("detail.effectiveStart <= :pEffectiveStart", timeService.atStartOfToday())) // 因為設定每個月1日發送簡訊，所以不用考慮有效起始日
+			.addWhere(putSqlDate("detail.effectiveEnd >= :pEffectiveEnd")) // 資料庫VIP結束日存的是當天的起點(00:00:00)，所以不能拿某天系統的當下做為比較基準，這樣同一天的資料會被過濾掉
+			.addWhere(propertyDesc("detail.discountUseDate IS NULL"));
 	}	
 	private void initShortMsgConfig(){
 		if(StringUtils.isBlank(System.getProperty(TIMEOUT_READ_PROP_NAME))){
@@ -212,14 +220,18 @@ public class MitakeSMSHttpPost {
 	 * 如果中途有例外發生，他會繼續下去，把錯誤資料秀在主控台
 	 * @param content
 	 */
-	public void sendShortMsgToMembers(final String content){
+	public StringBuffer sendShortMsgToMembers(final String content){
+		final StringBuffer sb = new StringBuffer();
 		if(StringUtils.isBlank(content)){
-			return;
+			sb.append("沒有提供簡訊內容");
+			return sb;
 		}else{
-			System.out.println("發送訊息字數: " + content.length());
+			sb.append("簡訊內容: " + content + "\n");
+			sb.append("發送訊息字數: " + content.length() + "\n");
 		}
 		sendPostShortMsg(out->{
 			if(testMode){
+				sb.append("執行測試模式...僅列出符合資格之會員...不會寄出簡訊");
 				List<Member> members = getTestMembers();
 				for(int i = 0; i < members.size(); i++){
 					Member m = members.get(i);
@@ -232,6 +244,7 @@ public class MitakeSMSHttpPost {
 					}
 				}
 			}else{
+				sb.append("開始設定設定簡訊\n");
 				memberQueryService.executeScrollableQuery((rs, sfw)->{
 					int batchSize = sfw.getBatchSize();
 					Session s = sfw.currentSession();
@@ -251,8 +264,7 @@ public class MitakeSMSHttpPost {
 							}catch(Throwable e){
 								// TODO
 								String trace = ExceptionUtils.getStackTrace(e);
-								System.out.println("send short msg error on mobile: " + mobile);
-								System.out.println(trace);
+								sb.append(mobile + ":設定簡訊必填欄位過程發生錯誤\n" + trace);
 								++runtimeErrCount;
 							}
 						}
@@ -262,26 +274,29 @@ public class MitakeSMSHttpPost {
 						}
 					}
 					memberCount = currentCount;
-					System.out.println("查詢結果: " + currentCount + " 筆，有效資料: " + effectiveCount + "筆，執行錯誤: " + runtimeErrCount + "筆");
+					sb.append("查詢結果: " + currentCount + " 筆，有效資料: " + effectiveCount + "筆，執行錯誤: " + runtimeErrCount + "筆\n");
 					return null;
 				});
 			}
 
 		},buReader->{
 			String msg = null;
-			System.out.println("發送簡訊後回傳訊息:");
+			sb.append("發送簡訊後回傳訊息:\n");
 			while((msg = buReader.readLine()) != null){
 				System.out.println(msg);
+				sb.append(msg + "\n");
 				if(msg.contains("AccountPoint")){
 					String[] s = msg.split("=");
 					String remainingPoints = s[1];
 					int MINIMUM = Integer.parseInt(remainingPoints) + 100;
 					if(MINIMUM <= memberCount){
-						System.out.println("簡訊點數即將用完，請盡快儲值。會員人數: " + memberCount + ", 剩餘點數: " + remainingPoints);
+						sb.append("簡訊點數即將用完，請盡快儲值。會員人數: " + memberCount + ", 剩餘點數: " + remainingPoints + "\n");
 					}
 				}
 			}
 		});
+		System.out.println(sb.toString());
+		return sb;
 	}
 	/**
 	 * 查詢會員，顯示資料，主要是用來測試查詢條件與結果是否相符
@@ -314,31 +329,25 @@ public class MitakeSMSHttpPost {
 	 * @param birthMonth
 	 * @param content
 	 */
-	public void sendShortMsgToBirthMonth(int birthMonth, String content){		
-		System.out.println("msg: " + content);
-		// 條件1:生日月份
-		// 條件3:同一筆VIP折扣紀錄到期日等於或大/晚於系統執行時間
-		// 條件4:同一筆VIP折扣紀錄沒有使用過
-		memberQueryService.createAssociationAlias("join p.vipDiscountDetails", "detail", null)
-			.addWhere(putInt("month(p.birthday) = :pBirthday", birthMonth))
-//			.addWhere(putSqlDate("detail.effectiveStart <= :pEffectiveStart", timeService.atStartOfToday())) // 因為設定每個月1日發送簡訊，所以不用考慮有效起始日
-			.addWhere(putSqlDate("detail.effectiveEnd >= :pEffectiveEnd", timeService.atStartOfToday())) // 資料庫VIP結束日存的是當天的起點(00:00:00)，所以不能拿某天系統的當下做為比較基準，這樣同一天的資料會被過濾掉
-			.addWhere(propertyDesc("detail.discountUseDate IS NULL"));
-		
-		QueryGenerator qg = memberQueryService.toQueryGenerator();
-		String query = qg.toCompleteStr();
-		System.out.println("執行hql:\n" + query);
-		System.out.println("查詢條件");
-		Map<String, Object> params = qg.getParams();
-		params.forEach((k,v)->{
-			System.out.println(k + ": " + v);
-		});
-		
+	public StringBuffer sendShortMsgToBirthMonth(int birthMonth, String content){		
+//		System.out.println("msg: " + content);
+		memberQueryService.getSimpleExpressions().get("pBirthday").setValue(birthMonth);
+		memberQueryService.getSimpleExpressions().get("pEffectiveEnd").setValue(timeService.atStartOfToday());
+//		QueryGenerator qg = memberQueryService.toQueryGenerator();
+//		String query = qg.toCompleteStr();
+//		System.out.println("執行hql:\n" + query);
+//		System.out.println("查詢條件");
+//		Map<String, Object> params = qg.getParams();
+//		params.forEach((k,v)->{
+//			System.out.println(k + ": " + v);
+//		});
+		StringBuffer sb = null;
 		if(testMode){
 			queryMembers();
 		}else{
-			sendShortMsgToMembers(content);
+			sb = sendShortMsgToMembers(content);
 		}
+		return sb;
 	}
 	/**
 	 * 設定發送生日活動簡訊，如要使用，資料庫要切換到NAS主機，而且要關閉程式的測試模式
