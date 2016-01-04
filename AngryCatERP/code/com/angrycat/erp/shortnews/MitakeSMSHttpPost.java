@@ -275,6 +275,7 @@ public class MitakeSMSHttpPost {
 					}
 					memberCount = currentCount;
 					sb.append("查詢結果: " + currentCount + " 筆，有效資料: " + effectiveCount + "筆，執行錯誤: " + runtimeErrCount + "筆\n");
+					System.out.println("查詢結果: " + currentCount + " 筆，有效資料: " + effectiveCount + "筆，執行錯誤: " + runtimeErrCount + "筆");
 					return null;
 				});
 			}
@@ -295,25 +296,29 @@ public class MitakeSMSHttpPost {
 				}
 			}
 		});
-		System.out.println(sb.toString());
+		System.out.println("sb result: " + sb.toString());
 		return sb;
 	}
 	/**
 	 * 查詢會員，顯示資料，主要是用來測試查詢條件與結果是否相符
 	 */
-	public void queryMembers(){
+	public StringBuffer queryMembers(){
+		StringBuffer sb = new StringBuffer();
 		memberQueryService.executeScrollableQuery((rs, sfw)->{
 			int batchSize = sfw.getBatchSize();
 			Session s = sfw.currentSession();
 			int currentCount = 0;
+			sb.append("執行測試模式...\n");
 			while(rs.next()){
 				++currentCount;
 				Member member = (Member)rs.get(0);
 				String mobile = member.getMobile();
 				if(isMobile(mobile)){
 					System.out.println("name: " + member.getName()+ "mobile: " + mobile + ", birth: " + member.getBirthday());
+					sb.append("name: " + member.getName()+ "mobile: " + mobile + ", birth: " + member.getBirthday() + "\n");
 				}else{
 					System.out.println("手機有誤 name: " + member.getName()+ "mobile: " + mobile + ", birth: " + member.getBirthday());
+					sb.append("手機有誤 name: " + member.getName()+ "mobile: " + mobile + ", birth: " + member.getBirthday());
 				}
 				if(currentCount % batchSize == 0){
 					s.flush();
@@ -321,8 +326,10 @@ public class MitakeSMSHttpPost {
 				}
 			}
 			System.out.println("total count: " + currentCount);
+			sb.append("total count: " + currentCount);
 			return null;
 		});
+		return sb;
 	}
 	/**
 	 * 發送訊息給指定生日月份的會員
@@ -343,7 +350,7 @@ public class MitakeSMSHttpPost {
 //		});
 		StringBuffer sb = null;
 		if(testMode){
-			queryMembers();
+			sb = queryMembers();
 		}else{
 			sb = sendShortMsgToMembers(content);
 		}
