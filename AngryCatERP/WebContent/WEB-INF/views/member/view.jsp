@@ -316,7 +316,7 @@
 	angular.module('angryCatMemberViewApp', ['erp.date.service', 'erp.ajax.service', 'mgcrea.ngStrap'])
 		.constant('urlPrefix', '${urlPrefix}')
 		.constant('login', "${sessionScope['sessionUser']}" ? true : false)
-		.constant('targetData', '${member}')
+		.constant('targetData', ${member})
 		.constant('displayJsonCountries', '${displayJsonCountries}')
 		.controller('MainCtrl', ['$scope', 'DateService', 'AjaxService', 'urlPrefix', 'login', 'targetData', 'displayJsonCountries', function($scope, DateService, AjaxService, urlPrefix, login, targetData, displayJsonCountries){
 			var self = this,
@@ -328,7 +328,7 @@
 			self.member = {};
 
 			if(targetData){
-				self.member = JSON.parse(targetData);
+				self.member = targetData;
 			}
 			if(displayJsonCountries){
 				self.countries = JSON.parse(displayJsonCountries);
@@ -353,6 +353,7 @@
 			self.isInVipEffectiveDur();
 			self.save = function(){
 				var isNew = self.member.id ? false : true;
+				console.log(JSON.stringify(self.member.note));
 				AjaxService.post(saveUrl, self.member)
 					.then(function(response){
 						self.member = response.data;
@@ -360,7 +361,7 @@
 					},
 					function(errResponse){
 						alert('儲存失敗，錯誤訊息: ' + JSON.stringify(errResponse));
-					});	
+					});
 			};
 			self.addMemberDiscount = function(){
 				if(addCount >= ADD_COUNT_MAX){
