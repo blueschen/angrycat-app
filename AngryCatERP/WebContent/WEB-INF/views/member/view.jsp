@@ -69,7 +69,7 @@
  			<label class="col-sm-3 control-label">
  				性別
  			</label>
-			<div class="col-sm-7">
+			<div class="col-sm-7" ng-init="mainCtrl.member.gender=1">
 				<label class="radio-inline">
  					<input type="radio" ng-value="0" ng-model="mainCtrl.member.gender" id="genderMale"/>男
  				</label>
@@ -203,10 +203,10 @@
  	</div>
  	<div class="form-group">
  		<div class="form-group col-sm-5" ng-class="{'has-error': memberForm.batchStartDate.$invalid}">
-			<label class="col-sm-5 control-label" for="batchStartDate">
+			<label class="col-sm-5 control-label" for="batchStartDate" ng-if="mainCtrl.login">
  				調整VIP起始日	
  			</label>
- 			<div class="col-sm-7">
+ 			<div class="col-sm-7" ng-if="mainCtrl.login">
  				<input id="batchStartDate" 
  					class="form-control" 
  					ng-model="mainCtrl.discount.batchStartDate" 
@@ -316,8 +316,8 @@
 	angular.module('angryCatMemberViewApp', ['erp.date.service', 'erp.ajax.service', 'mgcrea.ngStrap'])
 		.constant('urlPrefix', '${urlPrefix}')
 		.constant('login', "${sessionScope['sessionUser']}" ? true : false)
-		.constant('targetData', ${member})
-		.constant('displayJsonCountries', '${displayJsonCountries}')
+		.constant('targetData', ${member == null ? "null" : member})
+		.constant('displayJsonCountries', ${displayJsonCountries == null ? "null" : displayJsonCountries})
 		.controller('MainCtrl', ['$scope', 'DateService', 'AjaxService', 'urlPrefix', 'login', 'targetData', 'displayJsonCountries', function($scope, DateService, AjaxService, urlPrefix, login, targetData, displayJsonCountries){
 			var self = this,
 				saveUrl = urlPrefix + '/save.json',
@@ -326,12 +326,12 @@
 				ADD_COUNT_MAX = 2;
 			self.discount = {today: DateService.toTodayString()};
 			self.member = {};
-
+			
 			if(targetData){
 				self.member = targetData;
 			}
 			if(displayJsonCountries){
-				self.countries = JSON.parse(displayJsonCountries);
+				self.countries = displayJsonCountries;
 				if(!targetData){
 					self.member = {};
 					self.member.clientId = 'TW';
