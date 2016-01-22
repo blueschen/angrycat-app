@@ -72,6 +72,9 @@ public class RootConfig {
 //		ds.setPassword("root");
 		
 		// c3p0 connection pool datasource
+		// c3p0 config ref. http://www.mchange.com/projects/c3p0/index.html#configuration
+		// c3p0 config sample http://stackoverflow.com/questions/26583120/connections-checking-in-c3p0-pool
+		// c3p0 config sample http://stackoverflow.com/questions/11125962/correct-way-to-keep-pooled-connections-alive-or-time-them-out-and-get-fresh-one
 		ComboPooledDataSource ds = new ComboPooledDataSource();
 		try{
 			ds.setDriverClass(env.getProperty("jdbc.driverClassName"));
@@ -94,15 +97,23 @@ public class RootConfig {
 		}else if(NAS_TOMCAT_TEST4_PATH.equals(serverRoot)){
 			jdbcUrl = nasJdbcUrl + "_test4";
 		}
-		System.out.println("jdbcUrl: " + jdbcUrl);
-		ds.setJdbcUrl(jdbcUrl);
+//		jdbcUrl = nasJdbcUrl;
+//		System.out.println("jdbcUrl: " + jdbcUrl);
+		ds.setJdbcUrl(jdbcUrl);//設定資料庫連線位置
 		ds.setUser(env.getProperty("jdbc.username"));
 		ds.setPassword(env.getProperty("jdbc.password"));
 		ds.setInitialPoolSize(5);
 		ds.setMinPoolSize(5);
 		ds.setMaxPoolSize(20);
+		ds.setAcquireIncrement(3);
 		ds.setMaxStatements(50);
 		ds.setCheckoutTimeout(1800);
+		
+		// 測試連線的設定
+		ds.setTestConnectionOnCheckin(true);
+		ds.setTestConnectionOnCheckout(false); // for performance disabled
+		ds.setIdleConnectionTestPeriod(300); // 五分鐘沒有連線，就測試連線
+		
 		return ds;
 	}
 	
