@@ -30,7 +30,7 @@ public class Member {
 	private String name;
 	private String nameEng;
 	private String fbNickname;
-	private int gender = GENDER_FEMALE; // 沒有指定，預設是女性
+	private int gender;
 	private String idNo;
 	private Date birthday; 
 	private String email;
