@@ -3,10 +3,51 @@ package com.angrycat.erp.format;
 import java.util.List;
 
 import com.angrycat.erp.model.Member;
+import com.angrycat.erp.model.SalesDetail;
 import com.angrycat.erp.model.VipDiscountDetail;
 
 
 public class FormatListFactory {
+	
+	private static FormatList ofSalesBase(String dateFormat){
+		FormatList f = new FormatList();
+		
+		PropertyFormat orderDate = new PropertyFormat("接單日", "orderDate");
+		orderDate.setDateFormat(dateFormat);
+		PropertyFormat shippingDate = new PropertyFormat("出貨日", "shippingDate");
+		shippingDate.setDateFormat(dateFormat);
+		PropertyFormat payDate = new PropertyFormat("付款日", "payDate");
+		payDate.setDateFormat(dateFormat);
+		
+		f.add(new PropertyFormat("銷售點", "salePoint"));
+		f.add(new PropertyFormat("銷售狀態", "saleStatus"));
+		f.add(new PropertyFormat("FB名稱", "fbName"));
+		f.add(new PropertyFormat("活動類型", "activity"));
+		f.add(new PropertyFormat("型號", "modelId"));
+		f.add(new PropertyFormat("產品名稱", "productName"));
+		f.add(new PropertyFormat("定價", "price"));
+		f.add(new PropertyFormat("會員價", "memberPrice"));
+		f.add(new PropertyFormat("優先順序", "priority"));
+		f.add(orderDate);
+		f.add(new PropertyFormat("其他備註", "otherNote"));
+		f.add(new PropertyFormat("對帳狀態", "checkBillStatus"));
+		f.add(new PropertyFormat("身分證字號", "idNo"));
+		f.add(new PropertyFormat("折扣類型", "discountType"));
+		f.add(new PropertyFormat("已到貨", "arrivalStatus"));
+		f.add(shippingDate);
+		f.add(new PropertyFormat("郵寄方式", "sendMethod"));
+		f.add(new PropertyFormat("備註", "note"));
+		f.add(payDate);
+		f.add(new PropertyFormat("郵寄地址電話", "contactInfo"));
+		f.add(new PropertyFormat("登單者", "registrant"));
+		
+		return f;
+	}
+	
+	public static FormatList ofSalesDetailForExcelExport(){
+		FormatList f = ofSalesBase("yyyy-MM-dd");
+		return f;
+	}
 	
 	private static FormatList ofMemberBase(String dateFormat){
 		FormatList f = new FormatList();
@@ -79,6 +120,8 @@ public class FormatListFactory {
 			Member m = (Member)obj;
 			int size = m.getVipDiscountDetails().size();
 			formats = ofMemberDetails(size);
+		}else if(obj.getClass() == SalesDetail.class){
+			formats = ofSalesDetailForExcelExport();
 		}
 		return formats;
 	}
@@ -103,6 +146,8 @@ public class FormatListFactory {
 			
 			int maxSize = Math.max(oldSize, newSize);
 			formats = ofMemberDetails(maxSize);
+		}else if(oldObj.getClass() == SalesDetail.class){
+			formats = ofSalesDetailForExcelExport();
 		}
 		return formats;
 	}
