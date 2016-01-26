@@ -13,6 +13,8 @@ import java.util.TimeZone;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import org.apache.commons.lang3.StringUtils;
+
 public class DatetimeUtil {
 	
 
@@ -155,6 +157,19 @@ public class DatetimeUtil {
 		System.out.println("JVM support time zone ids: " + Arrays.asList(TimeZone.getAvailableIDs()));
 	}
 	public static String getDatePattern(String input){
+		String pattern = getDatePatternOrEmptyStr(input);
+		if(StringUtils.isNotBlank(pattern)){
+			return pattern;
+		}else{
+			throw new RuntimeException("日期格式不正確: " + input);
+		}
+	}
+	/**
+	 * 取得日期pattern，否則回傳空字串
+	 * @param input
+	 * @return
+	 */
+	public static String getDatePatternOrEmptyStr(String input){
 		Pattern p1 = Pattern.compile("[0-9]{4}\\-[0-9]{1,2}\\-[0-9]{1,2}");
 		if(isMatched(p1, input)){
 			return "yyyy-MM-dd";
@@ -171,16 +186,15 @@ public class DatetimeUtil {
 		if(isMatched(p4, input)){
 			return "MM/dd/yyyy";
 		}
-		throw new RuntimeException("日期格式不正確: " + input);
+		return "";
 	}
-	
 	private static boolean isMatched(Pattern p, String input){
 		Matcher m = p.matcher(input);
 		return m.matches();
 	}
 	
 	private static void testPattern(){
-		String input = "1/1/1988";
+		String input = "1/1/1988xxx";
 		System.out.println(getDatePattern(input));
 	}
 	public static void main(String[]args){
