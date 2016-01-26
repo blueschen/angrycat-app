@@ -84,19 +84,19 @@ public class RootConfig {
 		String serverRoot = System.getProperty(CATALINA_HOME);
 		String jdbcUrl = env.getProperty("jdbc.url");
 		String nasJdbcUrl = env.getProperty("jdbc.intranet.url");
-		if(LOCAL_TOMCAT_PATH.equals(serverRoot)){
-			jdbcUrl = env.getProperty("jdbc.url");
-		}else if(NAS_TOMCAT_PRODUCTION_PATH.equals(serverRoot)){
-			jdbcUrl = nasJdbcUrl;
-		}else if(NAS_TOMCAT_TEST1_PATH.equals(serverRoot)){
-			jdbcUrl = nasJdbcUrl + "_test1";
-		}else if(NAS_TOMCAT_TEST2_PATH.equals(serverRoot)){
-			jdbcUrl = nasJdbcUrl + "_test2";
-		}else if(NAS_TOMCAT_TEST3_PATH.equals(serverRoot)){
-			jdbcUrl = nasJdbcUrl + "_test3";
-		}else if(NAS_TOMCAT_TEST4_PATH.equals(serverRoot)){
-			jdbcUrl = nasJdbcUrl + "_test4";
-		}
+//		if(LOCAL_TOMCAT_PATH.equals(serverRoot)){
+//			jdbcUrl = env.getProperty("jdbc.url");
+//		}else if(NAS_TOMCAT_PRODUCTION_PATH.equals(serverRoot)){
+//			jdbcUrl = nasJdbcUrl;
+//		}else if(NAS_TOMCAT_TEST1_PATH.equals(serverRoot)){
+//			jdbcUrl = nasJdbcUrl + "_test1";
+//		}else if(NAS_TOMCAT_TEST2_PATH.equals(serverRoot)){
+//			jdbcUrl = nasJdbcUrl + "_test2";
+//		}else if(NAS_TOMCAT_TEST3_PATH.equals(serverRoot)){
+//			jdbcUrl = nasJdbcUrl + "_test3";
+//		}else if(NAS_TOMCAT_TEST4_PATH.equals(serverRoot)){
+//			jdbcUrl = nasJdbcUrl + "_test4";
+//		}
 //		jdbcUrl = nasJdbcUrl;
 //		System.out.println("jdbcUrl: " + jdbcUrl);
 		ds.setJdbcUrl(jdbcUrl);//設定資料庫連線位置
