@@ -102,6 +102,48 @@ public class ExcelColumn {
 		public static final int COLUMN_COUNT = idx;
 	}
 	
+	public static class SalesDetail{
+		public static class Fb{
+			static int idx = 0;
+			public static final int 狀態		= idx++;
+			public static final int FB名稱	= idx++;
+			public static final int 活動		= idx++;
+			public static final int 型號		= idx++;
+			public static final int 產品名稱	= idx++;
+			public static final int 含運價格	= idx++;
+			public static final int 會員價	= idx++;
+			public static final int 順序		= idx++;
+			public static final int 接單日	= idx++;
+			public static final int 其他備註	= idx++;
+			public static final int 對帳狀態	= idx++;
+			public static final int 身分證字號= idx++;
+			public static final int 折扣類型	= idx++;
+			public static final int 是否已到貨= idx++;
+			public static final int 出貨日	= idx++;
+			public static final int 郵寄方式	= idx++;
+			public static final int 備註		= idx++;
+			public static final int COLUMN_COUNT = idx;
+		}
+		public static class EsliteDunnan{
+			static int idx = 0;
+			public static final int 狀態		= idx++;
+			public static final int FB名稱	= idx++;
+			public static final int 銷售日期	= idx++;
+			public static final int 型號		= idx++;
+			public static final int 產品名稱	= idx++;
+			public static final int 定價		= idx++;
+			public static final int 會員價	= idx++;
+			public static final int 付款日期	= idx++;
+			public static final int 身分證字號= idx++;
+			public static final int 折扣類型	= idx++;
+			public static final int 備註		= idx++;
+			public static final int 出貨日	= idx++;
+			public static final int 聯絡方式	= idx++;
+			public static final int 登單者	= idx++;
+			public static final int COLUMN_COUNT = idx;
+		}
+	}
+	
 	public static void main(String[]args){
 		System.out.println(Product.Sheet2.定價);
 	}
