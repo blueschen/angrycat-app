@@ -1,23 +1,8 @@
 package com.angrycat.erp.excel;
 
-import static com.angrycat.erp.excel.ExcelColumn.Member.Facebook_姓名;
-import static com.angrycat.erp.excel.ExcelColumn.Member.Ohmliy_VIP;
-import static com.angrycat.erp.excel.ExcelColumn.Member.VIP延續;
-import static com.angrycat.erp.excel.ExcelColumn.Member.備註;
-import static com.angrycat.erp.excel.ExcelColumn.Member.出生年月日;
-import static com.angrycat.erp.excel.ExcelColumn.Member.地址;
-import static com.angrycat.erp.excel.ExcelColumn.Member.性別;
-import static com.angrycat.erp.excel.ExcelColumn.Member.真實姓名;
-import static com.angrycat.erp.excel.ExcelColumn.Member.室內電話;
-import static com.angrycat.erp.excel.ExcelColumn.Member.手機電話;
-import static com.angrycat.erp.excel.ExcelColumn.Member.身份證字號;
-import static com.angrycat.erp.excel.ExcelColumn.Member.轉VIP日期;
-import static com.angrycat.erp.excel.ExcelColumn.Member.郵遞區號;
-import static com.angrycat.erp.excel.ExcelColumn.Member.電子信箱;
-import static com.angrycat.erp.excel.ExcelColumn.Member.生日使用8折優惠;
-import static com.angrycat.erp.excel.ExcelColumn.Member.國家代碼;
 import static com.angrycat.erp.excel.ExcelColumn.Member.COLUMN_COUNT;
 
+import java.io.BufferedInputStream;
 import java.io.ByteArrayInputStream;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
@@ -26,7 +11,9 @@ import java.math.BigDecimal;
 import java.sql.Date;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
+import java.util.Arrays;
 import java.util.Calendar;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
@@ -39,11 +26,16 @@ import java.util.stream.Collectors;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.apache.poi.ss.usermodel.Cell;
+import org.apache.poi.ss.usermodel.CellStyle;
+import org.apache.poi.ss.usermodel.DataFormat;
 import org.apache.poi.ss.usermodel.DataFormatter;
+import org.apache.poi.ss.usermodel.DateUtil;
 import org.apache.poi.ss.usermodel.Row;
 import org.apache.poi.ss.usermodel.Sheet;
 import org.apache.poi.ss.usermodel.Workbook;
 import org.apache.poi.ss.usermodel.WorkbookFactory;
+import org.apache.poi.util.IOUtils;
+import org.apache.poi.xssf.usermodel.XSSFCell;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import org.hibernate.Session;
 import org.hibernate.Transaction;
@@ -52,31 +44,37 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
 
-import com.angrycat.erp.businessrule.MemberVipDiscount;
 import com.angrycat.erp.common.DatetimeUtil;
 import com.angrycat.erp.component.SessionFactoryWrapper;
 import com.angrycat.erp.log.DataChangeLogger;
-import com.angrycat.erp.model.Member;
-import com.angrycat.erp.web.controller.MemberController;
 
 
 @Component
 @Scope("prototype")
-public class ExcelImporter {
+public abstract class ExcelImporter {
+	private static final List<Integer> DEFAULT_SHEET_RANGE = Arrays.asList(0);
+	
 	@Autowired
 	@Qualifier("sessionFactoryWrapper")
 	private SessionFactoryWrapper sfw;
-	@Autowired
-	private MemberVipDiscount discount;
 	private int colNum = 0;
 	
 		
 	public static void main(String[]args){
 //		readAndWrite("C:\\angrycat_workitem\\OHM Beads TW (AngryCat) 一般會員資料.xlsx", "C:\\angrycat_workitem\\test.xlsx");
-//		read("E:\\angrycat_workitem\\member\\2015_10_05\\OHM Beads TW (AngryCat) 一般會員資料_update.xlsx", 0, 0);
-		testPattern();
+//		read("E:\\angrycat_workitem\\member\\2015_10_05\\OHM Beads TW (AngryCat) 一般會員資料_update.xlsx", 0, new int[]{0});
+//		testPattern();
+		testDouble();
 	}
 
+	private static void testDouble(){
+		double d = 10;
+		Object obj = d;
+		if(obj.getClass() == Double.class){
+			System.out.println("primary double is Double.class");
+		}
+	}
+	
 	private static void testPattern(){
 		String pattern = "[A-Z]{2}";
 
@@ -99,8 +97,7 @@ public class ExcelImporter {
 		System.out.println(m.find());
 	}
 	
-	private static void readAndWrite(String src, String dest){
-		
+	static void readAndWrite(String src, String dest){
 		try(FileOutputStream fos = new FileOutputStream(dest);){
 			
 			InputStream is = new FileInputStream(src);			
@@ -117,49 +114,137 @@ public class ExcelImporter {
 	}
 	
 	/**
-	 * 顯示資料源的欄位值，必須指定檔案位置、第幾頁、第幾欄
+	 * 顯示資料源的欄位值及類型，必須指定檔案位置、第幾頁、第幾欄。
+	 * 可以直接測試位在本機的xlsx檔案，在測試上的好處就是不需啟動Web環境和使用UI
 	 * @param src
-	 * @param sheetIdx
-	 * @param colIdx
+	 * @param sheetIdxs
+	 * @param colIdxs
 	 */
-	private static void read(String src, int sheetIdx, int colIdx){
+	static void read(String src, int[] sheetIdxs, int[] colIdxs){
 		try(InputStream is = new FileInputStream(src);
 			XSSFWorkbook wb = new XSSFWorkbook(is);){
 			
-			Sheet sheet = wb.getSheetAt(sheetIdx);
-			final DataFormatter df = new DataFormatter();
-			sheet.forEach(row->{
-				Cell cell = row.getCell(colIdx);
-				System.out.println("cell: " + cell);
-				System.out.println("cell type: " + cell.getCellType());
-				System.out.println("cell value: " + df.formatCellValue(cell));
-			});
-			
+			for(int sheetIdx : sheetIdxs){
+				Sheet sheet = wb.getSheetAt(sheetIdx);
+				
+				DataFormat df = wb.createDataFormat();
+				CellStyle cs = wb.createCellStyle();
+				cs.setDataFormat(df.getFormat("@")); // 文字格式
+				
+				sheet.forEach(row->{
+					for(int colIdx : colIdxs){
+						Cell cell = row.getCell(colIdx);
+//						cell.setCellStyle(cs);
+						DataFormatter formatter = new DataFormatter();
+						System.out.println("第" + row.getRowNum() + "列");
+						System.out.println("Cell Val: " + cell.getRichStringCellValue());
+						System.out.println("===================");
+					}
+				});
+			}
 		}catch(Throwable e){
 			throw new RuntimeException(e);
 		}finally{
 			System.out.println("executing finally...");
 		}
-		
-		
-		
 	}
 	
+	/**
+	 * 根據Cell Type，取得XSSF Cell的值。
+	 * 目前僅處理字串、數值、和布林值。
+	 * 字串會額外判斷是否為空或null之類的值，若是這種情況，回傳null。
+	 * 字串若有資料，則會trim掉空白，也會取代\n、\r、\t才用。
+	 * 其中，字串和數值都有可能是日期，遇到這種狀況，會把他轉成java.util.Date傳出。
+	 * 字串為日期的情況比較複雜，這裡涵蓋yyyy-MM-dd、MM-dd-yyyy、yyyy/MM/dd、MM/dd/yyyy這四種格式，都會轉成Java日期。
+	 * @param cell
+	 * @return
+	 */
+	static Object getXSSFValueByCellType(Cell cell){
+		if(cell == null){
+			return null;
+		}
+		int type = cell.getCellType();
+		Object val = null;
+		switch(type){
+			case XSSFCell.CELL_TYPE_STRING:
+				String strVal = cell.getStringCellValue();
+				if(StringUtils.isBlank(strVal)){
+					break;
+				}
+				strVal = strVal.trim();
+				strVal = strVal.replace("\n", "");
+				strVal = strVal.replace("\t", "");
+				strVal = strVal.replace("\r", "");
+				String pattern = DatetimeUtil.getDatePatternOrEmptyStr(strVal);
+				if(StringUtils.isBlank(pattern)){
+					val = strVal;
+				}else{
+					SimpleDateFormat df = new SimpleDateFormat(pattern);
+					try{
+						val = df.parse(strVal);
+					}catch(Throwable e){
+						throw new RuntimeException(e);
+					}
+				}
+				break;
+				// 如果遇到類型為自訂的日期，isCellDateFormatted無法判斷他是日期，會把他當作一般數值；
+				// isValidExcelDate可以判斷某個double值是否可以轉為日期，但也會混淆一般數值
+				// 比較正規的作法，是使用isCellDateFormatted做初步判斷
+			case XSSFCell.CELL_TYPE_NUMERIC:
+				double num = cell.getNumericCellValue();
+				if(DateUtil.isCellDateFormatted(cell)){ 
+					val = cell.getDateCellValue();
+				}else{
+					val = num;
+				}
+				break;
+			case XSSFCell.CELL_TYPE_BOOLEAN:
+				val = cell.getBooleanCellValue();
+				break;
+			case XSSFCell.CELL_TYPE_FORMULA:
+				break;
+			case XSSFCell.CELL_TYPE_BLANK:
+				break;
+			case XSSFCell.CELL_TYPE_ERROR:				
+				break;
+		}
+		return val;
+	}
+	
+	/**
+	 * 讀取指定位置Excel，並嘗試轉成資料庫資料
+	 * @param src
+	 */
+	Map<String, String> readAndPersist(String src){
+		Map<String, String> msg= null;
+		try(BufferedInputStream bis = new BufferedInputStream(new FileInputStream(src))){
+			byte[] data = IOUtils.toByteArray(bis);
+			msg = persist(data);
+		}catch(Throwable e){
+			throw new RuntimeException(e);
+		}finally{
+			System.out.println("executinhg readAndPersist finally");
+		}
+		return msg;
+	}
+	
+	/**
+	 * 將Excel位元組資料存到資料庫，並傳出處理訊息。
+	 * @param data
+	 * @return
+	 */
 	public Map<String, String> persist(byte[] data){
 		return persist(data, null);
 	}
-	
-	public Map<String, String> persist(byte[] data, DataChangeLogger dataChangeLogger){
-		
+	/**
+	 * 將Excel位元組資料存到資料庫，並傳出處理訊息
+	 * TODO 資料異動的部分待確認事項: 由Excel匯入資料是否要存入異動記錄。這裡的模糊空間是，通常匯入的動作是用在上線前初始化資料庫，實際上後來的匯入資料都是手動鍵入。
+	 * @param data
+	 * @param dataChangeLogger
+	 * @return
+	 */
+	public Map<String, String> persist(byte[] data, DataChangeLogger dataChangeLogger){		
 		int totalCount = 0;
-		
-		String NAME_NOT_EXISTED = "nameNoNotExisted";
-		String MOBILE_OR_TEL_REQUIRED = "mobileOrTelRequired";
-		String MOBILE_DUPLICATE = "mobileDuplicate";
-		String TEL_DUPLICATE = "telDuplicate";
-		String CLIENT_ID_DUPLICATE = "clientIdDuplicate";
-		String COUNTRY_CODE_FORMAT_NOT_CORRECT = "countryCodeFormatNotCorrect";
-		int VIP_MAX_YEAR = 2;
 		
 		Map<String, Integer> msg = new LinkedHashMap<>();
 		Map<String, String> logWarn = new HashMap<>();
@@ -168,129 +253,40 @@ public class ExcelImporter {
 		int rowNum = 0;
 		int readableRowNum = 0;
 		int insertCount = 0;
-		final String DEFAULT_COUNTRY_CODE = "TW";
+		
 		try(ByteArrayInputStream bais = new ByteArrayInputStream(data);){
-			
-			Workbook wb = WorkbookFactory.create(bais);
-			Sheet sheet = wb.getSheetAt(0);
-			totalCount = sheet.getLastRowNum();			
-			Iterator<Row> itr = sheet.iterator();
-			
 			s = sfw.openSession();
 			tx = s.beginTransaction();
-			
 			int batchSize = sfw.getBatchSize();
-			String DEFAULT_TEL = "00000";
 			
-			while(itr.hasNext()){
-				Row row = itr.next();
-				rowNum = row.getRowNum();
-				readableRowNum = rowNum+1;
-				if(rowNum == 0 || isRowEmpty(row, COLUMN_COUNT)){
-					continue;
-				}
-				String VIP			= parseStrVal(row, Ohmliy_VIP);
-				Date vipUsed		= parseSqlDateVal(row, 生日使用8折優惠);
-				String fbNickname	= parseStrVal(row, Facebook_姓名);
-				String name			= parseStrVal(row, 真實姓名);
-				String gender		= parseStrVal(row, 性別);
-				String idNo			= parseStrVal(row, 身份證字號);
-				Date birthday		= parseSqlDateVal(row, 出生年月日);
-				String email		= parseStrVal(row, 電子信箱);
-				String mobile		= parseNumericOrStr(row, 手機電話);
-				String tel			= parseNumericOrStr(row, 室內電話);
-				String postalCode	= parseNumericOrStr(row, 郵遞區號);
-				String address		= parseStrVal(row, 地址);
-				Date toVipDate		= parseSqlDateVal(row, 轉VIP日期);
-				String note			= parseStrVal(row, 備註);
-				String vipYear		= parseNumericOrStr(row, VIP延續);
-				String countryCode	= parseStrVal(row, 國家代碼);
-				String clientId		= null;
+			Workbook wb = WorkbookFactory.create(bais);
+			List<Integer> sheetRange = sheetRange();
+			for(int sheetIdx : sheetRange){
+				Sheet sheet = wb.getSheetAt(sheetIdx);
+				totalCount = sheet.getLastRowNum();			
+				Iterator<Row> itr = sheet.iterator();
 				
-				if(StringUtils.isNotBlank(countryCode) && !Pattern.matches("[A-Z]{2}", countryCode)){
-					msg.put(COUNTRY_CODE_FORMAT_NOT_CORRECT+readableRowNum, readableRowNum);
-					continue;
-				}else{
-					if(StringUtils.isBlank(countryCode)){
-						countryCode = DEFAULT_COUNTRY_CODE;
-					}
-					clientId = MemberController.genNextClientId(s, countryCode);
-				}
-				if(StringUtils.isBlank(name)){
-					msg.put(NAME_NOT_EXISTED+readableRowNum, readableRowNum);
-					continue;
-				}
-				if(StringUtils.isBlank(mobile) && StringUtils.isBlank(tel)){
-					tel = DEFAULT_TEL;
-				}				
+				rowNum = 0;
+				readableRowNum = 0;
 				
-				if(StringUtils.isNotBlank(mobile)){
-					Number num = (Number)s.createQuery("SELECT COUNT(m) FROM " + Member.class.getName() + " m WHERE m.name = :name AND m.mobile = :mobile").setString("name", name).setString("mobile", mobile).uniqueResult();
-					int count = num.intValue();
-					if(count > 0){
-						msg.put(MOBILE_DUPLICATE+readableRowNum, readableRowNum);
+				while(itr.hasNext()){
+					Row row = itr.next();
+					rowNum = row.getRowNum();
+					readableRowNum = rowNum+1;
+					if(rowNum == 0 || isRowEmpty(row, COLUMN_COUNT)){
 						continue;
 					}
-				}
-				if(StringUtils.isNotBlank(tel)){
-					Number num = (Number)s.createQuery("SELECT COUNT(m) FROM " + Member.class.getName() + " m WHERE m.name = :name AND m.tel = :tel").setString("name", name).setString("tel", tel).uniqueResult();
-					int count = num.intValue();
-					if(count > 0){
-						msg.put(TEL_DUPLICATE+readableRowNum, readableRowNum);
-						continue;
+					
+					processRow(row, s, sheetIdx, readableRowNum, msg);
+
+//					if(dataChangeLogger != null){
+//						dataChangeLogger.logAdd(m, s);
+//					}
+					
+					if(++insertCount % batchSize == 0){
+						s.flush();
+						s.clear();
 					}
-				}
-				
-				Member m = new Member();
-				if(StringUtils.isNotBlank(VIP)){
-					m.setImportant("VIP".equals(VIP) || "R-VIP".equals(VIP) || VIP.contains("bloger"));
-				}
-				m.setFbNickname(fbNickname);
-				m.setName(name);
-				m.setGender("男".equals(gender) ? Member.GENDER_MALE : Member.GENDER_FEMALE);
-				if(StringUtils.isNoneBlank(idNo)){
-					idNo = idNo.toUpperCase();
-					m.setIdNo(idNo);
-				}
-				m.setBirthday(birthday);
-				m.setEmail(email);
-				m.setMobile(mobile);
-				m.setTel(tel);
-				m.setPostalCode(postalCode);
-				m.setAddress(address);
-				m.setToVipDate(toVipDate);
-				m.setNote(note);
-				m.setClientId(clientId);
-								
-				s.save(m);
-				
-				if(m.getBirthday()!=null && m.getToVipDate()!=null){
-					int vipEffectiveYearCount = 0;
-					if(StringUtils.isNumeric(vipYear) || StringUtils.isBlank(vipYear)){
-						vipEffectiveYearCount = 1;
-					}else{
-						vipEffectiveYearCount = Integer.parseInt(vipYear);
-						if(vipEffectiveYearCount > VIP_MAX_YEAR){
-							vipEffectiveYearCount = VIP_MAX_YEAR;
-						}
-					}
-					discount.setBatchStartDate(m.getToVipDate());
-					discount.setAddCount(vipEffectiveYearCount);
-					discount.applyRule(m);
-					m.setImportant(true);
-					if(vipUsed != null && m.getVipDiscountDetails().size() > 0){
-						m.getVipDiscountDetails().get(0).setDiscountUseDate(vipUsed);
-					}
-				}
-				
-				s.save(m);
-//				if(dataChangeLogger != null){
-//					dataChangeLogger.logAdd(m, s);
-//				}
-				
-				if(++insertCount % batchSize == 0){
-					s.flush();
-					s.clear();
 				}
 			}
 		}catch(Throwable e){
@@ -316,12 +312,9 @@ public class ExcelImporter {
 		System.out.println(infoImportCount);
 		
 		StringBuffer warning = new StringBuffer();
-		warning = genWarnMsg(msg, warning, NAME_NOT_EXISTED, "姓名不存在");
-		warning = genWarnMsg(msg, warning, MOBILE_OR_TEL_REQUIRED, "手機和室內電話至少要提供一項");
-		warning = genWarnMsg(msg, warning, MOBILE_DUPLICATE, "姓名和行動電話已重複");
-		warning = genWarnMsg(msg, warning, TEL_DUPLICATE, "姓名和室內電話已重複");
-		warning = genWarnMsg(msg, warning, CLIENT_ID_DUPLICATE, "客戶編號已重複");
-		warning = genWarnMsg(msg, warning, COUNTRY_CODE_FORMAT_NOT_CORRECT, "國碼應為兩碼大寫英文字母");
+		for(String k : msgKeys()){
+			warning = genWarnMsg(msg, warning, k);
+		}
 		
 		String infoMsg = infoTotalCount + "\n" + infoImportCount;
 		if(StringUtils.isNotBlank(warning.toString())){
@@ -332,6 +325,22 @@ public class ExcelImporter {
 		return logWarn;
 	}
 	
+	protected List<Integer> sheetRange(){
+		return DEFAULT_SHEET_RANGE;
+	}
+	
+	abstract void processRow(Row row, Session s, int sheetIdx, int readableRowNum, Map<String, Integer> msg);
+	
+	protected List<String> msgKeys(){
+		return Collections.emptyList();
+	} 
+	
+	/**
+	 * 檢查列的每個欄位，如果裡面的值都是空的，代表這一列沒有資料
+	 * @param row
+	 * @param colCount
+	 * @return
+	 */
 	private static boolean isRowEmpty(Row row, int colCount){
 		final DataFormatter df = new DataFormatter();
 		boolean empty = true;
@@ -348,11 +357,11 @@ public class ExcelImporter {
 		return empty;
 	}
 	
-	private StringBuffer genWarnMsg(Map<String, Integer> msg, StringBuffer warnMsg, String msgKey, String msgTitle){
+	private StringBuffer genWarnMsg(Map<String, Integer> msg, StringBuffer warnMsg, String msgKey){
 		List<Integer> warnNums = findMsgRowNums(msg, msgKey);
 		String warn = "";
 		if(!warnNums.isEmpty()){
-			warn = msgTitle+"共"+warnNums.size()+"筆\n行數:" + StringUtils.join(warnNums, "、");
+			warn = msgKey+"共"+warnNums.size()+"筆\n行數:" + StringUtils.join(warnNums, "、");
 			System.out.println(warn);
 			warnMsg.append(warn + "\n");
 		}
@@ -378,7 +387,12 @@ public class ExcelImporter {
 				.collect(Collectors.toList());
 		return results;
 	}
-	
+	/**
+	 * 轉出字串，若遇到日期，則以yyyy-MM-dd格式再轉成字串
+	 * @param row
+	 * @param columnIndex
+	 * @return
+	 */
 	String parseStrVal(Row row, int columnIndex){
 		colNum = columnIndex;
 		String result = null;
@@ -386,10 +400,18 @@ public class ExcelImporter {
 		if(cell == null){
 			return null;
 		}
-		String v = cell.getStringCellValue();
-		if(StringUtils.isNotBlank(v)){
-			result = StringUtils.trim(v);
-			result = result.replace("\n", "");
+		Object obj = getXSSFValueByCellType(cell);
+		if(obj != null){
+			if(obj.getClass() == String.class){
+				result = (String)obj;
+			}else if(obj.getClass() == java.util.Date.class){
+				SimpleDateFormat df = new SimpleDateFormat("yyyy-MM-dd");
+				try{
+					result = df.format((java.util.Date)obj);
+				}catch(Throwable e){
+					throw new RuntimeException(e);
+				}
+			}
 		}
 		return result;
 	}
@@ -401,25 +423,7 @@ public class ExcelImporter {
 		if(cell == null){
 			return null;
 		}
-		int type = cell.getCellType();
-		try{
-			if(type == Cell.CELL_TYPE_NUMERIC){
-				date = cell.getDateCellValue();
-			}else if(type == Cell.CELL_TYPE_STRING){
-				String str = cell.getStringCellValue();
-				if(StringUtils.isNotBlank(str)){
-					str = str.trim();
-					String pattern = DatetimeUtil.getDatePattern(str);
-					if(pattern == null){
-						throw new RuntimeException("不正確的日期格式:" + str);
-					}
-					DateFormat df = new SimpleDateFormat(pattern);
-					date = df.parse(str);
-				}
-			}
-		}catch(Throwable e){
-			throw new RuntimeException(e);
-		}		
+		date = (java.util.Date)getXSSFValueByCellType(cell);		
 		return date;
 	}
 	
@@ -435,8 +439,15 @@ public class ExcelImporter {
 		if(cell == null){
 			return null;
 		}
-		double d = cell.getNumericCellValue();
-		return d;
+		Object obj = getXSSFValueByCellType(cell);
+		if(obj!=null){
+			if(obj.getClass() == String.class){
+				return Double.valueOf((String)obj);
+			}else if(obj.getClass() == Double.class){
+				return (Double)obj;
+			}
+		}
+		return null;
 	}
 	
 	String parseNumericOrStr(Row row, int columnIndex){
@@ -445,13 +456,14 @@ public class ExcelImporter {
 		if(cell == null){
 			return null;
 		}
-		int type = cell.getCellType();
 		String val = null;
-		if(type == Cell.CELL_TYPE_STRING){
-			val = cell.getStringCellValue();
-		}else if(type == Cell.CELL_TYPE_NUMERIC){
-			double d = cell.getNumericCellValue();
-			val = new BigDecimal(d).toString();
+		Object obj = getXSSFValueByCellType(cell);
+		if(obj!=null){
+			if(obj.getClass() == String.class){
+				val = (String)obj;
+			}else if(obj.getClass() == Double.class){
+				val = new BigDecimal((Double)obj).toString();
+			}
 		}
 		return val;
 	}
