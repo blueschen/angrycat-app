@@ -56,6 +56,9 @@
 					<li ng-class="{'active': mainCtrl.moduleName == 'datadeletelog'}">
 						<a href="${pageContext.request.contextPath}/datadeletelog/list">已刪除資料異動紀錄查詢</a>
 					</li>
+					<li ng-class="{'active': mainCtrl.moduleName == 'salesdetail'}">
+						<a href="${pageContext.request.contextPath}/salesdetail/list">銷售明細</a>
+					</li>					
 				</ul>
 				<ul class="nav navbar-nav navbar-right">
 					<li>
