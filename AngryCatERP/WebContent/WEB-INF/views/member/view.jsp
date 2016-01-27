@@ -4,8 +4,8 @@
 <%@ taglib uri="http://www.springframework.org/tags/form" prefix="sf"%>
 <%@ taglib uri="http://www.springframework.org/tags" prefix="s"%>
 
-<c:set value="member" var="modelName"/>
-<c:set value="${pageContext.request.contextPath}/${modelName}" var="urlPrefix"/>
+<c:set value="member" var="moduleName"/>
+<c:set value="${pageContext.request.contextPath}/${moduleName}" var="urlPrefix"/>
 <!DOCTYPE html>
 <html lang="zh-TW" ng-app="angryCatMemberViewApp">
 <head>
