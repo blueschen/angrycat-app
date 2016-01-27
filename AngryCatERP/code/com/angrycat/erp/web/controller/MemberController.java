@@ -43,8 +43,8 @@ import com.angrycat.erp.businessrule.MemberVipDiscount;
 import com.angrycat.erp.businessrule.VipDiscountUseStatus;
 import com.angrycat.erp.common.CommonUtil;
 import com.angrycat.erp.component.SessionFactoryWrapper;
-import com.angrycat.erp.excel.ExcelImporter;
 import com.angrycat.erp.excel.MemberExcelExporter;
+import com.angrycat.erp.excel.MemberExcelImporter;
 import com.angrycat.erp.jackson.mixin.MemberIgnoreDetail;
 import com.angrycat.erp.log.DataChangeLogger;
 import com.angrycat.erp.model.Member;
@@ -72,10 +72,10 @@ public class MemberController {
 	private SessionFactoryWrapper sfw;
 	
 	@Autowired
-	private ExcelImporter excelImporter;
+	private MemberExcelImporter memberExcelImporter;
 	
 	@Autowired
-	private MemberExcelExporter excelExporter;
+	private MemberExcelExporter memberExcelExporter;
 	
 	@Autowired
 	private MemberVipDiscount discount;
@@ -262,7 +262,7 @@ public class MemberController {
 	public @ResponseBody String uploadExcel(
 		@RequestPart("uploadExcelFile") byte[] uploadExcelFile){
 		addUserToComponent();
-		Map<String, String> msg = excelImporter.persist(uploadExcelFile, dataChangeLogger);
+		Map<String, String> msg = memberExcelImporter.persist(uploadExcelFile, dataChangeLogger);
 		ConditionConfig<Member> cc = memberQueryService.genCondtitionsAfterExecuteQueryPageable();
 		cc.getMsgs().clear();
 		cc.getMsgs().putAll(msg);
@@ -279,7 +279,7 @@ public class MemberController {
 	
 	@RequestMapping(value="/downloadExcel", method={RequestMethod.POST, RequestMethod.GET})
 	public void downloadExcel(HttpServletResponse response){
-		File tempFile = excelExporter.normal(memberQueryService);
+		File tempFile = memberExcelExporter.normal(memberQueryService);
 		
 		try(FileInputStream fis = new FileInputStream(tempFile);){
 			writeExcelToResponse(response, fis, "member.xlsx");
@@ -296,7 +296,7 @@ public class MemberController {
 	
 	@RequestMapping(value="/downloadOnePos", method={RequestMethod.POST, RequestMethod.GET})
 	public void downloadOnePos(HttpServletResponse response){
-		File tempFile = excelExporter.onePos(memberQueryService);
+		File tempFile = memberExcelExporter.onePos(memberQueryService);
 		
 		try(FileInputStream fis = new FileInputStream(tempFile);){
 			writeExcelToResponse(response, fis, "onePosClients.xls");
