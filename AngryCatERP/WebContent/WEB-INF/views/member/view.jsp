@@ -110,7 +110,9 @@
  				客戶編號
  			</label>
  			<div class="col-sm-7">
- 				<span ng-bind="mainCtrl.member.clientId" id="clientId"></span>
+ 				<p class="form-control-static">
+ 					<span ng-bind="mainCtrl.member.clientId" id="clientId"></span>
+ 				</p>
  			</div> 		
  		</div>
  		<div class="form-group col-sm-5" ng-if="!mainCtrl.member.id">
