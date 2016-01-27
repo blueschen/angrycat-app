@@ -1,7 +1,8 @@
 package com.angrycat.erp.web.controller;
 
-import static com.angrycat.erp.condition.ConditionFactory.putStr;
-import static com.angrycat.erp.condition.MatchMode.EXACT;
+import static com.angrycat.erp.condition.ConditionFactory.putSqlDate;
+import static com.angrycat.erp.condition.ConditionFactory.putStrCaseInsensitive;
+import static com.angrycat.erp.condition.MatchMode.ANYWHERE;
 
 import javax.annotation.PostConstruct;
 
@@ -32,8 +33,20 @@ public class SalesDetailController extends BaseUpdateController<SalesDetail, Sal
 		
 		QueryBaseService<SalesDetail, SalesDetail> queryBaseService = getQueryBaseService();
 		queryBaseService
-			.addWhere(putStr("p.salePoint LIKE :pSalePoint", EXACT))
-			.addWhere(putStr("p.saleStatus LIKE :pSaleStatus", EXACT))
+			.addWhere(putStrCaseInsensitive("p.salePoint LIKE :pSalePoint", ANYWHERE))
+			.addWhere(putStrCaseInsensitive("p.saleStatus LIKE :pSaleStatus", ANYWHERE))
+			.addWhere(putStrCaseInsensitive("p.fbName LIKE :pFbName", ANYWHERE))
+			.addWhere(putStrCaseInsensitive("p.activity LIKE :pActivity", ANYWHERE))
+			.addWhere(putStrCaseInsensitive("p.modelId LIKE :pModelId", ANYWHERE))
+			.addWhere(putStrCaseInsensitive("p.productName LIKE :pProductName", ANYWHERE))
+			.addWhere(putStrCaseInsensitive("p.checkBillStatus LIKE :pCheckBillStatus", ANYWHERE))
+			.addWhere(putStrCaseInsensitive("p.discountType LIKE :pDiscountType", ANYWHERE))
+			.addWhere(putSqlDate("p.orderDate >= :pOrderDateStart"))
+			.addWhere(putSqlDate("p.orderDate <= :pOrderDateEnd"))
+			.addWhere(putSqlDate("p.shippingDate >= :pShippingDateStart"))
+			.addWhere(putSqlDate("p.shippingDate <= :pShippingDateEnd"))
+			.addWhere(putSqlDate("p.payDate >= :pPayDateStart"))
+			.addWhere(putSqlDate("p.payDate <= :pPayDateEnd"))			
 			;
 	}
 
