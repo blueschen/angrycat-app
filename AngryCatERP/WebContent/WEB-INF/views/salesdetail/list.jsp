@@ -94,6 +94,148 @@
 			<input type="text" ng-model="mainCtrl.conditionConfig.conds.condition_pSaleStatus" id="pSaleStatus" class="form-control">
  		</div>
  	</div>
+ 	<div class="form-group">
+		<label class="col-sm-2 control-label" for="pFbName">
+ 			FB名稱
+ 		</label>
+ 		<div class="col-sm-6">
+			<input type="text" ng-model="mainCtrl.conditionConfig.conds.condition_pFbName" id="pFbName" class="form-control">
+ 		</div>
+ 	</div>
+ 	<div class="form-group">
+		<label class="col-sm-2 control-label" for="pActivity">
+ 			活動類型
+ 		</label>
+ 		<div class="col-sm-6">
+			<input type="text" ng-model="mainCtrl.conditionConfig.conds.condition_pActivity" id="pActivity" class="form-control">
+ 		</div>
+ 	</div>
+ 	<div class="form-group">
+		<label class="col-sm-2 control-label" for="pModelId">
+ 			型號
+ 		</label>
+ 		<div class="col-sm-6">
+			<input type="text" ng-model="mainCtrl.conditionConfig.conds.condition_pModelId" id="pModelId" class="form-control">
+ 		</div>
+ 	</div>
+ 	<div class="form-group">
+		<label class="col-sm-2 control-label" for="pProductName">
+ 			明細	
+ 		</label>
+ 		<div class="col-sm-6">
+			<input type="text" ng-model="mainCtrl.conditionConfig.conds.condition_pProductName" id="pProductName" class="form-control">
+ 		</div>
+ 	</div>
+ 	<div class="form-group">
+		<label class="col-sm-2 control-label" for="pCheckBillStatus">
+ 			對帳狀態
+ 		</label>
+ 		<div class="col-sm-6">
+			<input type="text" ng-model="mainCtrl.conditionConfig.conds.condition_pCheckBillStatus" id="pCheckBillStatus" class="form-control">
+ 		</div>
+ 	</div>
+ 	<div class="form-group">
+		<label class="col-sm-2 control-label" for="pDiscountType">
+			折扣類型 			
+ 		</label>
+ 		<div class="col-sm-6">
+			<input type="text" ng-model="mainCtrl.conditionConfig.conds.condition_pDiscountType" id="pDiscountType" class="form-control">
+ 		</div>
+ 	</div>
+ 	<div class="form-group" ng-class="{'has-error': (salesDetailListForm.pOrderDateStart.$dirty && salesDetailListForm.pOrderDateStart.$invalid) || (salesDetailListForm.pOrderDateEnd.$dirty && salesDetailListForm.pOrderDateEnd.$invalid)}">
+ 		<label class="col-sm-2 control-label" id="orderDateDur">
+ 			接單日期起迄
+		</label>
+		<div class="col-sm-3">
+ 			<input id="pOrderDateStart" 
+ 				class="form-control" 
+ 				ng-model="mainCtrl.conditionConfig.conds.condition_pOrderDateStart" 
+ 				name="pOrderDateStart" 
+ 				bs-datepicker 
+ 				type="text" 
+ 				autoclose="1"
+ 				date-format="yyyy-MM-dd"
+ 				placeholder="yyyy-MM-dd"
+ 				date-type="string"
+ 				aria-labelledby="orderDateDur">			
+		</div>
+		<div class="col-sm-3">
+ 			<input id="pOrderDateEnd" 
+ 				class="form-control" 
+ 				ng-model="mainCtrl.conditionConfig.conds.condition_pOrderDateEnd" 
+ 				name="pOrderDateEnd" 
+ 				bs-datepicker 
+ 				type="text" 
+ 				autoclose="1"
+ 				date-format="yyyy-MM-dd"
+ 				placeholder="yyyy-MM-dd"
+ 				date-type="string"
+ 				aria-labelledby="orderDateDur">			
+		</div>
+ 	</div> 	 	 	
+ 	<div class="form-group" ng-class="{'has-error': (salesDetailListForm.pShippingDateStart.$dirty && salesDetailListForm.pShippingDateStart.$invalid) || (salesDetailListForm.pShippingDateEnd.$dirty && salesDetailListForm.pShippingDateEnd.$invalid)}">
+ 		<label class="col-sm-2 control-label" id="shippingDateDur">
+ 			出貨日期起迄
+		</label>
+		<div class="col-sm-3">
+ 			<input id="pShippingDateStart" 
+ 				class="form-control" 
+ 				ng-model="mainCtrl.conditionConfig.conds.condition_pShippingDateStart" 
+ 				name="pShippingDateStart" 
+ 				bs-datepicker 
+ 				type="text" 
+ 				autoclose="1"
+ 				date-format="yyyy-MM-dd"
+ 				placeholder="yyyy-MM-dd"
+ 				date-type="string"
+ 				aria-labelledby="shippingDateDur">			
+		</div>
+		<div class="col-sm-3">
+ 			<input id="pShippingDateEnd" 
+ 				class="form-control" 
+ 				ng-model="mainCtrl.conditionConfig.conds.condition_pShippingDateEnd" 
+ 				name="pShippingDateEnd" 
+ 				bs-datepicker 
+ 				type="text" 
+ 				autoclose="1"
+ 				date-format="yyyy-MM-dd"
+ 				placeholder="yyyy-MM-dd"
+ 				date-type="string"
+ 				aria-labelledby="shippingDateDur">			
+		</div>
+ 	</div> 	 	 	 	 	
+  	<div class="form-group" ng-class="{'has-error': (salesDetailListForm.pPayDateStart.$dirty && salesDetailListForm.pPayDateStart.$invalid) || (salesDetailListForm.pPayDateEnd.$dirty && salesDetailListForm.pPayDateEnd.$invalid)}">
+ 		<label class="col-sm-2 control-label" id="payDateDur">
+ 			付款日期起迄
+		</label>
+		<div class="col-sm-3">
+ 			<input id="pPayDateStart" 
+ 				class="form-control" 
+ 				ng-model="mainCtrl.conditionConfig.conds.condition_pPayDateStart" 
+ 				name="pPayDateStart" 
+ 				bs-datepicker 
+ 				type="text" 
+ 				autoclose="1"
+ 				date-format="yyyy-MM-dd"
+ 				placeholder="yyyy-MM-dd"
+ 				date-type="string"
+ 				aria-labelledby="payDateDur">			
+		</div>
+		<div class="col-sm-3">
+ 			<input id="pPayDateEnd" 
+ 				class="form-control" 
+ 				ng-model="mainCtrl.conditionConfig.conds.condition_pPayDateEnd" 
+ 				name="pPayDateEnd" 
+ 				bs-datepicker 
+ 				type="text" 
+ 				autoclose="1"
+ 				date-format="yyyy-MM-dd"
+ 				placeholder="yyyy-MM-dd"
+ 				date-type="string"
+ 				aria-labelledby="payDateDur">			
+		</div>
+ 	</div>
+ 
  	
  	<div class="btn-toolbar" role="toolbar">
  		<div class="btn-group" role="group">
@@ -128,8 +270,8 @@
 		<td>產品名稱</td>
 		<td>定價</td>
 		<td>會員價</td>
-		<td>折扣類型</td>
 		<td>內容</td>
+		<td>異動紀錄</td>
 	</tr>
 	<tr ng-repeat="result in mainCtrl.conditionConfig.results">
 		<td><input type="checkbox" value="{{result.id}}" name="ids"></td>
@@ -141,12 +283,16 @@
 		<td><span ng-bind="result.productName"></span></td>
 		<td><span ng-bind="result.price"></span></td>
 		<td><span ng-bind="result.memberPrice"></span></td>
-		<td><span ng-bind="result.discountType"></span></td>		
 		<td>
 			<span to-view="{{result.id}}">
 				<i class="glyphicon glyphicon-file"></i>	
 			</span>
 		</td>
+		<td>
+			<span to-change-log="{{result.id}}">
+				<i class="glyphicon glyphicon-pencil"></i>	
+			</span>
+		</td>		
 	</tr>
 </table>
 </div>		
