@@ -55,6 +55,17 @@ public abstract class BaseQueryController<T, R> implements Serializable {
 		String moduleName = root.toLowerCase();
 		return moduleName;
 	}
+	/**
+	 * 首字母小寫的駝峰式模組名稱
+	 * @return
+	 */
+	String getLowerCamelCaseModuleName(){
+		String root = getRoot().getSimpleName();
+		String firstLetter = root.substring(0, 1);
+		String remaining = root.substring(1, root.length());
+		String moduleName = firstLetter.toLowerCase() + remaining;
+		return moduleName;
+	}
 	abstract Class<R> getRoot();
 	
 	@PostConstruct
@@ -119,7 +130,7 @@ public abstract class BaseQueryController<T, R> implements Serializable {
 		}
 		String result = CommonUtil.parseToJson(target);
 		addUrlPrefixAsModuleName(model);
-		model.addAttribute(moduleName, result);
+		model.addAttribute(getLowerCamelCaseModuleName(), result);
 		return urlPrefix + "/view";
 	}
 	
