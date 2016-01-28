@@ -3,9 +3,11 @@ package com.angrycat.erp.condition;
 import java.text.DateFormat;
 import java.text.ParseException;
 
+import com.angrycat.erp.common.DatetimeUtil;
+
 public class TimestampEndExpression extends SimpleExpression {
 	private static final long serialVersionUID = 8854661518956501377L;
-	private DateFormat dateFormat = TimestampStartExpression.DEFAULT_FORMAT;
+	private DateFormat dateFormat = DatetimeUtil.DF_yyyyMMdd_DASHED_EXTEND_TO_SEC;
 	public DateFormat getDateFormat() {
 		return dateFormat;
 	}

@@ -21,6 +21,7 @@ import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.angrycat.erp.common.DatetimeUtil;
 import com.angrycat.erp.component.SessionFactoryWrapper;
 import com.angrycat.erp.condition.Order;
 import com.angrycat.erp.condition.SimpleExpression;
@@ -43,9 +44,7 @@ public class QueryBaseService<T, R> extends ConditionalQuery<T> implements Condi
 	public static final String CURRENT_PAGE					= "currentPage";
 	public static final String COUNT_PER_PAGE				= "countPerPage";
 	public static final String ORDER_TYPE					= "orderType";
-	private static final List<String> CONFIG_RANGES			= Arrays.asList(CURRENT_PAGE, COUNT_PER_PAGE, ORDER_TYPE);	
-	private static final DateFormat dateFormatFS = new SimpleDateFormat("yyyy-MM-dd");
-	private static final DateFormat timeFormatFS = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+	private static final List<String> CONFIG_RANGES			= Arrays.asList(CURRENT_PAGE, COUNT_PER_PAGE, ORDER_TYPE);
 	
 	private SessionFactoryWrapper sfw;
 	private Class<R> root;	
@@ -224,12 +223,12 @@ public class QueryBaseService<T, R> extends ConditionalQuery<T> implements Condi
 				}else if(clz == Float.class){
 					result = Float.parseFloat(str);
 				}else if(clz == Date.class){
-					result = new Date(dateFormatFS.parse(str).getTime());
+					result = new Date(DatetimeUtil.DF_yyyyMMdd_DASHED.parse(str).getTime());
 				}else if(clz == Timestamp.class){
 					if(se instanceof TimestampStartExpression || se instanceof TimestampEndExpression){
 						result = str;
 					}else{
-						result = new Timestamp(timeFormatFS.parse(str).getTime());
+						result = new Timestamp(DatetimeUtil.DF_yyyyMMdd_DASHED_EXTEND_TO_SEC.parse(str).getTime());
 					}
 				}else if(clz == Boolean.class){
 					result = Boolean.parseBoolean(str);

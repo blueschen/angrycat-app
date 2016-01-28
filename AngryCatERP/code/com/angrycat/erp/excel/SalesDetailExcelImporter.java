@@ -1,7 +1,7 @@
 package com.angrycat.erp.excel;
 
 import java.sql.Date;
-import java.text.SimpleDateFormat;
+import java.text.DateFormat;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
@@ -14,6 +14,7 @@ import org.springframework.context.annotation.AnnotationConfigApplicationContext
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
 
+import com.angrycat.erp.common.DatetimeUtil;
 import com.angrycat.erp.excel.ExcelColumn.SalesDetail.EsliteDunnan;
 import com.angrycat.erp.excel.ExcelColumn.SalesDetail.Fb;
 import com.angrycat.erp.initialize.config.RootConfig;
@@ -153,7 +154,7 @@ public class SalesDetailExcelImporter extends ExcelImporter {
 				Cell cell = row.getCell(colIdx);
 				java.util.Date date = cell.getDateCellValue();
 				try{
-					SimpleDateFormat df = new SimpleDateFormat("yyyy-MM-dd");
+					DateFormat df = DatetimeUtil.DF_yyyyMMdd_DASHED;
 					result = df.format(date);
 				}catch(Throwable e){
 					throw new RuntimeException(e);

@@ -405,7 +405,7 @@ public abstract class ExcelImporter {
 			if(obj.getClass() == String.class){
 				result = (String)obj;
 			}else if(obj.getClass() == java.util.Date.class){
-				SimpleDateFormat df = new SimpleDateFormat("yyyy-MM-dd");
+				DateFormat df = DatetimeUtil.DF_yyyyMMdd_DASHED;
 				try{
 					result = df.format((java.util.Date)obj);
 				}catch(Throwable e){

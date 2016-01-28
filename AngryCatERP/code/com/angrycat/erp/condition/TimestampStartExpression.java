@@ -2,12 +2,12 @@ package com.angrycat.erp.condition;
 
 import java.text.DateFormat;
 import java.text.ParseException;
-import java.text.SimpleDateFormat;
+
+import com.angrycat.erp.common.DatetimeUtil;
 
 public class TimestampStartExpression extends SimpleExpression {
 	private static final long serialVersionUID = -2529248288494538954L;
-	static final DateFormat DEFAULT_FORMAT = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
-	private DateFormat dateFormat = DEFAULT_FORMAT;
+	private DateFormat dateFormat = DatetimeUtil.DF_yyyyMMdd_DASHED_EXTEND_TO_SEC;
 	public DateFormat getDateFormat() {
 		return dateFormat;
 	}
