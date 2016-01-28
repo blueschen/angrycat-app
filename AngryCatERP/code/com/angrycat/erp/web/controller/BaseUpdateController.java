@@ -1,22 +1,11 @@
 package com.angrycat.erp.web.controller;
 
 import java.io.FileInputStream;
-import java.util.Collections;
-import java.util.Iterator;
-import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 
-
-
-
-
 import javax.annotation.PostConstruct;
 import javax.servlet.http.HttpServletResponse;
-
-
-
-
 
 import org.apache.commons.beanutils.PropertyUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -28,17 +17,10 @@ import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestPart;
 import org.springframework.web.bind.annotation.ResponseBody;
 
-
-
-
-
 import com.angrycat.erp.component.SessionFactoryWrapper;
 import com.angrycat.erp.excel.ExcelImporter;
 import com.angrycat.erp.log.DataChangeLogger;
-import com.angrycat.erp.model.Member;
-import com.angrycat.erp.model.VipDiscountDetail;
 import com.angrycat.erp.security.User;
-import com.angrycat.erp.service.QueryBaseService;
 import com.angrycat.erp.web.WebUtils;
 import com.angrycat.erp.web.component.ConditionConfig;
 
@@ -47,9 +29,9 @@ public abstract class BaseUpdateController<T, R> extends
 	private static final long serialVersionUID = -5216635470444696023L;
 	
 	@Autowired
-	private DataChangeLogger dataChangeLogger;
+	protected DataChangeLogger dataChangeLogger;
 	@Autowired
-	private SessionFactoryWrapper sfw;
+	protected SessionFactoryWrapper sfw;
 	
 	@Override
 	@PostConstruct
@@ -58,6 +40,7 @@ public abstract class BaseUpdateController<T, R> extends
 		User currentUser = WebUtils.getSessionUser();
 		dataChangeLogger.setUser(currentUser);
 	}
+	
 	/**
 	 * 新增導頁，讓使用者可以key in資料
 	 */
@@ -86,7 +69,6 @@ public abstract class BaseUpdateController<T, R> extends
 				s.save(target);
 				s.flush();
 			}else{// update
-				QueryBaseService<T, R> findTargetService =  getFindTargetService();
 				findTargetService.getSimpleExpressions().get("pId").setValue(id);
 				List<T> targets = findTargetService.executeQueryList(s);
 				
@@ -112,7 +94,7 @@ public abstract class BaseUpdateController<T, R> extends
 			produces={"application/xml", "application/json"},
 			headers="Accept=*/*")
 	public @ResponseBody String deleteItems(@RequestBody List<String> ids){
-		ConditionConfig<T> cc = getQueryBaseService().executeQueryPageableAfterDelete(ids);
+		ConditionConfig<T> cc = queryBaseService.executeQueryPageableAfterDelete(ids);
 		String result = conditionConfigToJsonStr(cc);
 		return result;
 	}
@@ -127,7 +109,7 @@ public abstract class BaseUpdateController<T, R> extends
 	public @ResponseBody String uploadExcel(
 		@RequestPart("uploadExcelFile") byte[] uploadExcelFile){
 		Map<String, String> msg = getExcelImporter().persist(uploadExcelFile, dataChangeLogger);
-		ConditionConfig<T> cc = getQueryBaseService().genCondtitionsAfterExecuteQueryPageable();
+		ConditionConfig<T> cc = queryBaseService.genCondtitionsAfterExecuteQueryPageable();
 		cc.getMsgs().clear();
 		cc.getMsgs().putAll(msg);
 		String result = conditionConfigToJsonStr(cc);

@@ -14,7 +14,6 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import com.angrycat.erp.excel.SalesDetailExcelExporter;
 import com.angrycat.erp.excel.SalesDetailExcelImporter;
 import com.angrycat.erp.model.SalesDetail;
-import com.angrycat.erp.service.QueryBaseService;
 @Controller
 @RequestMapping(value="/salesdetail")
 @Scope("session")
@@ -31,7 +30,6 @@ public class SalesDetailController extends BaseUpdateController<SalesDetail, Sal
 	public void init(){
 		super.init();
 		
-		QueryBaseService<SalesDetail, SalesDetail> queryBaseService = getQueryBaseService();
 		queryBaseService
 			.addWhere(putStrCaseInsensitive("p.salePoint LIKE :pSalePoint", ANYWHERE))
 			.addWhere(putStrCaseInsensitive("p.saleStatus LIKE :pSaleStatus", ANYWHERE))

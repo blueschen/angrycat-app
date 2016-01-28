@@ -6,38 +6,34 @@ import static com.angrycat.erp.condition.ConditionFactory.putTimestampEnd;
 import static com.angrycat.erp.condition.ConditionFactory.putTimestampStart;
 
 import javax.annotation.PostConstruct;
+import javax.servlet.http.HttpServletRequest;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
-import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.ResponseBody;
 
 import com.angrycat.erp.condition.MatchMode;
+import com.angrycat.erp.excel.NotImplementedExcelExporter;
 import com.angrycat.erp.model.DataChangeLog;
-import com.angrycat.erp.security.User;
-import com.angrycat.erp.service.QueryBaseService;
-import com.angrycat.erp.web.WebUtils;
-import com.angrycat.erp.web.component.ConditionConfig;
 
 @Controller
 @Scope("session")
 @RequestMapping(value="/datachangelog")
-public class DataChangeLogController {
-	@Autowired
-	@Qualifier("queryBaseService")
-	private QueryBaseService<DataChangeLog, DataChangeLog> queryListService;
+public class DataChangeLogController extends BaseQueryController<DataChangeLog, DataChangeLog>{
+	private static final long serialVersionUID = -7447959203751296318L;
 	
+	@Autowired
+	private NotImplementedExcelExporter notImplementedExcelExporter;
+	
+	@Override
 	@PostConstruct
 	public void init(){
-		queryListService.setRootAndInitDefault(DataChangeLog.class);
+		super.init();
 		
-		queryListService
+		queryBaseService
 			.addWhere(putStr("p.docType = :pDocType"))
 			.addWhere(putStr("p.docId = :pDocId"))
 			.addWhere(putTimestampStart("p.logTime >= :pLogTimeStart"))
@@ -46,45 +42,26 @@ public class DataChangeLogController {
 			.addWhere(putStrCaseInsensitive("p.userName LIKE :pUserName", MatchMode.ANYWHERE))
 			.addWhere(putStrCaseInsensitive("p.userId LIKE :pUserId", MatchMode.ANYWHERE))
 			;
-		
-		User currentUser = WebUtils.getSessionUser();
-		queryListService.setUser(currentUser);
 	}
 	
 	@RequestMapping(value="/list", method=RequestMethod.GET)
-	public String list(
-		@RequestParam(value="docType", required=false)String docType, 
-		@RequestParam(value="docId", required=false)String docId,
-		Model model){
-		queryListService.getSimpleExpressions().get("pDocType").setValue(docType);
-		queryListService.getSimpleExpressions().get("pDocId").setValue(docId);
-		model.addAttribute("moduleName", getModule());
-		return "datachangelog/list";
+	public String list(HttpServletRequest request, Model model){
+		String docType = request.getParameter("docType");
+		String docId = request.getParameter("docId");
+		queryBaseService.getSimpleExpressions().get("pDocType").setValue(docType);
+		queryBaseService.getSimpleExpressions().get("pDocId").setValue(docId);
+
+		return super.list(request, model);
 	}
-	
-	@RequestMapping(value="/queryAll",
-			method=RequestMethod.POST,
-			produces={"application/xml", "application/json"},
-			headers="Accept=*/*")
-	public @ResponseBody ConditionConfig<DataChangeLog> queryAll(){
-		ConditionConfig<DataChangeLog> cc = queryListService.genCondtitionsAfterExecuteQueryPageable();
-		return cc;
+
+	@Override
+	Class<DataChangeLog> getRoot() {
+		return DataChangeLog.class;
 	}
-	
-	@RequestMapping(value="/queryConditional",
-			method=RequestMethod.POST,
-			produces={"application/xml", "application/json"},
-			headers="Accept=*/*")
-	public @ResponseBody ConditionConfig<DataChangeLog> queryConditional(@RequestBody ConditionConfig<DataChangeLog> conditionConfig){
-		ConditionConfig<DataChangeLog> cc = queryListService.executeQueryPageable(conditionConfig);
-		return cc;
-	}
-	
-	QueryBaseService<DataChangeLog, DataChangeLog> getQueryListService(){
-		return this.queryListService;
-	}
-	
-	String getModule(){
-		return "datachangelog";
+
+	@SuppressWarnings("unchecked")
+	@Override
+	NotImplementedExcelExporter getExcelExporter() {
+		return notImplementedExcelExporter;
 	}
 }
