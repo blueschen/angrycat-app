@@ -18,17 +18,13 @@ import java.util.List;
 import java.util.Map;
 
 import javax.annotation.PostConstruct;
-import javax.servlet.ServletOutputStream;
 import javax.servlet.http.HttpServletResponse;
 
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.StringUtils;
-import org.apache.poi.util.IOUtils;
 import org.hibernate.Session;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Scope;
-import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -37,39 +33,25 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestPart;
 import org.springframework.web.bind.annotation.ResponseBody;
-import org.springframework.web.bind.annotation.ResponseStatus;
 
 import com.angrycat.erp.businessrule.MemberVipDiscount;
 import com.angrycat.erp.businessrule.VipDiscountUseStatus;
 import com.angrycat.erp.common.CommonUtil;
-import com.angrycat.erp.component.SessionFactoryWrapper;
 import com.angrycat.erp.excel.MemberExcelExporter;
 import com.angrycat.erp.excel.MemberExcelImporter;
 import com.angrycat.erp.jackson.mixin.MemberIgnoreDetail;
-import com.angrycat.erp.log.DataChangeLogger;
 import com.angrycat.erp.model.Member;
 import com.angrycat.erp.model.VipDiscountDetail;
 import com.angrycat.erp.security.User;
-import com.angrycat.erp.service.QueryBaseService;
 import com.angrycat.erp.web.WebUtils;
-import com.angrycat.erp.web.component.ConditionConfig;
 
 
 
 @Controller
 @RequestMapping(value="/member")
 @Scope("session")
-public class MemberController {
-	@Autowired
-	@Qualifier("queryBaseService")
-	private QueryBaseService<Member, Member> memberQueryService;
-	
-	@Autowired
-	@Qualifier("queryBaseService")
-	private QueryBaseService<Member, Member> findMemberService;
-	
-	@Autowired
-	private SessionFactoryWrapper sfw;
+public class MemberController extends BaseUpdateController<Member, Member>{
+	private static final long serialVersionUID = -6770128750582504862L;
 	
 	@Autowired
 	private MemberExcelImporter memberExcelImporter;
@@ -82,14 +64,12 @@ public class MemberController {
 	@Autowired
 	private VipDiscountUseStatus useStatus;
 	
-	@Autowired
-	private DataChangeLogger dataChangeLogger;
-	
+	@Override
 	@PostConstruct
 	public void init(){
-		memberQueryService.setRootAndInitDefault(Member.class);
+		super.init();
 		
-		memberQueryService
+		queryBaseService
 			.addWhere(putStrCaseInsensitive("p.name LIKE :pName", ANYWHERE))
 			.addWhere(putInt("p.gender=:pGender"))
 			.addWhere(putSqlDate("p.birthday >= :pBirthdayStart"))
@@ -105,81 +85,65 @@ public class MemberController {
 			.addWhere(putStrCaseInsensitive("p.clientId LIKE :pClientId", ANYWHERE))
 		;
 		
-		findMemberService
-			.createFromAlias(Member.class.getName(), "p")
-			.createAssociationAlias("left join fetch p.vipDiscountDetails", "details", null)
-			.addWhere(putStr("p.id = :pId"));
+		findTargetService
+			.createAssociationAlias("left join fetch p.vipDiscountDetails", "details", null);
 		
 		addUserToComponent();
 	}
 	
-	@RequestMapping(value="/list", method=RequestMethod.GET)
-	public String list(Model model){
-		model.addAttribute("moduleName", getModule());
-		return "member/list";
-	}
-	
-	@RequestMapping(value="/queryAll", 
-			method=RequestMethod.GET,
-			produces={"application/xml", "application/json"},
-			headers="Accept=*/*")
-	@ResponseStatus(HttpStatus.OK)
-	public @ResponseBody String queryAll(){
-		ConditionConfig<Member> cc = memberQueryService.genCondtitionsAfterExecuteQueryPageable();
-		String result = memberIgnoreDetail(cc);
+	@Override
+	String conditionConfigToJsonStr(Object obj){
+		String result = memberIgnoreDetail(obj);
 		return result;
 	}
-	
+	/**
+	 * 因為VIP紀錄設為Lazy Loading，如果沒有fetch join明細，又沒有告訴程式忽略這個部分，就會在轉換的時候發生錯誤
+	 */
 	private String memberIgnoreDetail(Object obj){
 		String result = CommonUtil.parseToJson(obj, Member.class, MemberIgnoreDetail.class);
 		return result;
 	}
 	
-	@RequestMapping(value="/queryCondtional",
-			method=RequestMethod.POST,
-			produces={"application/xml", "application/json"},
-			headers="Accept=*/*")
-	public @ResponseBody String queryCondtional(@RequestBody ConditionConfig<Member> conditionConfig){
-		ConditionConfig<Member> cc = memberQueryService.executeQueryPageable(conditionConfig);
-		String result = memberIgnoreDetail(cc);
-		return result;
-	}
-	
+	@Override
 	@RequestMapping(value="/deleteItems",
 			method=RequestMethod.POST,
 			produces={"application/xml", "application/json"},
 			headers="Accept=*/*")
 	public @ResponseBody String deleteItems(@RequestBody List<String> ids){
 		addUserToComponent();
-		ConditionConfig<Member> cc = memberQueryService.executeQueryPageableAfterDelete(ids);
-		String result = memberIgnoreDetail(cc);
-		return result;
+		return super.deleteItems(ids);
 	}
+	
+	@Override
 	@RequestMapping(value="/add",
 			method=RequestMethod.GET)
-	public String add(){
+	public String add(Model model){
 		reset();
-		return "member/view";
+		return super.add(model);
 	}
+	
+	@Override
 	@RequestMapping(value="/view/{id}",
 			method=RequestMethod.GET)
 	public String view(@PathVariable("id")String id, Model model){
 		reset();
-		findMemberService.getSimpleExpressions().get("pId").setValue(id);
-		List<Member> members = findMemberService.executeQueryList();
+		findTargetService.getSimpleExpressions().get("pId").setValue(id);
+		List<Member> members = findTargetService.executeQueryList();
 		Member member = null;
+		String urlPrefix = getModule();
 		if(!members.isEmpty()){
 			member = members.get(0);
 		}else{
-			return "member/list"; // 如果在查詢和導頁之間，資料被刪掉了，就導回查詢
+			return urlPrefix + "/list"; // 如果在查詢和導頁之間，資料被刪掉了，就導回查詢
 		}
-		if(member!=null){
-			useStatus.applyRule(member);
-		}
+		useStatus.applyRule(member);
 		String result = CommonUtil.parseToJson(member);
-		model.addAttribute("member", result);
-		return "member/view";
+		addUrlPrefixAsModuleName(model);
+		model.addAttribute(getLowerCamelCaseModuleName(), result);
+		return urlPrefix + "/view";
 	}
+	
+	@Override
 	@RequestMapping(value="/save",
 			method=RequestMethod.POST,
 			produces={"application/xml", "application/json"},
@@ -208,14 +172,14 @@ public class MemberController {
 					member.setClientId(member.getClientId().toUpperCase());
 				}
 			}else{// update
-				findMemberService.getSimpleExpressions().get("pId").setValue(member.getId());
-				List<Member> members = findMemberService.executeQueryList(s);
+				findTargetService.getSimpleExpressions().get("pId").setValue(member.getId());
+				List<Member> members = findTargetService.executeQueryList(s);
 				
 				if(!members.isEmpty()){
 					oldSnapshot = members.get(0);// old data detached
 					s.evict(oldSnapshot);
 					
-					Member sessionMember = findMemberService.executeQueryList(s).get(0);
+					Member sessionMember = findTargetService.executeQueryList(s).get(0);
 					Iterator<VipDiscountDetail> details = sessionMember.getVipDiscountDetails().iterator();
 					boolean deleted = false;
 					while(details.hasNext()){// delete vipDiscountDetails in memory
@@ -254,6 +218,7 @@ public class MemberController {
 		return member;
 	}
 	
+	@Override
 	@RequestMapping(
 			value="/uploadExcel", 
 			method=RequestMethod.POST, 
@@ -262,41 +227,12 @@ public class MemberController {
 	public @ResponseBody String uploadExcel(
 		@RequestPart("uploadExcelFile") byte[] uploadExcelFile){
 		addUserToComponent();
-		Map<String, String> msg = memberExcelImporter.persist(uploadExcelFile, dataChangeLogger);
-		ConditionConfig<Member> cc = memberQueryService.genCondtitionsAfterExecuteQueryPageable();
-		cc.getMsgs().clear();
-		cc.getMsgs().putAll(msg);
-		String result = memberIgnoreDetail(cc);
-		return result;
-	}
-	
-	
-	@RequestMapping(value="/copyCondition", method=RequestMethod.POST, produces={"application/xml", "application/json"})
-	public @ResponseBody Map<String, String> copyCondition(@RequestBody ConditionConfig<Member> conditionConfig){
-		memberQueryService.copyConditionConfig(conditionConfig);
-		return Collections.emptyMap();
-	}
-	
-	@RequestMapping(value="/downloadExcel", method={RequestMethod.POST, RequestMethod.GET})
-	public void downloadExcel(HttpServletResponse response){
-		File tempFile = memberExcelExporter.normal(memberQueryService);
-		
-		try(FileInputStream fis = new FileInputStream(tempFile);){
-			writeExcelToResponse(response, fis, "member.xlsx");
-		}catch(Throwable t){
-			throw new RuntimeException(t);
-		}finally{
-			try{
-				FileUtils.forceDelete(tempFile);
-			}catch(Throwable t){
-				throw new RuntimeException(t);
-			}
-		}
+		return super.uploadExcel(uploadExcelFile);
 	}
 	
 	@RequestMapping(value="/downloadOnePos", method={RequestMethod.POST, RequestMethod.GET})
 	public void downloadOnePos(HttpServletResponse response){
-		File tempFile = memberExcelExporter.onePos(memberQueryService);
+		File tempFile = memberExcelExporter.onePos(queryBaseService);
 		
 		try(FileInputStream fis = new FileInputStream(tempFile);){
 			writeExcelToResponse(response, fis, "onePosClients.xls");
@@ -311,43 +247,11 @@ public class MemberController {
 		}
 	}
 	
-	private void writeExcelToResponse(HttpServletResponse response, FileInputStream fis, String fileName) throws Throwable{
-		response.setContentType(getMimeType(fileName));
-		response.setHeader("Pragma", "");
-		response.setHeader("cache-control", "");
-		response.setHeader("Content-Disposition", "attachment; filename="+fileName);
-		
-		ServletOutputStream sos = response.getOutputStream();
-		IOUtils.copy(fis, sos);
-		sos.close();
-	}
-	
-	private String getMimeType(String fileName){
-		String extension = fileName.substring(fileName.lastIndexOf(".")+1, fileName.length());
-		String mimeType = "application/octet-stream";
-		if("xls".equals(extension)){
-			mimeType = "application/xls";
-		}else if("xlsx".equals(extension)){
-			mimeType = "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet";
-		}
-		return mimeType;
-	}
-	
 	@RequestMapping(value="/updateMemberDiscount", method=RequestMethod.POST)
 	public @ResponseBody Member updateMemberDiscount(@RequestBody Member member){
 		discount.applyRule(member);
 		useStatus.applyRule(member);
 		return member;
-	}
-	
-	@RequestMapping(value="/downloadTemplate", method={RequestMethod.GET, RequestMethod.POST})
-	public void downloadTemplate(HttpServletResponse response){
-		String filePath = WebUtils.getWebRootFile("member_sample.xlsx");
-		try(FileInputStream fis = new FileInputStream(filePath);){
-			writeExcelToResponse(response, fis, "member_template.xlsx");
-		}catch(Throwable t){
-			throw new RuntimeException(t);
-		}
 	}
 	
 	@RequestMapping(value="/updateDiscountParam", method=RequestMethod.POST, produces={"application/xml", "application/json"})
@@ -392,6 +296,7 @@ public class MemberController {
 	
 	public static int getLatestClientIdSerialNo(Session s, String countryCode){
 		int latestSerialNo = 0;
+		@SuppressWarnings("unchecked")
 		List<String> clientIds = s.createQuery("SELECT MAX(m.clientId) FROM " + Member.class.getName() + " m WHERE substring(m.clientId, 1, 2) = :countryCode").setString("countryCode", countryCode).list();
 		if(!clientIds.isEmpty() && clientIds.get(0) != null){
 			String clientId = clientIds.get(0);
@@ -413,17 +318,6 @@ public class MemberController {
 		return clientId;
 	}
 	
-	@RequestMapping(value="/resetConditions", 
-			method=RequestMethod.GET,
-			produces={"application/xml", "application/json"},
-			headers="Accept=*/*")
-	@ResponseStatus(HttpStatus.OK)
-	public @ResponseBody String resetConditions(){
-		ConditionConfig<Member> cc = memberQueryService.resetConditions();
-		String result = memberIgnoreDetail(cc);
-		return result;
-	}
-	
 	/**
 	 * 新增頁面要開放給未登入者使用，而MemberController本身是Session Scope，
 	 * 先新增後登錄，和先登錄後新增，兩者的差異在於，
@@ -435,8 +329,8 @@ public class MemberController {
 		User user = WebUtils.getSessionUser();
 		if(dataChangeLogger.getUser() == null){
 			dataChangeLogger.setUser(user);
-			memberQueryService.setUser(user);
-			findMemberService.setUser(user);
+			queryBaseService.setUser(user);
+			findTargetService.setUser(user);
 		}
 		return user;
 	}
@@ -446,5 +340,27 @@ public class MemberController {
 		this.discount.setBatchStartDate(null);
 		this.useStatus.setToday(null);
 		addUserToComponent();
+	}
+
+	@SuppressWarnings("unchecked")
+	@Override
+	MemberExcelImporter getExcelImporter() {
+		return memberExcelImporter;
+	}
+
+	@Override
+	String getTemplateFrom() {
+		return "member_sample.xlsx";
+	}
+
+	@Override
+	Class<Member> getRoot() {
+		return Member.class;
+	}
+
+	@SuppressWarnings("unchecked")
+	@Override
+	MemberExcelExporter getExcelExporter() {
+		return memberExcelExporter;
 	}
 }
