@@ -334,7 +334,7 @@
 		}])
 		.factory('MemberService', ['$http', 'urlPrefix', function($http, urlPrefix){
 			var queryAllUrl = urlPrefix + '/queryAll.json',
-				queryByCondsUrl = urlPrefix + '/queryCondtional.json',
+				queryByCondsUrl = urlPrefix + '/queryConditional.json',
 				deleteItemsUrl = urlPrefix + '/deleteItems.json',
 				copyConditionUrl = urlPrefix + '/copyCondition.json',
 				resetConditionUrl = urlPrefix + '/resetConditions.json',
@@ -364,7 +364,7 @@
 				queryByConds: function(conds){
 					return $http.post(queryByCondsUrl, conds);
 				},
-				clearConds: function(config, initialState){
+				clearConds: function(config){
 					return $http.get(resetConditionUrl)
 						.then(function(response){
 							config.conds = response.data.conds;
