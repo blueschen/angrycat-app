@@ -1,6 +1,8 @@
 package com.angrycat.erp.common;
 
 import java.sql.Date;
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
 import java.time.Instant;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -16,8 +18,11 @@ import java.util.regex.Pattern;
 import org.apache.commons.lang3.StringUtils;
 
 public class DatetimeUtil {
-	
-
+	public static final DateFormat DF_yyyyMMdd_DASHED = new SimpleDateFormat("yyyy-MM-dd");
+	public static final DateFormat DF_MMddyyyy_DASHED = new SimpleDateFormat("MM-dd-yyyy");
+	public static final DateFormat DF_yyyyMMdd_SLASHED = new SimpleDateFormat("yyyy/MM/dd");
+	public static final DateFormat DF_MMddyyyy_SLASHED = new SimpleDateFormat("MM/dd/yyyy");
+	public static final DateFormat DF_yyyyMMdd_DASHED_EXTEND_TO_SEC = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
 	
 	/**
 	 * retrieve Date<br>
