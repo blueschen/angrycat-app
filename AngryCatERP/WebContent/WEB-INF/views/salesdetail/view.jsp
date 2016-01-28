@@ -53,7 +53,13 @@
  				銷售點
  			</label>
  			<div class="col-sm-7">
- 				<input type="text" ng-model="mainCtrl.salesDetail.salePoint" id="salePoint" class="form-control" autofocus/>
+ 				<select
+ 					ng-model="mainCtrl.salesDetail.salePoint"
+ 					ng-options="g.value as g.label for g in mainCtrl.salePoints"
+ 					id="salePoint"
+ 					class="form-control">
+ 					<option value="">==請選擇==</option>
+ 				</select>
  			</div> 		
  		</div>
  		<div class="form-group col-sm-5">
@@ -102,20 +108,20 @@
  		</div> 		
 	</div>
 	<div class="form-group">
- 		<div class="form-group col-sm-5">
+ 		<div class="form-group col-sm-5" ng-class="{'has-error': salesDetailForm.price.$invalid}">
  			<label class="col-sm-5 control-label" for="price">
  				含運金額
  			</label>
  			<div class="col-sm-7">
- 				<input type="text" ng-model="mainCtrl.salesDetail.price" id="price" class="form-control"/>
+ 				<input type="number" ng-model="mainCtrl.salesDetail.price" id="price" name="price" class="form-control" integer/>
  			</div> 		
  		</div>
- 		<div class="form-group col-sm-5">
+ 		<div class="form-group col-sm-5" ng-class="{'has-error': salesDetailForm.memberPrice.$invalid}">
  			<label class="col-sm-5 control-label" for="memberPrice">
  				會員價(實收價格)
  			</label>
  			<div class="col-sm-7">
- 				<input type="text" ng-model="mainCtrl.salesDetail.memberPrice" id="memberPrice" class="form-control"/>
+ 				<input type="number" ng-model="mainCtrl.salesDetail.memberPrice" id="memberPrice" name="memberPrice" class="form-control" integer/>
  			</div> 		
  		</div> 		
 	</div>
@@ -128,7 +134,7 @@
  				<input type="text" ng-model="mainCtrl.salesDetail.priority" id="priority" class="form-control"/>
  			</div> 		
  		</div>
- 		<div class="form-group col-sm-5">
+ 		<div class="form-group col-sm-5" ng-class="{'has-error': salesDetailForm.orderDate.$invalid}">
  			<label class="col-sm-5 control-label" for="orderDate">
  				接單日
  			</label>
@@ -183,7 +189,7 @@
  		</div>
  	</div>
  	<div class="form-group">
- 		<div class="form-group col-sm-5">
+ 		<div class="form-group col-sm-5" ng-class="{'has-error': salesDetailForm.shippingDate.$invalid}">
  			<label class="col-sm-5 control-label" for="shippingDate">
  				出貨日
  			</label>
@@ -210,7 +216,7 @@
  		</div>
  	</div>
  	<div class="form-group">
- 		<div class="form-group col-sm-5">
+ 		<div class="form-group col-sm-5" ng-class="{'has-error': salesDetailForm.payDate.$invalid}">
  			<label class="col-sm-5 control-label" for="payDate">
  				付款日期
  			</label>
@@ -298,6 +304,7 @@
 					});
 			};
 			self.login = login;
+			self.salePoints = [{label: 'FB社團', value: 'FB社團'}, {label: '敦南誠品', value: '敦南誠品'}];
 		}]);
 </script>
 </body>
