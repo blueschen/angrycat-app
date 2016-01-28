@@ -1,8 +1,11 @@
 package com.angrycat.erp.log;
 
+import java.sql.Date;
 import java.sql.Timestamp;
+import java.text.DateFormat;
+import java.util.ArrayList;
+import java.util.List;
 
-import org.apache.commons.beanutils.PropertyUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.builder.EqualsBuilder;
 import org.hibernate.Session;
@@ -12,6 +15,7 @@ import org.springframework.orm.hibernate4.LocalSessionFactoryBean;
 import org.springframework.stereotype.Component;
 
 import com.angrycat.erp.common.CommonUtil;
+import com.angrycat.erp.common.DatetimeUtil;
 import com.angrycat.erp.format.FormatList;
 import com.angrycat.erp.format.FormatListFactory;
 import com.angrycat.erp.model.DataChangeLog;
@@ -53,7 +57,7 @@ public class DataChangeLogger {
 		String docTitleConfig = formatList.getDocTitle();
 		if(StringUtils.isNotBlank(docTitleConfig)){
 			Object existed = getObjectExisted(oldObject, newObject);
-			String docTitle = (String)CommonUtil.getProperty(existed, docTitleConfig);
+			String docTitle = formatDocTitle(existed, docTitleConfig);
 			if(StringUtils.isNotBlank(docTitle)){
 				log.setDocTitle(docTitle);
 			}
@@ -73,6 +77,68 @@ public class DataChangeLogger {
 		if(!log.getDetails().isEmpty()){
 			s.save(log);
 		}
+	}
+	
+	/**
+	 * 格式化輸出docTitle，為了涵蓋各種情況，允許傳入多個以逗號隔開指定欄位組成docTitle，並以底線隔開。
+	 * 
+	 * @param obj
+	 * @param docTitleConfig
+	 * @return
+	 */
+	private String formatDocTitle(Object obj, String docTitleConfig){
+		String docTitle = null;
+		if(docTitleConfig.contains(",")){
+			String[] docTitleConfigs = docTitleConfig.split(",");
+			List<String> docTitleSplits = new ArrayList<>();
+			for(String config : docTitleConfigs){
+				String field = getFormattedString(obj, config);
+				if(StringUtils.isNotBlank(field)){
+					docTitleSplits.add(field);
+				}
+			}
+			if(!docTitleSplits.isEmpty()){
+				docTitle = StringUtils.join(docTitleSplits.toArray(), "_");
+			}
+		}else{
+			String field = getFormattedString(obj, docTitleConfig);
+			docTitle = field;
+		}
+		return docTitle;
+	}
+	
+	private String getFormattedString(Object obj, String prop){
+		Object target = CommonUtil.getProperty(obj, prop);
+		String field = null;
+		if(target != null){
+			Class<?> clz = target.getClass();
+				try{
+					DateFormat df1 = DatetimeUtil.DF_yyyyMMdd_DASHED;
+					DateFormat df2 = DatetimeUtil.DF_yyyyMMdd_DASHED_EXTEND_TO_SEC;
+					if(clz == String.class){
+						String val = (String)target;
+						val = val.trim();
+						val = val.replace("\n", "");
+						val = val.replace("\r", "");
+						val = val.replace("\t", "");
+						field = val;
+					}else if(clz == Date.class){
+						field = df1.format((Date)target);
+					}else if(clz == Timestamp.class){
+						long timeoffset = ((Timestamp)target).getTime();
+						field = df2.format(new Date(timeoffset));
+					}else if(target instanceof Number){
+						field = ((Number)target).toString();
+					}
+				}catch(Throwable e){
+					throw new RuntimeException(e);
+				}
+			
+		}
+		if(StringUtils.isNotBlank(field)){
+			return field;
+		}
+		return null;
 	}
 	
 	private String toDefaultIfNull(String val){
