@@ -95,6 +95,20 @@
 			</select>
  		</div>
  	</div>
+ 	<div class="form-group">
+		<label class="col-sm-2 control-label" for="pDocType">
+ 			模組
+ 		</label>
+ 		<div class="col-sm-6">
+ 			<select 
+				ng-model="mainCtrl.conditionConfig.conds.condition_pDocType" 
+				ng-options="a.value as a.label for a in mainCtrl.docTypes"
+				id="pDocType"
+				 class="form-control">
+				<option value="">==請選擇==</option>	
+			</select>
+ 		</div>
+ 	</div> 	
  	<div class="form-group" ng-class="{'has-error': (datachangelogListForm.pLogTimeStart.$dirty && datachangelogListForm.pLogTimeStart.$invalid) || (datachangelogListForm.pLogTimeEnd.$dirty && datachangelogListForm.pLogTimeEnd.$invalid)}">
  		<label class="col-sm-2 control-label" id="logTimeDur">
  			更動時間範圍
@@ -162,9 +176,9 @@
 <table class="table table-bordered table-hover table-condense">
 	<colgroup>
 		<col class="col-sm-2">
-		<col class="col-sm-2">
 		<col class="col-sm-4">
-		<col class="col-sm-4">
+		<col class="col-sm-3">
+		<col class="col-sm-3">
 	</colgroup>
 	<thead>
 	<tr>
@@ -177,9 +191,7 @@
 	<tbody ng-repeat="result in mainCtrl.conditionConfig.results">
 		<tr class="main-row" ng-click="mainCtrl.toggleDetail($index)">
 			<td><span ng-bind="result.logTime | date : 'yyyy-MM-dd HH:mm:ss' : mainCtrl.TIMEZONE_ID"></span></td>
-			<td>
-				<span ng-bind="result.docTitle"></span>	
-			</td>
+			<td><span ng-bind="result.docTitle"></span></td>
 			<td><span ng-bind="result.userId"></span></td>
 			<td><span ng-bind="result.userName"></span></td>				
 		</tr>
@@ -248,10 +260,12 @@
 			var self = this,
 				queryAllUrl = '${urlPrefix}/queryAll.json'
 				queryConditionalUrl = '${urlPrefix}/queryConditional.json',
+				resetConditionUrl = '${urlPrefix}/resetConditions.json',
 				condPrefix = 'condition_',
 				initialState = null;
 				
 			self.actionTypes = [{label: '刪除', value: 'DELETE'}, {label: '修改', value: 'UPDATE'}, {label: '新增', value: 'ADD'}];
+			self.docTypes = [{label: '會員', value: 'com.angrycat.erp.model.Member'}, {label: '銷售明細', value: 'com.angrycat.erp.model.SalesDetail'}];
 			
 			self.queryAll = function(){
 				AjaxService.post(queryAllUrl)
@@ -270,13 +284,19 @@
 					},function(responseErr){
 						alert('queryConditional failed');
 						$log.log('queryConditional failed err msg: ' + JSON.stringify(responseErr));	
-					})
+					});
 			};
 			self.clearConds = function(){
-				self.conditionConfig.conds = angular.copy(initialState);
-				$scope.datachangelogListForm.$setPristine();
-				delete $scope.datachangelogListForm.$error.parse;
-				delete $scope.datachangelogListForm.$error.date;
+				AjaxService.get(resetConditionUrl)
+					.then(function(response){
+						self.conditionConfig.conds = response.data.conds;
+					},function(responseErr){
+						alert('重置查詢條件錯誤');
+					});
+				//self.conditionConfig.conds = angular.copy(initialState);
+				//$scope.datachangelogListForm.$setPristine();
+				//delete $scope.datachangelogListForm.$error.parse;
+				//delete $scope.datachangelogListForm.$error.date;
 			};
 			self.pageChanged = function(){
 				self.queryByConds();
