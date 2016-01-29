@@ -117,12 +117,15 @@ public class FormatListFactory {
 	 */
 	public static <T>FormatList forLog(T obj){
 		FormatList formats = FormatList.emptyList();
-		if(obj.getClass() == Member.class){
+		Class<?> clz = obj.getClass();
+		if(clz == Member.class){
 			Member m = (Member)obj;
 			int size = m.getVipDiscountDetails().size();
 			formats = ofMemberDetails(size);
-		}else if(obj.getClass() == SalesDetail.class){
+		}else if(clz == SalesDetail.class){
 			formats = ofSalesDetailForExcelExport();
+		}else{
+			throw new IllegalArgumentException("FormatListFactory.forLog: 沒有定義"+clz.getName()+"異動記錄所需的轉換格式");
 		}
 		return formats;
 	}
@@ -136,7 +139,8 @@ public class FormatListFactory {
 	 */
 	public static <T>FormatList forUpdateLog(T oldObj, T newObj){
 		FormatList formats = FormatList.emptyList();
-		if(oldObj.getClass() == Member.class){
+		Class<?> clz = oldObj.getClass();
+		if(clz == Member.class){
 			Member oldOne = (Member)oldObj;
 			List<VipDiscountDetail> oldDetails = oldOne.getVipDiscountDetails();
 			int oldSize = oldDetails.size();
@@ -147,8 +151,10 @@ public class FormatListFactory {
 			
 			int maxSize = Math.max(oldSize, newSize);
 			formats = ofMemberDetails(maxSize);
-		}else if(oldObj.getClass() == SalesDetail.class){
+		}else if(clz == SalesDetail.class){
 			formats = ofSalesDetailForExcelExport();
+		}else{
+			throw new IllegalArgumentException("FormatListFactory.forUpdateLog: 沒有定義"+clz.getName()+"異動記錄所需的轉換格式");
 		}
 		return formats;
 	}
