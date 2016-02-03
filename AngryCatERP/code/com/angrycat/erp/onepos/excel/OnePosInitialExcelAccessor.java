@@ -55,6 +55,7 @@ import org.springframework.stereotype.Service;
 import com.angrycat.erp.common.DatetimeUtil;
 import com.angrycat.erp.excel.ExcelColumn.Member;
 import com.angrycat.erp.excel.ExcelColumn.OnePosClient;
+import com.angrycat.erp.excel.ExcelColumn.Product;
 import com.angrycat.erp.excel.ExcelColumn.Product.OnePos;
 import com.angrycat.erp.excel.ExcelColumn.Product.Sheet1;
 import com.angrycat.erp.excel.ExcelColumn.Product.Sheet2;
@@ -565,7 +566,8 @@ public class OnePosInitialExcelAccessor {
 					addValToCategorySheet(categories, categorySheet, catVal, catVal);
 					
 					Row pRow = productSheet.createRow(rowNum);
-					addProductCells(pRow, noVal, nameEngVal, catVal, priceVal);
+					String barCode = barCodes.get(noVal);
+					addProductCells(pRow, noVal, nameEngVal, catVal, priceVal, barCode);
 					
 					storeImage(tempImgDir, noVal);
 				}
@@ -598,7 +600,8 @@ public class OnePosInitialExcelAccessor {
 					addValToCategorySheet(categories, categorySheet, catVal, catVal);
 					
 					Row pRow = productSheet.createRow(++rowNum);
-					addProductCells(pRow, noVal, nameEngVal, catVal, priceVal);
+					String barCode = barCodes.get(noVal);
+					addProductCells(pRow, noVal, nameEngVal, catVal, priceVal, barCode);
 					
 					Cell remarkCell = pRow.createCell(OnePos.備註欄); // 把系列名稱先放到備註欄，OnePos沒有直接對應的欄位
 					remarkCell.setCellType(CELL_TYPE_STRING);
@@ -633,7 +636,8 @@ public class OnePosInitialExcelAccessor {
 					addValToCategorySheet(categories, categorySheet, catVal, catVal);
 					
 					Row pRow = productSheet.createRow(++rowNum);
-					addProductCells(pRow, noVal, nameEngVal, catVal, priceVal);
+					String barCode = barCodes.get(noVal);
+					addProductCells(pRow, noVal, nameEngVal, catVal, priceVal, barCode);
 					
 					storeImage(tempImgDir, noVal);
 				}
@@ -706,7 +710,7 @@ public class OnePosInitialExcelAccessor {
 					String priceVal = retrieveStrVal(price);
 					String serialNameVal = serialName == null ? "" : retrieveStrVal(serialName);
 					String barcodeVal = barcode == null ? "" : retrieveStrVal(barcode);
-					
+					barcodeVal = barcodeVal.replace(" ", "");
 					if(StringUtils.isBlank(noVal) || StringUtils.isBlank(catVal)){
 						continue;
 					}					
@@ -714,20 +718,15 @@ public class OnePosInitialExcelAccessor {
 					
 					Row pRow = productSheet.createRow(rowNum);
 					System.out.println("noVal: " + noVal + ", nameEngVal: " + nameEngVal + ", catVal: " + catVal + ", priceVal: " + priceVal);
-					addProductCells(pRow, noVal, nameEngVal, catVal, priceVal);
+					String barCode = barCodes.get(noVal);
+					
+					addProductCells(pRow, noVal, nameEngVal, catVal, priceVal, barCode);
 					
 					if(StringUtils.isNotBlank(serialNameVal)){
 						Cell remarkCell = pRow.createCell(OnePos.備註欄); // 把系列名稱先放到備註欄，OnePos沒有直接對應的欄位
 						remarkCell.setCellType(CELL_TYPE_STRING);
 						remarkCell.setCellValue(serialNameVal);
-					}
-					
-					if(pRow.getCell(OnePos.條碼編號) == null && StringUtils.isNotBlank(barcodeVal)){// 如果此處有barcode，代表匯入欄位有提供
-						Cell barCodeCell = pRow.createCell(OnePos.條碼編號);
-						barCodeCell.setCellType(CELL_TYPE_STRING);
-						barCodeCell.setCellValue(barcodeVal.replace(" ", ""));
-					}
-					
+					}					
 					storeImage(tempImgDir, noVal);
 				}
 				
@@ -939,7 +938,16 @@ public class OnePosInitialExcelAccessor {
 	}
 	
 	
-	private void addProductCells(Row pRow, String noVal, String nameEngVal, String catVal, String priceVal){
+	public static void addProductCells(Row pRow, String noVal, String nameEngVal, String catVal, String priceVal, String barCode, String seriesName){
+		addProductCells(pRow, noVal, nameEngVal, catVal, priceVal, barCode);
+		if(StringUtils.isNotBlank(seriesName)){
+			Cell remarkCell = pRow.createCell(OnePos.備註欄); // 把系列名稱先放到備註欄，OnePos沒有直接對應的欄位
+			remarkCell.setCellType(CELL_TYPE_STRING);
+			remarkCell.setCellValue(seriesName);
+		}
+	}
+	
+	public static void addProductCells(Row pRow, String noVal, String nameEngVal, String catVal, String priceVal, String barCode){
 		Cell productIdCell = pRow.createCell(OnePos.產品編號);
 		productIdCell.setCellType(CELL_TYPE_STRING);
 		productIdCell.setCellValue(noVal);
@@ -964,12 +972,10 @@ public class OnePosInitialExcelAccessor {
 		inventoryCell.setCellType(CELL_TYPE_STRING);
 		inventoryCell.setCellValue(INVENTORY);
 		
-		String barCode = barCodes.get(noVal);
 		if(StringUtils.isNotBlank(barCode)){
 			Cell barCodeCell = pRow.createCell(OnePos.條碼編號);
 			barCodeCell.setCellType(CELL_TYPE_STRING);
 			barCodeCell.setCellValue(barCode);
-			importBarCodeCount++;
 		}
 		
 		Cell brandIdCell = pRow.createCell(OnePos.品牌編號);
