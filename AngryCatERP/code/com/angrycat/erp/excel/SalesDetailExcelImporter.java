@@ -27,7 +27,7 @@ public class SalesDetailExcelImporter extends ExcelImporter {
 	private static final List<Integer> DEFAULT_SHEET_RANGE = Arrays.asList(0, 1);
 	
 	@Override
-	protected void processRow(Row row, Session s, int sheetIdx, int readableRowNum, Map<String, Integer> msg){
+	protected boolean processRow(Row row, Session s, int sheetIdx, int readableRowNum, Map<String, Integer> msg){
 		String salePoint		= null;
 		String saleStatus		= null;
 		String fbName			= null;
@@ -112,6 +112,7 @@ public class SalesDetailExcelImporter extends ExcelImporter {
 		salesDetail.setRegistrant(registrant);
 
 		s.save(salesDetail);
+		return true;
 	}
 	
 	@Override

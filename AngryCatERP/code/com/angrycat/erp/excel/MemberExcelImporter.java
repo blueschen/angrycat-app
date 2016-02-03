@@ -52,7 +52,7 @@ public class MemberExcelImporter extends ExcelImporter {
 	private MemberVipDiscount discount;
 	
 	@Override
-	protected void processRow(Row row, Session s, int sheetIdx, int readableRowNum, Map<String, Integer> msg){
+	protected boolean processRow(Row row, Session s, int sheetIdx, int readableRowNum, Map<String, Integer> msg){
 		String VIP			= parseStrVal(row, Ohmliy_VIP);
 		Date vipUsed		= parseSqlDateVal(row, 生日使用8折優惠);
 		String fbNickname	= parseStrVal(row, Facebook_姓名);
@@ -73,7 +73,7 @@ public class MemberExcelImporter extends ExcelImporter {
 		
 		if(StringUtils.isNotBlank(countryCode) && !Pattern.matches("[A-Z]{2}", countryCode)){
 			msg.put("國碼應為兩碼大寫英文字母"+readableRowNum, readableRowNum);
-			return;
+			return false;
 		}else{
 			if(StringUtils.isBlank(countryCode)){
 				countryCode = "TW";
@@ -82,7 +82,7 @@ public class MemberExcelImporter extends ExcelImporter {
 		}
 		if(StringUtils.isBlank(name)){
 			msg.put("姓名不存在"+readableRowNum, readableRowNum);
-			return;
+			return false;
 		}
 		if(StringUtils.isBlank(mobile) && StringUtils.isBlank(tel)){
 			tel = "00000";
@@ -93,7 +93,7 @@ public class MemberExcelImporter extends ExcelImporter {
 			int count = num.intValue();
 			if(count > 0){
 				msg.put("姓名和行動電話已重複"+readableRowNum, readableRowNum);
-				return;
+				return false;
 			}
 		}
 		if(StringUtils.isNotBlank(tel)){
@@ -101,7 +101,7 @@ public class MemberExcelImporter extends ExcelImporter {
 			int count = num.intValue();
 			if(count > 0){
 				msg.put("姓名和室內電話已重複"+readableRowNum, readableRowNum);
-				return;
+				return false;
 			}
 		}
 		
@@ -147,6 +147,7 @@ public class MemberExcelImporter extends ExcelImporter {
 			}
 		}
 		s.save(m);
+		return true;
 	}
 	
 	@Override
