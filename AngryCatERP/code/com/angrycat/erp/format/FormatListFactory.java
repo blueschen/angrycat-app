@@ -3,11 +3,31 @@ package com.angrycat.erp.format;
 import java.util.List;
 
 import com.angrycat.erp.model.Member;
+import com.angrycat.erp.model.Product;
 import com.angrycat.erp.model.SalesDetail;
 import com.angrycat.erp.model.VipDiscountDetail;
 
 
 public class FormatListFactory {
+	
+	private static FormatList ofProductBase(String dateFormat){
+		FormatList f = new FormatList();
+		f.setDocTitle("modelId");
+		
+		f.add(new PropertyFormat("型號", "modelId"));
+		f.add(new PropertyFormat("建議零售價", "suggestedRetailPrice"));
+		f.add(new PropertyFormat("名稱", "name"));
+		f.add(new PropertyFormat("英文名稱", "nameEng"));
+		f.add(new PropertyFormat("系列名", "seriesName"));
+		f.add(new PropertyFormat("條碼", "barcode"));
+		
+		return f;
+	}
+	
+	public static FormatList ofProducForExcelExport(){
+		FormatList f = ofProductBase("yyyy-MM-dd");
+		return f;
+	}
 	
 	private static FormatList ofSalesBase(String dateFormat){
 		FormatList f = new FormatList();
@@ -124,6 +144,8 @@ public class FormatListFactory {
 			formats = ofMemberDetails(size);
 		}else if(clz == SalesDetail.class){
 			formats = ofSalesDetailForExcelExport();
+		}else if(clz == Product.class){
+			formats = ofProducForExcelExport();
 		}else{
 			throw new IllegalArgumentException("FormatListFactory.forLog: 沒有定義"+clz.getName()+"異動記錄所需的轉換格式");
 		}
@@ -153,6 +175,8 @@ public class FormatListFactory {
 			formats = ofMemberDetails(maxSize);
 		}else if(clz == SalesDetail.class){
 			formats = ofSalesDetailForExcelExport();
+		}else if(clz == Product.class){
+			formats = ofProducForExcelExport();
 		}else{
 			throw new IllegalArgumentException("FormatListFactory.forUpdateLog: 沒有定義"+clz.getName()+"異動記錄所需的轉換格式");
 		}
