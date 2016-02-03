@@ -202,8 +202,13 @@
 			<artifactId>javax.mail</artifactId>
 			<version>1.5.5</version>
 		</dependency>
-
 		
+		<!-- PDF process -->
+		<dependency>
+			<groupId>org.apache.pdfbox</groupId>
+			<artifactId>pdfbox-lucene</artifactId>
+			<version>1.8.11</version>
+		</dependency>
 	</dependencies>
 	
 	
