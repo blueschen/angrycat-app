@@ -1,7 +1,5 @@
 package com.angrycat.erp.excel;
 
-import static com.angrycat.erp.excel.ExcelColumn.Member.COLUMN_COUNT;
-
 import java.io.BufferedInputStream;
 import java.io.ByteArrayInputStream;
 import java.io.FileInputStream;
@@ -34,6 +32,7 @@ import org.apache.poi.ss.usermodel.Row;
 import org.apache.poi.ss.usermodel.Sheet;
 import org.apache.poi.ss.usermodel.Workbook;
 import org.apache.poi.ss.usermodel.WorkbookFactory;
+import org.apache.poi.ss.util.CellReference;
 import org.apache.poi.util.IOUtils;
 import org.apache.poi.xssf.usermodel.XSSFCell;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
@@ -58,7 +57,7 @@ public abstract class ExcelImporter {
 	@Qualifier("sessionFactoryWrapper")
 	private SessionFactoryWrapper sfw;
 	private int colNum = 0;
-	
+	private Workbook wb;
 		
 	public static void main(String[]args){
 //		readAndWrite("C:\\angrycat_workitem\\OHM Beads TW (AngryCat) 一般會員資料.xlsx", "C:\\angrycat_workitem\\test.xlsx");
@@ -259,11 +258,12 @@ public abstract class ExcelImporter {
 			tx = s.beginTransaction();
 			int batchSize = sfw.getBatchSize();
 			
-			Workbook wb = WorkbookFactory.create(bais);
+			wb = WorkbookFactory.create(bais);
+			beforeProcessRow();
 			List<Integer> sheetRange = sheetRange();
 			for(int sheetIdx : sheetRange){
 				Sheet sheet = wb.getSheetAt(sheetIdx);
-				totalCount = sheet.getLastRowNum();			
+				totalCount += sheet.getLastRowNum();			
 				Iterator<Row> itr = sheet.iterator();
 				
 				rowNum = 0;
@@ -273,12 +273,14 @@ public abstract class ExcelImporter {
 					Row row = itr.next();
 					rowNum = row.getRowNum();
 					readableRowNum = rowNum+1;
-					if(rowNum == 0 || isRowEmpty(row, COLUMN_COUNT)){
+					if(rowNum == 0 || isRowEmpty(row, row.getLastCellNum())){
 						continue;
 					}
 					
-					processRow(row, s, sheetIdx, readableRowNum, msg);
-
+					boolean saveSuccess = processRow(row, s, sheetIdx, readableRowNum, msg);
+					if(!saveSuccess){
+						continue;
+					}
 //					if(dataChangeLogger != null){
 //						dataChangeLogger.logAdd(m, s);
 //					}
@@ -325,11 +327,17 @@ public abstract class ExcelImporter {
 		return logWarn;
 	}
 	
+	protected void beforeProcessRow(){}
+	
+	protected Workbook getWorkbook(){
+		return wb;
+	}
+	
 	protected List<Integer> sheetRange(){
 		return DEFAULT_SHEET_RANGE;
 	}
 	
-	abstract void processRow(Row row, Session s, int sheetIdx, int readableRowNum, Map<String, Integer> msg);
+	abstract boolean processRow(Row row, Session s, int sheetIdx, int readableRowNum, Map<String, Integer> msg);
 	
 	protected List<String> msgKeys(){
 		return Collections.emptyList();
@@ -342,12 +350,12 @@ public abstract class ExcelImporter {
 	 * @return
 	 */
 	private static boolean isRowEmpty(Row row, int colCount){
-		final DataFormatter df = new DataFormatter();
 		boolean empty = true;
 		for(int i = 0; i < colCount; i++){
 			Cell cell = row.getCell(i);
 			if(cell != null){
-				String val = df.formatCellValue(cell);
+				CellReference ref = new CellReference(row.getRowNum(), i);
+				String val = ref.formatAsString();
 				if(StringUtils.isNotBlank(val)){
 					empty = false;
 					break;
