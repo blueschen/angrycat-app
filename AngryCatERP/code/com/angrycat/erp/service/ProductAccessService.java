@@ -110,7 +110,6 @@ public class ProductAccessService {
 										String sku = splits[1].trim();
 										String name = StringUtils.join(collectName, " ");
 										String msrp = lastWord;
-										
 										row.add(barcode);
 										row.add(sku);
 										row.add(name);
@@ -228,9 +227,31 @@ public class ProductAccessService {
 		}		
 	}
 	
-	public void toOnePosImportExcel(){
+	public void writeProductExcelWithBarcodeScannableAndImg(String dest){
+		
+	}
+	
+	/**
+	 * 就算遇到沒有條碼的資料，還是一併匯出
+	 * @return
+	 */
+	public File toOnePosImportExcelIncludingBarcodeNotExisted(){
+		productExcelExporter.setReductionRequired(true);
+		File file = productExcelExporter.onePos();
+		productExcelExporter.setReductionRequired(false);
+		return file;
+	}
+	/**
+	 * 略過沒有條碼的資料
+	 * @return
+	 */
+	public File toOnePosImportExcelExcludingBarcodeNotExisted(){
+		productExcelExporter.setReductionRequired(true);
 		productExcelExporter.setIgnoredIfWithoutBarcode(true);
 		File file = productExcelExporter.onePos();
+		productExcelExporter.setReductionRequired(false);
+		productExcelExporter.setIgnoredIfWithoutBarcode(false);
+		return file;
 	}
 	
 	/**
@@ -332,10 +353,19 @@ public class ProductAccessService {
 		}
 	}
 	
-	private static void testToOnePosImportExcel(){
+	private static void testToOnePosImportExcelExcludingBarcodeNotExisted(){
 		try(AnnotationConfigApplicationContext acac = new AnnotationConfigApplicationContext(RootConfig.class);){
 			ProductAccessService ser = acac.getBean(ProductAccessService.class);
-			ser.toOnePosImportExcel();
+			ser.toOnePosImportExcelExcludingBarcodeNotExisted();
+		}catch(Throwable e){
+			throw new RuntimeException(e);
+		}
+	}
+	
+	private static void testToOnePosImportExcelIncludingBarcodeNotExisted(){
+		try(AnnotationConfigApplicationContext acac = new AnnotationConfigApplicationContext(RootConfig.class);){
+			ProductAccessService ser = acac.getBean(ProductAccessService.class);
+			ser.toOnePosImportExcelIncludingBarcodeNotExisted();
 				
 		}catch(Throwable e){
 			throw new RuntimeException(e);
@@ -396,12 +426,14 @@ public class ProductAccessService {
 	
 	public static void main(String[]args){
 //		testImportProductFromExcelToDB();
+//		testImportProductFromPDFToDB();
+		testToOnePosImportExcelExcludingBarcodeNotExisted();
 //		testProductModelIdAdjusted();
 //		testDoubleToString();
-//		testImportProductFromPDFToDB();
 //		testSplits();
 //		testToOnePosImportExcel();
-		testDownloadOHMImageIfNotExisted();
+//		testDownloadOHMImageIfNotExisted();
 //		testCopyAndPackImage();
+		
 	}
 }
