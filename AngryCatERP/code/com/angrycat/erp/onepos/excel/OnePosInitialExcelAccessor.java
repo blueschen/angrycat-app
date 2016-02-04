@@ -45,7 +45,6 @@ import org.apache.poi.ss.usermodel.Sheet;
 import org.apache.poi.ss.usermodel.Workbook;
 import org.apache.poi.util.IOUtils;
 import org.apache.poi.xssf.usermodel.XSSFCell;
-import org.apache.poi.xssf.usermodel.XSSFSheet;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.AnnotationConfigApplicationContext;
@@ -55,7 +54,6 @@ import org.springframework.stereotype.Service;
 import com.angrycat.erp.common.DatetimeUtil;
 import com.angrycat.erp.excel.ExcelColumn.Member;
 import com.angrycat.erp.excel.ExcelColumn.OnePosClient;
-import com.angrycat.erp.excel.ExcelColumn.Product;
 import com.angrycat.erp.excel.ExcelColumn.Product.OnePos;
 import com.angrycat.erp.excel.ExcelColumn.Product.Sheet1;
 import com.angrycat.erp.excel.ExcelColumn.Product.Sheet2;
@@ -982,9 +980,9 @@ public class OnePosInitialExcelAccessor {
 		brandIdCell.setCellType(CELL_TYPE_STRING);
 		brandIdCell.setCellValue(BRAND_ID);
 		
-		Cell invCell = pRow.createCell(OnePos.庫存);
-		invCell.setCellType(CELL_TYPE_NUMERIC);
-		invCell.setCellValue(0);
+//		Cell invCell = pRow.createCell(OnePos.庫存);
+//		invCell.setCellType(CELL_TYPE_NUMERIC);
+//		invCell.setCellValue(0);
 	}
 	
 	/**
@@ -995,7 +993,7 @@ public class OnePosInitialExcelAccessor {
 	 * @param catVal
 	 * @param priceVal
 	 */
-	private void addDiscountItemCells(Row pRow, OnePosDiscountItem item){
+	public static void addDiscountItemCells(Row pRow, OnePosDiscountItem item){
 		Cell productIdCell = pRow.createCell(OnePos.產品編號);
 		productIdCell.setCellType(CELL_TYPE_STRING);
 		productIdCell.setCellValue(item.getId());
@@ -1040,7 +1038,7 @@ public class OnePosInitialExcelAccessor {
 	 * @param catId
 	 * @param catName
 	 */
-	private static void addValToCategorySheet(Set<String> categories, Sheet categorySheet, String catId, String catName){
+	public static void addValToCategorySheet(Set<String> categories, Sheet categorySheet, String catId, String catName){
 		if(StringUtils.isBlank(catId)){
 			return;
 		}
