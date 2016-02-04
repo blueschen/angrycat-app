@@ -84,6 +84,13 @@ public class Product {
 	public void setBarcode(String barcode) {
 		this.barcode = barcode;
 	}
+	/**
+	 * 取得調整過後的型號，因為Towntalk的型號似乎是自編，所以會有一些不常見的編碼情況。
+	 * 這種編碼情況，可能會導致後續各式資料處理發生非預期的例外。
+	 * 譬如OnePos不接受括弧作為他的產品編號(因為我們以型號作為他的產品編號)，
+	 * 而且原始資料也有空白、重複等情況。
+	 * @return
+	 */
 	@Transient
 	public String getModelIdAdjusted(){
 		String modelIdAdjusted = modelId.replace(" ", "");
