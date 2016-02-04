@@ -76,11 +76,18 @@ public class ProductExcelImporter extends ExcelImporter {
 				}
 				product.setProductCategory(cat);
 			}else if(COL_NAME_NAME_ENG.equals(columnName)){
-				product.setNameEng(cellVal);
+				String name = null;
+				if(val.getClass() == Double.class){
+					name = new BigDecimal((Double)val).toString();
+				}else{
+					name = sourceVal;
+				}
+				product.setNameEng(name);
 			}else if(COL_NAME_PRICE.equals(columnName)){
 				if(!NumberUtils.isNumber(cellVal)){
 					throw new RuntimeException("sheet" + sheetIdx + "第"+ (i+1)+"欄第"+(row.getRowNum()+1)+"列: " + COL_NAME_PRICE + " 不是數字: " + cellVal);
 				}
+				product.setSuggestedRetailPrice(Double.valueOf(cellVal));
 			}else if(COL_NAME_SERIES_NAME.equals(columnName)){
 				product.setSeriesName(cellVal);
 			}else if(COL_NAME_BARCODE.equals(columnName)){
