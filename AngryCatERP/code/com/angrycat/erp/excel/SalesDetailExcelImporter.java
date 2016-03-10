@@ -2,6 +2,7 @@ package com.angrycat.erp.excel;
 
 import java.sql.Date;
 import java.text.DateFormat;
+import java.text.SimpleDateFormat;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
@@ -18,13 +19,18 @@ import com.angrycat.erp.common.DatetimeUtil;
 import com.angrycat.erp.excel.ExcelColumn.SalesDetail.EsliteDunnan;
 import com.angrycat.erp.excel.ExcelColumn.SalesDetail.Fb;
 import com.angrycat.erp.initialize.config.RootConfig;
+import com.angrycat.erp.model.Member;
 import com.angrycat.erp.model.SalesDetail;
 
 @Component
 @Scope("prototype")
 public class SalesDetailExcelImporter extends ExcelImporter {
 	
-	private static final List<Integer> DEFAULT_SHEET_RANGE = Arrays.asList(0, 1);
+	private static final List<Integer> DEFAULT_SHEET_RANGE = Arrays.asList(0);
+	
+	private String fileName;
+	
+	public void setFileName(String fileName){this.fileName = fileName;}
 	
 	@Override
 	protected boolean processRow(Row row, Session s, int sheetIdx, int readableRowNum, Map<String, Integer> msg){
@@ -50,26 +56,28 @@ public class SalesDetailExcelImporter extends ExcelImporter {
 		Date payDate			= null;
 		String contactInfo		= null;
 		String registrant		= null;
-		
+		// "郵寄地址電話"不用匯入
+		// 價格要以會員價為主，會員價即是實收價
+		// 若只有一個價格，名稱雖然不叫會員價，程式應當把他歸為會員價
 		if(sheetIdx == 0){
 			salePoint		= SalesDetail.SALE_POINT_FB;
-			saleStatus		= parseStrVal(row, 			Fb.狀態);
-			fbName			= parseStrVal(row, 			Fb.FB名稱);
-			activity		= parseStrVal(row, 			Fb.活動);
-			modelId			= parseStrVal(row, 			Fb.型號);
-			productName		= parseStrVal(row, 			Fb.產品名稱);
-			price			= parseNumericOrEmpty(row, 	Fb.含運價格);
-			memberPrice		= parseNumericOrEmpty(row, 	Fb.會員價);
-			priority		= parseNumericOrStr(row,	Fb.順序);
-			orderDate		= parseSqlDateVal(row, 		Fb.接單日);
-			otherNote		= parseStrVal(row, 			Fb.其他備註);
-			checkBillStatus = parseStrVal(row, 			Fb.對帳狀態);
-			idNo			= parseStrVal(row, 			Fb.身分證字號);
-			discountType	= parseBooleanVal(row, 		Fb.折扣類型) ? "會員九折" : null;
-			arrivalStatus 	= parseBooleanVal(row, 		Fb.是否已到貨) ? "已到貨" : null;
-			shippingDate  	= parseSqlDateVal(row, 		Fb.出貨日);
-			sendMethod 		= parseStrOrDate(row, 		Fb.郵寄方式);
-			note 			= parseStrVal(row, 			Fb.備註);
+			saleStatus		= parseStrVal(row, 			getColumnIdxFromTitle("狀態"));
+			fbName			= parseStrVal(row, 			getColumnIdxFromTitle("FB名稱"));
+			activity		= parseStrVal(row, 			getColumnIdxFromTitle("代購/團購"));
+			productName		= parseStrVal(row, 			getColumnIdxFromTitle("明細"));
+			modelId			= parseStrVal(row, 			getColumnIdxFromTitle("型號"));
+			price			= parseNumericOrEmpty(row, 	getColumnIdxFromTitle("含運金額"));
+			memberPrice		= parseNumericOrEmpty(row, 	getColumnIdxFromTitle("會員價格"));
+			priority		= parseNumericOrStr(row,	getColumnIdxFromTitle("順序"));
+			orderDate		= parseSqlDateVal(row, 		getColumnIdxFromTitle("接單日"));
+			//otherNote		= parseStrVal(row, 			Fb.其他備註);
+			checkBillStatus = parseStrVal(row, 			getColumnIdxFromTitle("對帳狀態"));
+			idNo			= parseStrVal(row, 			getColumnIdxFromTitle("身份證字號"));
+			discountType	= parseBooleanVal(row, 		getColumnIdxFromTitle("會員九折")) ? "會員九折" : null;
+			arrivalStatus 	= parseBooleanVal(row, 		getColumnIdxFromTitle("已到貨")) ? "v" : null;
+			shippingDate  	= parseSqlDateVal(row, 		getColumnIdxFromTitle("出貨日"));
+			sendMethod 		= parseStrOrDate(row, 		getColumnIdxFromTitle("郵寄方式"));
+			note 			= parseStrVal(row, 			getColumnIdxFromTitle("備註"));
 		}else{
 			salePoint		= SalesDetail.SALE_POINT_ESLITE_DUNNAN;
 			saleStatus		= parseStrVal(row, 		EsliteDunnan.狀態);
@@ -86,6 +94,14 @@ public class SalesDetailExcelImporter extends ExcelImporter {
 			shippingDate  	= parseSqlDateVal(row, 	EsliteDunnan.出貨日);
 			contactInfo 	= parseStrVal(row, 		EsliteDunnan.聯絡方式);
 			registrant		= parseStrVal(row, 		EsliteDunnan.登單者);
+		}
+		
+		if(!"99. 已出貨".equals(saleStatus)){// 代表該銷售明細可能跑單、退貨...總之就是交易失敗
+			return false;
+		}
+		
+		if(StringUtils.isNotBlank(idNo) && "N/A".equals(idNo)){
+			idNo = null;
 		}
 		
 		SalesDetail salesDetail = new SalesDetail();
@@ -110,7 +126,20 @@ public class SalesDetailExcelImporter extends ExcelImporter {
 		salesDetail.setPayDate(payDate);
 		salesDetail.setContactInfo(contactInfo);
 		salesDetail.setRegistrant(registrant);
-
+		
+		if(StringUtils.isNotBlank(idNo)){
+			Object obj = s.createQuery("SELECT m.id FROM " + Member.class.getName() + " m WHERE m.idNo = :idNo").setString("idNo", idNo).uniqueResult();
+			if(obj != null){
+				salesDetail.setMemberId((String)obj);
+			}
+		}
+		
+		String sheetName = getWorkbook().getSheetAt(sheetIdx).getSheetName();
+		sheetName = sheetName.trim();
+		
+		String rowId = fileName + "_" + sheetName + "_" + readableRowNum;
+		salesDetail.setRowId(rowId);
+		
 		s.save(salesDetail);
 		return true;
 	}
@@ -166,18 +195,21 @@ public class SalesDetailExcelImporter extends ExcelImporter {
 		}
 		return result;
 	}
-	
 	private static void testRead(){
 		int[] sheets = new int[]{0};
 		int[] cols = new int[]{Fb.郵寄方式};
 		read("E:\\angrycat_workitem\\銷售明細\\2016_01_22_from_ifly\\OHM 201601銷售明細_test.xlsx", sheets, cols);
+		
 	}
 	
 	private static void testReadAndPersist(){
+		//String src1 = "E:\\angrycat_workitem\\銷售明細\\2016_01_22_from_ifly\\OHM 201601銷售明細.xlsx";
+		String src2 = "E:\\angrycat_workitem\\銷售明細\\2016_03_08_from_miko\\201504_OHM銷售明細-.xlsx";
 		Map<String, String> msg = null;
 		try(AnnotationConfigApplicationContext acac = new AnnotationConfigApplicationContext(RootConfig.class);){
 			SalesDetailExcelImporter i = acac.getBean(SalesDetailExcelImporter.class);
-			msg = i.readAndPersist("E:\\angrycat_workitem\\銷售明細\\2016_01_22_from_ifly\\OHM 201601銷售明細.xlsx");
+			i.setFileName("201504_OHM銷售明細-"); // for rowId use
+			msg = i.readAndPersist(src2);
 		}finally{
 			if(msg != null && !msg.isEmpty()){
 				msg.forEach((k,v)->{

@@ -44,6 +44,8 @@ public class SalesDetail {
 	private String contactInfo;
 	private String registrant;
 	
+	private String rowId;
+	
 	@Id
 	@Column(name="id")
 	@GenericGenerator(name="angrycat_salesdetail_id", strategy="com.angrycat.erp.ds.TimeUID")
@@ -207,5 +209,12 @@ public class SalesDetail {
 	}
 	public void setRegistrant(String registrant) {
 		this.registrant = registrant;
+	}
+	@Column(name="rowId")
+	public String getRowId() {
+		return rowId;
+	}
+	public void setRowId(String rowId) {
+		this.rowId = rowId;
 	}
 }

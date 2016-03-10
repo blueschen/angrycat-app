@@ -58,6 +58,7 @@ public abstract class ExcelImporter {
 	private SessionFactoryWrapper sfw;
 	private int colNum = 0;
 	private Workbook wb;
+	private Row titleRow;
 		
 	public static void main(String[]args){
 //		readAndWrite("C:\\angrycat_workitem\\OHM Beads TW (AngryCat) 一般會員資料.xlsx", "C:\\angrycat_workitem\\test.xlsx");
@@ -200,7 +201,15 @@ public abstract class ExcelImporter {
 			case XSSFCell.CELL_TYPE_BOOLEAN:
 				val = cell.getBooleanCellValue();
 				break;
-			case XSSFCell.CELL_TYPE_FORMULA:
+			case XSSFCell.CELL_TYPE_FORMULA: // ref. http://stackoverflow.com/questions/7608511/java-poi-how-to-read-excel-cell-value-and-not-the-formula-computing-it
+				switch(cell.getCachedFormulaResultType()){
+					case XSSFCell.CELL_TYPE_STRING:
+						val = cell.getStringCellValue();
+						break;
+					case XSSFCell.CELL_TYPE_NUMERIC:
+						val = cell.getNumericCellValue();
+						break;
+				}
 				break;
 			case XSSFCell.CELL_TYPE_BLANK:
 				break;
@@ -273,10 +282,13 @@ public abstract class ExcelImporter {
 					Row row = itr.next();
 					rowNum = row.getRowNum();
 					readableRowNum = rowNum+1;
-					if(rowNum == 0 || isRowEmpty(row, row.getLastCellNum())){
+					if(rowNum == 0){
+						this.titleRow = row;
 						continue;
 					}
-					
+					if(isRowEmpty(row, row.getLastCellNum())){
+						continue;
+					}
 					boolean saveSuccess = processRow(row, s, sheetIdx, readableRowNum, msg);
 					if(!saveSuccess){
 						continue;
@@ -331,6 +343,26 @@ public abstract class ExcelImporter {
 	
 	protected Workbook getWorkbook(){
 		return wb;
+	}
+	/**
+	 * 以第一個row的標題名稱去找column index
+	 * @param title
+	 * @return
+	 */
+	protected int getColumnIdxFromTitle(String title){
+		Iterator<Cell> cellIterator = titleRow.iterator();
+		while(cellIterator.hasNext()){
+			Cell cell = cellIterator.next();
+			Object val = getXSSFValueByCellType(cell);
+			if(val instanceof String){
+				String str = (String)val;
+				if(StringUtils.isNotBlank(str) && str.equals(title)){
+					int colIdx = cell.getColumnIndex();
+					return colIdx;
+				}
+			}
+		}
+		return -1;
 	}
 	
 	protected List<Integer> sheetRange(){
@@ -431,7 +463,10 @@ public abstract class ExcelImporter {
 		if(cell == null){
 			return null;
 		}
-		date = (java.util.Date)getXSSFValueByCellType(cell);		
+		Object val = getXSSFValueByCellType(cell);
+		if(val instanceof java.util.Date){
+			date = (java.util.Date)val;
+		}				
 		return date;
 	}
 	
