@@ -57,10 +57,12 @@
 					</li>
 					<li ng-class="{'active': mainCtrl.moduleName == 'salesdetail'}">
 						<a href="${pageContext.request.contextPath}/salesdetail/list">銷售明細查詢</a>
-					</li>					
+					</li>
+					<!-- 
 					<li>
 						<a href="${pageContext.request.contextPath}/salesdetail/add">銷售明細新增</a>
-					</li>					
+					</li>
+					 -->					
 				</ul>
 				<ul class="nav navbar-nav navbar-right">
 					<li>
@@ -247,11 +249,13 @@
  		<div class="btn-group" role="group">
  			<input type="button" value="清除" ng-click="mainCtrl.clear()" class="btn btn-default"/>
  		</div>
+ 		<!-- 
  		<div class="btn-group" role="group" ng-if="mainCtrl.isAdmin()">
  			<erp-file-ajax-btn file-id="uploadMember" btn="上傳銷售明細" accept-type=".xlsx" input-name="uploadExcelFile" request-url="${urlPrefix}/uploadExcel">
 				<erp-file-ajax-callback></erp-file-ajax-callback>
 			</erp-file-ajax-btn>
- 		</div>
+ 		</div> 		
+ 		 -->
  		<div class="btn-group" role="group" ng-if="mainCtrl.isAdmin()">
  			<input type="button" ng-click="mainCtrl.downloadExcel()" class="btn btn-default"  ng-disabled="salesDetailListForm.$dirty && salesDetailListForm.$invalid" value="下載銷售明細"/>
  		</div>	
