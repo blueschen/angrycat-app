@@ -26,7 +26,7 @@ import com.angrycat.erp.model.SalesDetail;
 @Scope("prototype")
 public class SalesDetailExcelImporter extends ExcelImporter {
 	
-	private static final List<Integer> DEFAULT_SHEET_RANGE = Arrays.asList(0);
+	private static final List<Integer> DEFAULT_SHEET_RANGE = Arrays.asList(0, 1);
 	
 	private String fileName;
 	
@@ -59,48 +59,48 @@ public class SalesDetailExcelImporter extends ExcelImporter {
 		// "郵寄地址電話"不用匯入
 		// 價格要以會員價為主，會員價即是實收價
 		// 若只有一個價格，名稱雖然不叫會員價，程式應當把他歸為會員價
-		if(sheetIdx == 0){
+		if(sheetIdx == 1){
 			salePoint		= SalesDetail.SALE_POINT_FB;
 			saleStatus		= parseStrVal(row, 			getColumnIdxFromTitle("狀態"));
 			fbName			= parseStrVal(row, 			getColumnIdxFromTitle("FB名稱"));
-			activity		= parseStrVal(row, 			getColumnIdxFromTitle("代購/團購"));
-			productName		= parseStrVal(row, 			getColumnIdxFromTitle("明細"));
+			activity		= parseStrVal(row, 			getColumnIdxFromTitle("社團/fanpage"));
 			modelId			= parseStrVal(row, 			getColumnIdxFromTitle("型號"));
+			productName		= parseStrVal(row, 			getColumnIdxFromTitle("明細"));
 			price			= parseNumericOrEmpty(row, 	getColumnIdxFromTitle("含運金額"));
-			memberPrice		= parseNumericOrEmpty(row, 	getColumnIdxFromTitle("會員價格"));
+			memberPrice		= parseNumericOrEmpty(row, 	getColumnIdxFromTitle("會員價(實收價格)"));
 			priority		= parseNumericOrStr(row,	getColumnIdxFromTitle("順序"));
 			orderDate		= parseSqlDateVal(row, 		getColumnIdxFromTitle("接單日"));
-			//otherNote		= parseStrVal(row, 			Fb.其他備註);
+			otherNote		= parseStrVal(row, 			getColumnIdxFromTitle("其他備註"));
 			checkBillStatus = parseStrVal(row, 			getColumnIdxFromTitle("對帳狀態"));
 			idNo			= parseStrVal(row, 			getColumnIdxFromTitle("身份證字號"));
-			discountType	= parseBooleanVal(row, 		getColumnIdxFromTitle("會員九折")) ? "會員九折" : null;
+			discountType	= parseBooleanVal(row, 		getColumnIdxFromTitle("會員九折")) ? "會員九折" : parseStrVal(row, getColumnIdxFromTitle("會員九折"));
 			arrivalStatus 	= parseBooleanVal(row, 		getColumnIdxFromTitle("已到貨")) ? "v" : null;
 			shippingDate  	= parseSqlDateVal(row, 		getColumnIdxFromTitle("出貨日"));
 			sendMethod 		= parseStrOrDate(row, 		getColumnIdxFromTitle("郵寄方式"));
 			note 			= parseStrVal(row, 			getColumnIdxFromTitle("備註"));
 		}else{
 			salePoint		= SalesDetail.SALE_POINT_ESLITE_DUNNAN;
-			saleStatus		= parseStrVal(row, 		EsliteDunnan.狀態);
-			fbName			= parseStrVal(row, 		EsliteDunnan.FB名稱);
-			orderDate		= parseSqlDateVal(row, 	EsliteDunnan.銷售日期);
-			modelId			= parseStrVal(row, 		EsliteDunnan.型號);
-			productName		= parseStrVal(row, 		EsliteDunnan.產品名稱);
-			price			= parseNumericOrEmpty(row, 	EsliteDunnan.定價);
-			memberPrice		= parseNumericOrEmpty(row, 	EsliteDunnan.會員價);
-			payDate			= parseSqlDateVal(row, 	EsliteDunnan.付款日期);
-			idNo			= parseStrVal(row, 		EsliteDunnan.身分證字號);
-			discountType 	= parseStrVal(row, 		EsliteDunnan.折扣類型);
-			note 			= parseStrVal(row, 		EsliteDunnan.備註);
-			shippingDate  	= parseSqlDateVal(row, 	EsliteDunnan.出貨日);
-			contactInfo 	= parseStrVal(row, 		EsliteDunnan.聯絡方式);
-			registrant		= parseStrVal(row, 		EsliteDunnan.登單者);
+			saleStatus		= parseStrVal(row, 		getColumnIdxFromTitle("狀態"));
+			fbName			= parseStrVal(row, 		getColumnIdxFromTitle("FB名稱/客人姓名"));
+			orderDate		= parseSqlDateVal(row, 	getColumnIdxFromTitle("銷售日期"));
+			modelId			= parseStrVal(row, 		getColumnIdxFromTitle("型號"));
+			productName		= parseStrVal(row, 		getColumnIdxFromTitle("明細"));
+			price			= parseNumericOrEmpty(row, 	getColumnIdxFromTitle("定價"));
+			memberPrice		= parseNumericOrEmpty(row, 	getColumnIdxFromTitle("會員價(實收價格)"));
+			payDate			= parseSqlDateVal(row, 	getColumnIdxFromTitle("付款日期"));
+			idNo			= parseStrVal(row, 		getColumnIdxFromTitle("身份證字號"));
+			discountType 	= parseStrVal(row, 		getColumnIdxFromTitle("折扣説明"));
+			note 			= parseStrVal(row, 		getColumnIdxFromTitle("備註"));
+			shippingDate  	= parseSqlDateVal(row, 	getColumnIdxFromTitle("出貨日"));
+			//contactInfo 	= parseStrVal(row, 		getColumnIdxFromTitle(""));
+			registrant		= parseStrVal(row, 		getColumnIdxFromTitle("登單者"));
 		}
 		
 		if(!"99. 已出貨".equals(saleStatus)){// 代表該銷售明細可能跑單、退貨...總之就是交易失敗
 			return false;
 		}
 		
-		if(StringUtils.isNotBlank(idNo) && "N/A".equals(idNo)){
+		if(StringUtils.isNotBlank(idNo) && ("N/A".equals(idNo) || "-".equals(idNo))){
 			idNo = null;
 		}
 		
@@ -128,7 +128,8 @@ public class SalesDetailExcelImporter extends ExcelImporter {
 		salesDetail.setRegistrant(registrant);
 		
 		if(StringUtils.isNotBlank(idNo)){
-			Object obj = s.createQuery("SELECT m.id FROM " + Member.class.getName() + " m WHERE m.idNo = :idNo").setString("idNo", idNo).uniqueResult();
+			String idNoToUpper = idNo.toUpperCase();
+			Object obj = s.createQuery("SELECT m.id FROM " + Member.class.getName() + " m WHERE upper(m.idNo) = :idNo").setString("idNo", idNoToUpper).uniqueResult();
 			if(obj != null){
 				salesDetail.setMemberId((String)obj);
 			}
@@ -137,7 +138,7 @@ public class SalesDetailExcelImporter extends ExcelImporter {
 		String sheetName = getWorkbook().getSheetAt(sheetIdx).getSheetName();
 		sheetName = sheetName.trim();
 		
-		String rowId = fileName + "_" + sheetName + "_" + readableRowNum;
+		String rowId = fileName + "|" + sheetName + "|" + readableRowNum;
 		salesDetail.setRowId(rowId);
 		
 		s.save(salesDetail);
@@ -203,12 +204,13 @@ public class SalesDetailExcelImporter extends ExcelImporter {
 	}
 	
 	private static void testReadAndPersist(){
+		String fileName = "201602_OHM銷售明細-";
 		//String src1 = "E:\\angrycat_workitem\\銷售明細\\2016_01_22_from_ifly\\OHM 201601銷售明細.xlsx";
-		String src2 = "E:\\angrycat_workitem\\銷售明細\\2016_03_08_from_miko\\201504_OHM銷售明細-.xlsx";
+		String src2 = "E:\\angrycat_workitem\\銷售明細\\2016_03_08_from_miko\\"+fileName+".xlsx";
 		Map<String, String> msg = null;
 		try(AnnotationConfigApplicationContext acac = new AnnotationConfigApplicationContext(RootConfig.class);){
 			SalesDetailExcelImporter i = acac.getBean(SalesDetailExcelImporter.class);
-			i.setFileName("201504_OHM銷售明細-"); // for rowId use
+			i.setFileName(fileName); // for rowId use
 			msg = i.readAndPersist(src2);
 		}finally{
 			if(msg != null && !msg.isEmpty()){
