@@ -172,9 +172,9 @@ public abstract class ExcelImporter {
 					break;
 				}
 				strVal = strVal.trim();
-				strVal = strVal.replace("\n", "");
-				strVal = strVal.replace("\t", "");
-				strVal = strVal.replace("\r", "");
+				strVal = strVal.replace("\n", " ");
+				strVal = strVal.replace("\t", " ");
+				strVal = strVal.replace("\r", " ");
 				String pattern = DatetimeUtil.getDatePatternOrEmptyStr(strVal);
 				if(StringUtils.isBlank(pattern)){
 					val = strVal;
