@@ -171,6 +171,9 @@ public class MemberController extends BaseUpdateController<Member, Member>{
 				}else{
 					member.setClientId(member.getClientId().toUpperCase());
 				}
+				if(StringUtils.isNotBlank(member.getIdNo())){
+					member.setIdNo(member.getIdNo().toUpperCase());
+				}
 			}else{// update
 				findTargetService.getSimpleExpressions().get("pId").setValue(member.getId());
 				List<Member> members = findTargetService.executeQueryList(s);
