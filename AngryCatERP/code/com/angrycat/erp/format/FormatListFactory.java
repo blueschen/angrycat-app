@@ -31,7 +31,7 @@ public class FormatListFactory {
 	
 	private static FormatList ofSalesBase(String dateFormat){
 		FormatList f = new FormatList();
-		f.setDocTitle("fbName,modelId,orderDate");
+		f.setDocTitle("rowId");
 		
 		PropertyFormat orderDate = new PropertyFormat("接單日", "orderDate");
 		orderDate.setDateFormat(dateFormat);
