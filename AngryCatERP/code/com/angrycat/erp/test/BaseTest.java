@@ -16,7 +16,7 @@ import com.angrycat.erp.initialize.config.RootConfig;
 
 public class BaseTest {
 	
-	protected static void executeApplicationContext(Consumer<AnnotationConfigApplicationContext> logic){
+	public static void executeApplicationContext(Consumer<AnnotationConfigApplicationContext> logic){
 		AnnotationConfigApplicationContext acac = new AnnotationConfigApplicationContext(RootConfig.class);
 		logic.accept(acac);
 		acac.close();
