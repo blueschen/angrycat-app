@@ -3,8 +3,6 @@ package com.angrycat.erp.shortnews;
 import static com.angrycat.erp.condition.ConditionFactory.propertyDesc;
 import static com.angrycat.erp.condition.ConditionFactory.putInt;
 import static com.angrycat.erp.condition.ConditionFactory.putSqlDate;
-import static com.angrycat.erp.condition.ConditionFactory.conjunction;
-import static com.angrycat.erp.condition.ConditionFactory.disjunction;
 
 import java.io.BufferedReader;
 import java.io.DataOutputStream;
@@ -14,27 +12,34 @@ import java.net.URL;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.function.Function;
 
 import javax.annotation.PostConstruct;
 
 import org.apache.commons.lang.exception.ExceptionUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.builder.ReflectionToStringBuilder;
+import org.apache.commons.lang3.builder.ToStringStyle;
 import org.hibernate.Session;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.AnnotationConfigApplicationContext;
 import org.springframework.context.annotation.Scope;
+import org.springframework.mail.MailSender;
+import org.springframework.mail.SimpleMailMessage;
 import org.springframework.stereotype.Service;
 
+import com.angrycat.erp.component.SessionFactoryWrapper;
 import com.angrycat.erp.function.ConsumerThrowable;
 import com.angrycat.erp.initialize.config.RootConfig;
 import com.angrycat.erp.model.Member;
-import com.angrycat.erp.query.QueryGenerator;
 import com.angrycat.erp.service.QueryBaseService;
 import com.angrycat.erp.service.TimeService;
 
+import static com.angrycat.erp.common.EmailContact.*;
 /**
  * 三竹簡訊服務，主要搭配會員查詢功能
  * @author JerryLin
@@ -79,6 +84,14 @@ public class MitakeSMSHttpPost {
 	private QueryBaseService<Member, Member> memberQueryService;
 	@Autowired
 	private TimeService timeService;
+	@Autowired
+	private SessionFactoryWrapper sfw;
+	
+	@Autowired
+	private MailSender mailSender;
+	@Autowired
+	private SimpleMailMessage templateMessage;
+	
 	private String url = GENERAL_CONNECT_URL;
 	private boolean testMode;
 	private int memberCount;
@@ -166,6 +179,7 @@ public class MitakeSMSHttpPost {
 		HttpURLConnection huc = null;
 		DataOutputStream out = null;
 		BufferedReader buReader = null;
+		String errTrace = null;
 		try{
 			huc = (HttpURLConnection)new URL(url).openConnection();
 			huc.setInstanceFollowRedirects(true);
@@ -192,6 +206,7 @@ public class MitakeSMSHttpPost {
 				returnMsg.accept(buReader);
 			}
 		}catch(Throwable e){
+			errTrace = ExceptionUtils.getStackTrace(e);			
 			e.printStackTrace();
 		}finally{
 			try{
@@ -213,9 +228,124 @@ public class MitakeSMSHttpPost {
 				out = null;
 			}
 			huc = null;
+			if(StringUtils.isNotBlank(errTrace)){
+				String sendMsg = errTrace;
+				SimpleMailMessage simpleMailMessage = new SimpleMailMessage(templateMessage);
+				simpleMailMessage.setTo(JERRY);
+				simpleMailMessage.setText(sendMsg);
+				simpleMailMessage.setSubject("MitakeSMSHttpPost.sendPostShortMsg執行發生錯誤");
+				String[] cc = new String[]{BLUES};
+				simpleMailMessage.setCc(cc);
+				mailSender.send(simpleMailMessage);
+			}
 		}
 	}
 	/**
+	 * 如果每一個發送對象的簡訊都是一樣的，就呼叫這個API
+	 * @param queryHql
+	 * @param params
+	 * @param content
+	 * @return
+	 */
+	public StringBuffer sendShortMsgToMembers(String queryHql, Map<String, Object> params, String content){
+		return sendShortMsgToMembers(queryHql, params, (m->{return content;}));
+	}
+	/**
+	 * 如果需要隨不同發送對象，簡訊也不一樣，就使用這個API
+	 * @param queryHql
+	 * @param params
+	 * @param genContent
+	 * @return
+	 */
+	public StringBuffer sendShortMsgToMembers(String queryHql, Map<String, Object> params, Function<Member, String> genContent){
+		List<Member> members = sfw.executeSession(s->{
+			List<Member> results = s.createQuery(queryHql).setProperties(params).list();
+			return results;
+		});
+		
+		final StringBuffer sb = new StringBuffer();
+		if(testMode){
+			sb.append("這是測試模式，只會顯示查到的資料，不會真的去發簡訊...");
+			System.out.println("共查到" + members.size() + "筆");
+			members.forEach(m->{
+				System.out.println(ReflectionToStringBuilder.toString(m, ToStringStyle.MULTI_LINE_STYLE));
+				System.out.println(genContent.apply(m));
+			});
+			return sb;
+		}
+		sendPostShortMsg(out->{
+			int currentCount = 0;
+			int effectiveCount = 0;
+			int runtimeErrCount = 0;
+			
+			sb.append("發送清單:\n");
+			boolean runtimeError = false;
+			for(int i = 0; i < members.size(); i++){
+				Member member = members.get(i);
+				String mobile = member.getMobile();
+				String name = member.getName();
+				
+				if(isMobile(mobile)){
+					++effectiveCount;
+					try{
+						byte[] config = getRequiredConfig(effectiveCount, mobile, genContent.apply(member));
+						out.write(config);
+//						out.write("".getBytes(sEncoding));
+						sb.append(name + "|" + mobile + "\n");
+					}catch(Throwable e){
+						// TODO
+						String trace = ExceptionUtils.getStackTrace(e);
+						sb.append(mobile + "設定必填欄位錯誤:\n" + trace);
+						runtimeError = true;
+						++runtimeErrCount;
+					}
+				}
+				
+			}
+			if(runtimeError){
+				String sendMsg = sb.toString();
+				SimpleMailMessage simpleMailMessage = new SimpleMailMessage(templateMessage);
+				simpleMailMessage.setTo(JERRY);
+				simpleMailMessage.setText(sendMsg);
+				simpleMailMessage.setSubject("MitakeSMSHttpPost.sendShortMsgToMembers設定簡訊執行錯誤");
+				String[] cc = new String[]{BLUES};
+				simpleMailMessage.setCc(cc);
+				mailSender.send(simpleMailMessage);
+			}
+			memberCount = currentCount;
+			sb.append("查詢結果: " + currentCount + " 筆，有效資料: " + effectiveCount + "筆，執行錯誤: " + runtimeErrCount + "筆\n");
+			System.out.println("查詢結果: " + currentCount + " 筆，有效資料: " + effectiveCount + "筆，執行錯誤: " + runtimeErrCount + "筆");
+		},buReader->{
+			String msg = null;
+			sb.append("發送簡訊後回傳訊息:\n");
+			while((msg = buReader.readLine()) != null){
+				System.out.println(msg);
+				sb.append(msg + "\n");
+				if(msg.contains("AccountPoint")){
+					String[] s = msg.split("=");
+					String remainingPoints = s[1];
+					int remaining = Integer.parseInt(remainingPoints);
+					if(remaining <= 500){						
+						String sendMsg = "簡訊點數即將用完，請盡快儲值，剩餘點數: " + remainingPoints;
+						SimpleMailMessage simpleMailMessage = new SimpleMailMessage(templateMessage);
+						simpleMailMessage.setTo(JOYCE);
+						simpleMailMessage.setText(sendMsg);
+						simpleMailMessage.setSubject("簡訊點數即將用完請協助儲值");
+						String[] cc = new String[]{IFLY,
+													BLUES,
+													JERRY};
+						simpleMailMessage.setCc(cc);
+						mailSender.send(simpleMailMessage);
+					}
+				}
+			}
+		});
+		
+		return sb;
+	}
+	
+	/**
+	 * @deprecated
 	 * 發送簡訊給會員，如果有特殊查詢條件，應在呼叫此method之前就設定完畢，沒有指定就是查出資料庫所有會員資料。
 	 * 如果中途有例外發生，他會繼續下去，把錯誤資料秀在主控台
 	 * @param content
@@ -332,14 +462,15 @@ public class MitakeSMSHttpPost {
 		return sb;
 	}
 	/**
+	 * @deprecated
 	 * 發送訊息給指定生日月份的會員
 	 * @param birthMonth
 	 * @param content
 	 */
 	public StringBuffer sendShortMsgToBirthMonth(int birthMonth, String content){		
 //		System.out.println("msg: " + content);
-		memberQueryService.getSimpleExpressions().get("pBirthday").setValue(birthMonth);
-		memberQueryService.getSimpleExpressions().get("pEffectiveEnd").setValue(timeService.atStartOfToday());
+//		memberQueryService.getSimpleExpressions().get("pBirthday").setValue(birthMonth);
+//		memberQueryService.getSimpleExpressions().get("pEffectiveEnd").setValue(timeService.atStartOfToday());
 //		QueryGenerator qg = memberQueryService.toQueryGenerator();
 //		String query = qg.toCompleteStr();
 //		System.out.println("執行hql:\n" + query);
@@ -348,12 +479,20 @@ public class MitakeSMSHttpPost {
 //		params.forEach((k,v)->{
 //			System.out.println(k + ": " + v);
 //		});
+				
+		String hql = "SELECT p "
+				+ "FROM com.angrycat.erp.model.Member p "
+				+ "join p.vipDiscountDetails detail "
+				+ "WHERE month(p.birthday) = (:pBirthday) "
+				+ "AND detail.effectiveEnd >= (:pEffectiveEnd) "
+				+ "AND detail.discountUseDate IS NULL";
+		
+		Map<String, Object> params = new HashMap<>();
+		params.put("pBirthday", birthMonth);
+		params.put("pEffectiveEnd", timeService.atStartOfToday());
+		
 		StringBuffer sb = null;
-		if(testMode){
-			sb = queryMembers();
-		}else{
-			sb = sendShortMsgToMembers(content);
-		}
+		sb = sendShortMsgToMembers(hql, params, content);
 		return sb;
 	}
 	/**
