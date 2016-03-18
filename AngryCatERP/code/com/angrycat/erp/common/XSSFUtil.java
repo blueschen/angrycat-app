@@ -1,11 +1,14 @@
 package com.angrycat.erp.common;
 
+import java.io.BufferedInputStream;
+import java.io.FileInputStream;
 import java.math.BigDecimal;
 import java.sql.Date;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
 import java.util.Iterator;
+import java.util.function.Consumer;
 
 import org.apache.commons.lang3.StringUtils;
 import org.apache.poi.ss.usermodel.Cell;
@@ -13,6 +16,7 @@ import org.apache.poi.ss.usermodel.DateUtil;
 import org.apache.poi.ss.usermodel.Row;
 import org.apache.poi.ss.util.CellReference;
 import org.apache.poi.xssf.usermodel.XSSFCell;
+import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 /**
  * XSSF是Apache POI專案特地針對Microsoft .xlsx的Excel檔釋出的處理工具<br>
  * XSSFUtil封裝相關的函式
@@ -20,7 +24,23 @@ import org.apache.poi.xssf.usermodel.XSSFCell;
  *
  */
 public class XSSFUtil {
-	
+	/**
+	 * 讀取XSSF檔
+	 * @param src
+	 * @param consumer
+	 */
+	public static void readXSSF(String src, Consumer<XSSFWorkbook> consumer){
+		try(BufferedInputStream bis = new BufferedInputStream(new FileInputStream(src));
+			XSSFWorkbook workbook = new XSSFWorkbook(bis);){
+			
+			consumer.accept(workbook);
+			
+		}catch(Throwable e){
+			e.printStackTrace();
+		}finally{
+			System.out.println("XSSFUtil.readXSSF method executing finally...");
+		}
+	}
 	/**
 	 * 根據Cell Type，取得XSSF Cell的值。
 	 * 目前僅處理字串、數值、和布林值。
