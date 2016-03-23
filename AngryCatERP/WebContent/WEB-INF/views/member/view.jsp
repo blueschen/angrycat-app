@@ -159,12 +159,18 @@
  		</div>
  	</div>
  	<div class="form-group">
- 		<div class="form-group col-sm-5">
+ 		<div class="form-group col-sm-5" ng-class="{'has-error': mainCtrl.isIdNoNotHaveTenChars() || mainCtrl.isIdNoDuplicated()}">
  			<label class="col-sm-5 control-label" for="idNo">
  				身分證字號
  			</label>
  			<div class="col-sm-7">
- 				<input type="text" ng-model="mainCtrl.member.idNo" id="idNo" name="idNo" class="form-control"/>
+ 				<input type="text" ng-model="mainCtrl.member.idNo" id="idNo" name="idNo" class="form-control" id-no-duplicated="{{mainCtrl.member.clientId}}" id-no-not-have-ten-chars="{{mainCtrl.member.clientId}}"/>
+ 				<span ng-show="mainCtrl.isIdNoNotHaveTenChars()">
+ 					身分證字號首碼大寫加上9碼數字，且皆為半形字元
+ 				</span>
+ 				<span ng-show="mainCtrl.isIdNoDuplicated()">
+ 					身分證字號已重複
+ 				</span> 				
  			</div> 		
  		</div>
  		<div class="form-group col-sm-5" ng-class="{'has-error': memberForm.email.$invalid}">
@@ -177,17 +183,17 @@
  		</div>
  	</div>
  	<div class="form-group">
- 		<div class="form-group col-sm-5" ng-class="{'has-error': mainCtrl.isTelAndMobileNotExisted() || mainCtrl.isNameAndMobileDuplicate() || mainCtrl.isMobileNotNumeric()}">
+ 		<div class="form-group col-sm-5" ng-class="{'has-error': mainCtrl.isTelAndMobileNotExisted() || mainCtrl.isNameAndMobileDuplicate() || mainCtrl.isMobileNotHaveTenNumbers()}">
 			<label class="col-sm-5 control-label" for="mobile">
  				手機電話<span style="color:red;">*</span>	
  			</label>
  			<div class="col-sm-7">
- 				<input type="text" ng-model="mainCtrl.member.mobile" ng-model-options="{updateOn: 'default'}" id="mobile" name="mobile" class="form-control" mobile-duplicated ng-pattern="/^[0-9]+$/" ng-disabled="memberForm.name.$error.required"/>
+ 				<input type="text" ng-model="mainCtrl.member.mobile" ng-model-options="{updateOn: 'default'}" id="mobile" name="mobile" class="form-control" mobile-duplicated mobile-not-have-ten-numbers="{{mainCtrl.member.clientId}}" ng-disabled="memberForm.name.$error.required"/>
  				<span ng-show="mainCtrl.isNameAndMobileDuplicate()">
- 					姓名和手機電話重複
+ 					手機重複，或姓名和手機重複
  				</span>
- 				 <span ng-show="mainCtrl.isMobileNotNumeric()">
- 					手機電話應為數字
+ 				 <span ng-show="mainCtrl.isMobileNotHaveTenNumbers()">
+ 					手機首碼應為0，加上其他9碼數字，共10個半形字元
  				</span>
  			</div>
  		</div>
@@ -253,7 +259,7 @@
  		<label class="col-sm-2 control-label" for="address">
  			地址	
  		</label>
- 		<div class="col-sm-5">
+ 		<div class="col-sm-6">
  			<input type="text" ng-model="mainCtrl.member.address" id="address" class="form-control"/>
  		</div>
  	</div>
@@ -261,7 +267,7 @@
  		<label class="col-sm-2 control-label" for="note">
  			備註	
  		</label>
- 		<div class="col-sm-5">
+ 		<div class="col-sm-6">
  			<textarea ng-model="mainCtrl.member.note" id="note" rows="3" cols="30"  class="form-control"></textarea>
  		</div>
  	</div>
@@ -370,10 +376,12 @@
 					alert('單筆消費VIP最大延續'+ADD_COUNT_MAX+'年，已超過上限!!');
 					return;
 				}
-				self.updateMemberDiscount()
-					.then(function(){
+				var promise = self.updateMemberDiscount();
+				if(promise){
+					promise.then(function(){
 						++addCount;
 					});
+				}
 			};
 			self.updateMemberDiscount = function(){
 				if(!self.member.birthday){
@@ -425,9 +433,15 @@
 			self.isNameAndTelDuplicate = function(){
 				return $scope.memberForm.name.$dirty && $scope.memberForm.tel.$dirty && $scope.memberForm.tel.$error.telDuplicated;
 			};
-			self.isMobileNotNumeric = function(){
-				return $scope.memberForm.mobile.$dirty && $scope.memberForm.mobile.$error.pattern;
+			self.isMobileNotHaveTenNumbers = function(){
+				return $scope.memberForm.mobile.$dirty && $scope.memberForm.mobile.$error.mobileNotHaveTenNumbers;
 			};
+			self.isIdNoNotHaveTenChars = function(){
+				return $scope.memberForm.idNo.$dirty && $scope.memberForm.idNo.$error.idNoNotHaveTenChars;
+			};
+			self.isIdNoDuplicated = function(){
+				return $scope.memberForm.idNo.$dirty && $scope.memberForm.idNo.$error.idNoDuplicated;
+			};			
 		}])
 		.factory('ValidateService', ['$log', 'AjaxService', 'urlPrefix', '$window', function($log, AjaxService, urlPrefix, $window){
 				return {
@@ -452,7 +466,76 @@
 								});
 							}	
 						};
-					}
+					},
+					idNoDuplicated: function(){
+						return{
+							restrict: 'A',
+							require: 'ngModel',
+							link: function($scope, ele, attrs, ngModelCtrl){
+								$scope.$watch(attrs.ngModel, function(newVal, oldVal){
+									if(!newVal || newVal == oldVal){
+										return;
+									}
+									var clientId = attrs.idNoDuplicated;
+									if(clientId.indexOf('TW') == 0 && newVal.length != 10){
+										return;
+									}
+									var validationName = 'idNoDuplicated';
+									AjaxService.get(urlPrefix + '/' + validationName + '/' + newVal)
+										.then(function(response){
+											ngModelCtrl.$setValidity(validationName, response.data.isValid ? true : false);
+										},function(responseErr){
+											ngModelCtrl.$setValidity(validationName, false);
+											alert('後端檢核過程發生錯誤，檢核名稱為: ' + validationName);
+										});
+								});
+							}	
+						};						
+					},
+					idNoNotHaveTenChars: function(){
+						return{
+							restrict: 'A',
+							require: 'ngModel',
+							link: function($scope, ele, attrs, ngModelCtrl){
+								$scope.$watch(attrs.ngModel, function(newVal, oldVal){
+									var validationName = 'idNoNotHaveTenChars';
+									if(!newVal || newVal == oldVal){
+										ngModelCtrl.$setValidity(validationName, true);
+										return;
+									}
+									var re = /^[A-Z]{1}[0-9]{9}$/;
+									var clientId = attrs.idNoNotHaveTenChars;
+									if(clientId.indexOf('TW') == 0 && !re.test(newVal)){
+										ngModelCtrl.$setValidity(validationName, false);
+									}else{
+										ngModelCtrl.$setValidity(validationName, true);
+									}
+								});
+							}	
+						};						
+					},
+					mobileNotHaveTenNumbers: function(){
+						return{
+							restrict: 'A',
+							require: 'ngModel',
+							link: function($scope, ele, attrs, ngModelCtrl){
+								$scope.$watch(attrs.ngModel, function(newVal, oldVal){
+									var validationName = 'mobileNotHaveTenNumbers';
+									if(!newVal || newVal == oldVal){
+										ngModelCtrl.$setValidity(validationName, true);
+										return;
+									}
+									var clientId = attrs.mobileNotHaveTenNumbers;
+									var re = /^[0]{1}[0-9]{9}$/;
+									if(clientId && clientId.indexOf('TW') == 0 && !re.test(newVal)){
+										ngModelCtrl.$setValidity(validationName, false);
+									}else{
+										ngModelCtrl.$setValidity(validationName, true);
+									}
+								});
+							}	
+						};						
+					}					
 				};
 			}])
 			.directive('mobileDuplicated', ['ValidateService', function(ValidateService){
@@ -461,6 +544,15 @@
 			.directive('telDuplicated', ['ValidateService', function(ValidateService){
 				return ValidateService.multiCondsValidateDirectiveDefProto('telDuplicated');
 			}])
+			.directive('idNoDuplicated', ['ValidateService', function(ValidateService){
+				return ValidateService.idNoDuplicated();
+			}])
+			.directive('idNoNotHaveTenChars', ['ValidateService', function(ValidateService){
+				return ValidateService.idNoNotHaveTenChars();
+			}])
+			.directive('mobileNotHaveTenNumbers', ['ValidateService', function(ValidateService){
+				return ValidateService.mobileNotHaveTenNumbers();
+			}])				
 			;
 </script>
 </body>
