@@ -265,10 +265,13 @@ public class MitakeSMSHttpPost {
 		
 		final StringBuffer sb = new StringBuffer();
 		if(testMode){
-			sb.append("這是測試模式，只會顯示查到的資料，不會真的去發簡訊...");
+			String testMsg = "這是測試模式，只會顯示查到的資料，不會真的去發簡訊...";
+			sb.append(testMsg);
+			System.out.println(testMsg);
 			System.out.println("共查到" + members.size() + "筆");
 			members.forEach(m->{
-				System.out.println(ReflectionToStringBuilder.toString(m, ToStringStyle.MULTI_LINE_STYLE));
+				System.out.println(m.getName() + "|" + m.getMobile() + m.getToVipDate() + "|" + m.getToVipEndDate());
+//				System.out.println(ReflectionToStringBuilder.toString(m, ToStringStyle.MULTI_LINE_STYLE)); // enable this statement, must take consideration in lazy loading issue
 				System.out.println(genContent.apply(m));
 			});
 			return sb;
@@ -284,7 +287,7 @@ public class MitakeSMSHttpPost {
 				Member member = members.get(i);
 				String mobile = member.getMobile();
 				String name = member.getName();
-				
+				currentCount++;
 				if(isMobile(mobile)){
 					++effectiveCount;
 					try{
