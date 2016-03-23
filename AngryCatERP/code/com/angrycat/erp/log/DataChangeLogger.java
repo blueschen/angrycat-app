@@ -1,5 +1,6 @@
 package com.angrycat.erp.log;
 
+import java.io.Serializable;
 import java.sql.Date;
 import java.sql.Timestamp;
 import java.text.DateFormat;
@@ -25,7 +26,8 @@ import com.angrycat.erp.security.extend.UserInfo;
 
 @Component
 @Scope("prototype")
-public class DataChangeLogger {
+public class DataChangeLogger implements Serializable{
+	private static final long serialVersionUID = 4666852804567936710L;
 	private static final User DEFAULT_USER;
 	static{
 		DEFAULT_USER = new User();
