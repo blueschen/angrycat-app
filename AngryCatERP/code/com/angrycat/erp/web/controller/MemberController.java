@@ -274,13 +274,23 @@ public class MemberController extends BaseUpdateController<Member, Member>{
 	String getModule(){
 		return "member";
 	}
-	
+	/**
+	 * 雙重檢核:
+	 * 第一層檢核是否該手機已有重複，重複被視為無效
+	 * 若手機沒有重複，進行第二層檢核。檢核名稱加手機是否重複
+	 * @param mobile
+	 * @param name
+	 * @return
+	 */
 	@RequestMapping(value="/mobileDuplicated/{mobile}/{name}", method=RequestMethod.GET)
 	public @ResponseBody Map<String, Boolean> mobileDuplicated(@PathVariable("mobile") String mobile, @PathVariable("name") String name){
 		Map<String, Boolean> results = new HashMap<>();
 		sfw.executeSession(s->{
 			long count = 0;
-			count = (long)s.createQuery("SELECT COUNT(m.id) FROM " + Member.class.getName() + " m WHERE m.mobile = :mobile AND m.name = :name").setString("mobile", mobile).setString("name", name).uniqueResult();
+			count = (long)s.createQuery("SELECT COUNT(m.id) FROM " + Member.class.getName() + " m WHERE m.mobile = :mobile").setString("mobile", mobile).uniqueResult();
+			if(count == 0){
+				count = (long)s.createQuery("SELECT COUNT(m.id) FROM " + Member.class.getName() + " m WHERE m.mobile = :mobile AND m.name = :name").setString("mobile", mobile).setString("name", name).uniqueResult();
+			}
 			results.put("isValid", count == 0);
 		});
 		return results;
@@ -297,6 +307,21 @@ public class MemberController extends BaseUpdateController<Member, Member>{
 		return results;
 	}
 	
+	@RequestMapping(value="/idNoDuplicated/{idNo}", method=RequestMethod.GET)
+	public @ResponseBody Map<String, Boolean> idNoDuplicated(@PathVariable("idNo") String idNo){
+		Map<String, Boolean> results = new HashMap<>();
+		sfw.executeSession(s->{
+			String upperIdNo = null;
+			if(StringUtils.isNotBlank(idNo)){
+				upperIdNo = idNo.toUpperCase();
+			}
+			long count = 0;
+			count = (long)s.createQuery("SELECT COUNT(m.id) FROM " + Member.class.getName() + " m WHERE upper(m.idNo) = :idNo").setString("idNo", upperIdNo).uniqueResult();
+			results.put("isValid", count == 0);
+		});
+		return results;
+	}
+		
 	public static int getLatestClientIdSerialNo(Session s, String countryCode){
 		int latestSerialNo = 0;
 		@SuppressWarnings("unchecked")
