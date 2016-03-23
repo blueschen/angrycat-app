@@ -30,7 +30,7 @@ import com.mchange.v2.c3p0.ComboPooledDataSource;
 
 @Configuration
 @PropertySource("classpath:/application.properties")
-@ComponentScan(basePackages={"com.angrycat.erp.service", "com.angrycat.erp.excel", "com.angrycat.erp.ds", "com.angrycat.erp.component", "com.angrycat.erp.businessrule", "com.angrycat.erp.log", "com.angrycat.erp.shortnews", "com.angrycat.erp.onepos", "com.angrycat.erp.scheduletask"})
+@ComponentScan(basePackages={"com.angrycat.erp.service", "com.angrycat.erp.excel", "com.angrycat.erp.ds", "com.angrycat.erp.component", "com.angrycat.erp.businessrule", "com.angrycat.erp.log", "com.angrycat.erp.shortnews", "com.angrycat.erp.onepos", "com.angrycat.erp.scheduletask", "com.angrycat.erp.member.vip"})
 @EnableTransactionManagement(proxyTargetClass=true)
 @EnableScheduling
 public class RootConfig {
@@ -82,6 +82,7 @@ public class RootConfig {
 			throw new RuntimeException(e);
 		}
 		String serverRoot = System.getProperty(CATALINA_HOME);
+		String remoteUrl = env.getProperty("jdbc.remote.url");
 		String jdbcUrl = env.getProperty("jdbc.url");
 		String nasJdbcUrl = env.getProperty("jdbc.intranet.url");
 //		if(LOCAL_TOMCAT_PATH.equals(serverRoot)){
