@@ -82,7 +82,7 @@ public class TimeService {
 	 * @param localDatetime
 	 * @return
 	 */
-	private java.util.Date toDate(LocalDateTime localDatetime){
+	public java.util.Date toDate(LocalDateTime localDatetime){
 		Instant instant = localDatetime.atZone(zoneId).toInstant();
 		java.util.Date date = Date.from(instant);
 		return date;
