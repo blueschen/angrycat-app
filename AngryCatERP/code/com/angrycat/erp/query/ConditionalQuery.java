@@ -109,6 +109,7 @@ public class ConditionalQuery<T> extends QueryConfig implements
 	public List<T> executeQueryList(Session s) {
 		QueryGenerator q = toQueryGenerator();
 		String sql = q.toCompleteStr();
+//		System.out.println("sql:" + sql);
 		Map<String, Object> params = q.getParams();
 		return s.createQuery(sql).setProperties(params).list();
 	}	
