@@ -14,6 +14,7 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.function.Consumer;
 import java.util.stream.Collectors;
 
 import javax.annotation.PostConstruct;
@@ -57,23 +58,23 @@ public class MemberVIP {
 	 * 簡訊通知:本月生日，且VIP尚未使用及過期的會員
 	 */
 	@Scheduled(cron="1 0 0 1 * ?")
-	public void birthVIP(){
+	public void shortMsgNotifyBirthVIPAvailable(){
 		LocalDate now = LocalDate.now();
 		int date = now.getDayOfMonth();
-		if(date == 1){
+		if(date == 1){// 如果為某月1號
 			int month = now.getMonthValue();
 			String BIRTH_VIP_MSG = "OHM Beads祝您生日快樂，{month}月壽星可享單筆訂單8折優惠，誠品敦南專櫃與網路通路皆可使用，詳情請洽02-27716304";
 			String content = BIRTH_VIP_MSG.replace("{month}", String.valueOf(month));
 			
-			String hql = "SELECT p "
+			String hql = "SELECT DISTINCT(p) "
 					+ "FROM com.angrycat.erp.model.Member p "
 					+ "join p.vipDiscountDetails detail "
-					+ "WHERE month(p.birthday) = (:pBirthday) "
+					+ "WHERE month(p.birthday) = (:pBirthMonth) "
 					+ "AND detail.effectiveEnd >= (:pEffectiveEnd) "
 					+ "AND detail.discountUseDate IS NULL";
 			
 			Map<String, Object> params = new HashMap<>();
-			params.put("pBirthday", month);
+			params.put("pBirthMonth", month);
 			params.put("pEffectiveEnd", timeService.atStartOfToday());
 			
 			StringBuffer sb = mitakeSMSHttpPost.sendShortMsgToMembers(hql, params, content);
@@ -105,7 +106,7 @@ public class MemberVIP {
 		params.put("startDate", startDayOfNextMonth);
 		params.put("endDate", endDayOfNextMonth);
 		
-		String template = "您的OHM VIP會員資格將於下個月(" + nextMonth + "月)到期，到期日為{toVipEndDate}";
+		String template = "親愛的OHM會員您好，感謝您對OHM的支持，您的VIP資格將於{toVipEndDate}到期，詳情請洽OHM專櫃02-27716304";
 		StringBuffer sb = mitakeSMSHttpPost.sendShortMsgToMembers(queryHql, params, (m->{
 			Date toVipEndDate = m.getToVipEndDate();
 			String dateStr = DatetimeUtil.DF_yyyyMMdd_DASHED.format(toVipEndDate);
@@ -142,25 +143,20 @@ public class MemberVIP {
 			String updatHql = "UPDATE " + Member.class.getName() + " m SET m.important = :important WHERE m.toVipEndDate < :today AND m.important = 1";
 			int count = s.createQuery(updatHql).setBoolean("important", false).setDate("today", todayMidnight).executeUpdate();
 			
-			String dateStr = new SimpleDateFormat("yyyy-MM-dd").format(todayMidnight);
-			
-			SimpleMailMessage simpleMailMessage = new SimpleMailMessage(templateMessage);
-			simpleMailMessage.setTo(MIKO);
-			simpleMailMessage.setText(sendMsg);
-			simpleMailMessage.setSubject(dateStr + "VIP失效更改共:" + count + "筆");
-			
-			String[] cc = new String[]{IFLY, BLUES, JERRY};
-			simpleMailMessage.setCc(cc);
-			mailSender.send(simpleMailMessage);
+			if(count > 0){
+				String dateStr = new SimpleDateFormat("yyyy-MM-dd").format(todayMidnight);
+				SimpleMailMessage simpleMailMessage = new SimpleMailMessage(templateMessage);
+				simpleMailMessage.setTo(MIKO);
+				simpleMailMessage.setText(sendMsg);
+				simpleMailMessage.setSubject(dateStr + "VIP失效更改共:" + count + "筆");
+				
+				String[] cc = new String[]{IFLY, BLUES, JERRY};
+				simpleMailMessage.setCc(cc);
+				mailSender.send(simpleMailMessage);
+			}
 		});
 	}
 	
-	private static void testCancelVIPIfExpired(){
-		BaseTest.executeApplicationContext(acac->{
-			MemberVIP vip = acac.getBean(MemberVIP.class);
-			vip.cancelVIPIfExpired();
-		});
-	}
 	/**
 	 * http://stackoverflow.com/questions/31726418/localdatetime-remove-the-milliseconds
 	 * 測試LocalDateTime列印時間格式
@@ -170,8 +166,7 @@ public class MemberVIP {
 		LocalDateTime now = LocalDateTime.now();
 		System.out.println(now); // 沒有設定，預設連帶顯示毫秒數字
 		System.out.println(now.withNano(0)); // 納秒為0，不會顯示毫秒數字
-	}
-	
+	}	
 	private static void testLocalDateToDate(){
 		LocalDate now = LocalDate.now();
 		System.out.println(now);
@@ -188,7 +183,80 @@ public class MemberVIP {
 		System.out.println("specifiedMidnightOfDay Date: " + d2);
 		
 	}
-	
+	private static void testMemberVIPAtContext(Consumer<MemberVIP> mv){
+		BaseTest.executeApplicationContext(acac->{
+			MemberVIP vip = acac.getBean(MemberVIP.class);
+			vip.mitakeSMSHttpPost.setTestMode(true);
+			mv.accept(vip);
+		});
+	}
+	private static void testShortMsgNotifyBirthVIPAvailable(){
+		testMemberVIPAtContext(vip->{
+			vip.shortMsgNotifyBirthVIPAvailable();
+		});
+	}
+	private static void testShortMsgNotifyNextMonthExpired(){
+		testMemberVIPAtContext(vip->{
+			vip.shortMsgNotifyNextMonthExpired();
+		});
+	}
+	private static void testCharLen(){
+		String t1 = "親愛的OHM會員您好，感謝您對OHM的支持，您的VIP資格將於4/30到期，詳情請洽OHM專櫃02-27716304";
+		String t2 = "親愛的OHM會員您好，感謝您的支持，您的VIP資格已自動延展一年，到期日為2017/4/30，如有任何問題請洽專櫃02-27716304";
+		String t3 = "OHM Beads祝您生日快樂，{month}月壽星可享單筆訂單8折優惠，誠品敦南專櫃與網路通路皆可使用，詳情請洽02-27716304";
+		System.out.println(t1.length());
+		System.out.println(t2.length());
+		System.out.println(t3.length());
+	}
+	private static void testCancelVIPIfExpired(){
+		BaseTest.executeApplicationContext(acac->{
+			MemberVIP vip = acac.getBean(MemberVIP.class);
+			vip.shortMsgNotifyNextMonthExpired();
+		});
+	}
+	private static void startupShortMsgNotifyNextMonthExpired(){
+		BaseTest.executeApplicationContext(acac->{
+			MemberVIP vip = acac.getBean(MemberVIP.class);
+			vip.shortMsgNotifyNextMonthExpired();
+		});
+	}
+	private static void testCancelVIPIfExpiredBasicLogic(){
+		BaseTest.executeApplicationContext(acac->{
+			SessionFactoryWrapper swf = acac.getBean(SessionFactoryWrapper.class);
+			swf.executeTransaction(s->{
+				String updatHql = "UPDATE " + Member.class.getName() + " m SET m.important = :important WHERE m.idNo = :idNo AND m.important = 1";
+				int count = s.createQuery(updatHql).setBoolean("important", true).setString("idNo", "xsdwwwewqqqwew").executeUpdate();
+				System.out.println("update success: " + count);
+			});
+		});
+	}
+	private static void testShortMsgNotifyBirthVIPAvailableBasicLogic(){
+		BaseTest.executeApplicationContext(acac->{
+			SessionFactoryWrapper swf = acac.getBean(SessionFactoryWrapper.class);
+			TimeService timeService = acac.getBean(TimeService.class);
+			swf.executeTransaction(s->{
+				String hql = "SELECT DISTINCT(p) "
+						+ "FROM com.angrycat.erp.model.Member p "
+						+ "join p.vipDiscountDetails detail "
+						+ "WHERE month(p.birthday) = (:pBirthMonth) "
+						+ "AND detail.effectiveEnd >= (:pEffectiveEnd) "
+						+ "AND detail.discountUseDate IS NULL";
+				
+				LocalDateTime ldt = LocalDateTime.of(2016, 5, 30, 11, 12);
+				Date d = timeService.toDate(ldt);
+				
+				Map<String, Object> params = new HashMap<>();
+				params.put("pBirthMonth", 12);
+				params.put("pEffectiveEnd", d);
+				List<Member> members = s.createQuery(hql).setProperties(params).list();
+				members.forEach(m->{
+					System.out.println(m.getName() +"|"+m.getIdNo());
+				});
+			});
+		});
+		
+	}
 	public static void main(String[]args){
+		testShortMsgNotifyBirthVIPAvailableBasicLogic();
 	}
 }
