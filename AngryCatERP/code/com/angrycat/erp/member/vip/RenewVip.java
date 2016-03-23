@@ -3,19 +3,28 @@ package com.angrycat.erp.member.vip;
 import static com.angrycat.erp.common.XSSFUtil.getCellColumnIdxFromTitle;
 import static com.angrycat.erp.common.XSSFUtil.parseCellStrVal;
 import static com.angrycat.erp.common.XSSFUtil.readXSSF;
+import static com.angrycat.erp.common.DatetimeUtil.*;
+import static com.angrycat.erp.common.EmailContact.BLUES;
+import static com.angrycat.erp.common.EmailContact.IFLY;
+import static com.angrycat.erp.common.EmailContact.JERRY;
+import static com.angrycat.erp.common.EmailContact.MIKO;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
+import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang3.builder.ReflectionToStringBuilder;
 import org.apache.commons.lang3.builder.ToStringStyle;
 import org.apache.poi.ss.usermodel.Row;
 import org.apache.poi.ss.usermodel.Sheet;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Scope;
+import org.springframework.mail.MailSender;
+import org.springframework.mail.SimpleMailMessage;
 import org.springframework.stereotype.Component;
 
 import com.angrycat.erp.businessrule.MemberVipDiscount;
@@ -34,6 +43,10 @@ public class RenewVip {
 	private MemberVipDiscount discount;
 	@Autowired
 	private MitakeSMSHttpPost mitakeSMSHttpPost;
+	@Autowired
+	private MailSender mailSender;
+	@Autowired
+	private SimpleMailMessage templateMessage;
 	
 	public void process(String src){
 		readXSSF(src, wb->{
@@ -58,8 +71,10 @@ public class RenewVip {
 				
 				idNos.add(idNo);
 			}
-
-			String queryHql = "SELECT m FROM " + Member.class.getName() + " m WHERE m.idNo IN (:idNo)";
+			
+			System.out.println(StringUtils.join(idNos, "','"));
+			
+			String queryHql = "SELECT DISTINCT(m) FROM " + Member.class.getName() + " m left join fetch m.vipDiscountDetails v WHERE m.idNo IN (:idNo)";
 			Map<String, Object> params = new HashMap<>();
 			params.put("idNo", idNos);
 			
@@ -68,34 +83,54 @@ public class RenewVip {
 				List<Member> members = s.createQuery(queryHql).setProperties(params).list();
 				System.out.println("共" +members.size()+ "筆");
 				members.forEach(m->{
-					discount.applyRule(m);
+					s.evict(m); // 因為續會的時候，會替換掉原來的collection，造成錯誤，所以先evict掉物件跟session的關係
+					discount.applyRule(m); // 續會logic
 					
 					System.out.println(m.getName() + "|" + m.getIdNo());
 					m.getVipDiscountDetails().forEach(v->{
 						System.out.println(ReflectionToStringBuilder.toString(v, ToStringStyle.MULTI_LINE_STYLE));
 					});
 //					System.out.println(ReflectionToStringBuilder.toString(m, ToStringStyle.MULTI_LINE_STYLE));
-//					s.update(m);
-//					s.flush();
-//					s.clear();
+					s.update(m);
+					s.flush();
+					s.clear();
 				});
 			});
 			
-			// 發簡訊
-			String template = "您的VIP已續會至{toVipEndDate}";
-//			StringBuffer sb = mitakeSMSHttpPost.sendShortMsgToMembers(queryHql, params, m->{
-//				String content = template.replace("{toVipEndDate}", DF_yyyyMMdd_DASHED.format(m.getToVipEndDate()));
-//				return content;
-//			});
+//			// 發簡訊
+			String template = "親愛的OHM會員您好，感謝您的支持，您的VIP資格已自動延展一年，到期日為{toVipEndDate}，如有任何問題請洽專櫃02-27716304";
+			StringBuffer sb = mitakeSMSHttpPost.sendShortMsgToMembers(queryHql, params, m->{
+				String content = template.replace("{toVipEndDate}", DF_yyyyMMdd_DASHED.format(m.getToVipEndDate()));
+				return content;
+			});
+			
+			// 發email通知相關人員
+			SimpleMailMessage simpleMailMessage = new SimpleMailMessage(templateMessage);
+			simpleMailMessage.setTo(MIKO);
+			String sendMsg = sb.toString();
+			simpleMailMessage.setText(sendMsg);
+			simpleMailMessage.setSubject("VIP續會簡訊發送後訊息");
+			String[] cc = new String[]{IFLY,BLUES,JERRY};
+			simpleMailMessage.setCc(cc);
+			mailSender.send(simpleMailMessage);
 		});
 	}
 	
 	private static void testProcess(){
 		BaseTest.executeApplicationContext(acac->{
 			RenewVip vip = acac.getBean(RenewVip.class);
+			vip.mitakeSMSHttpPost.setTestMode(true);
 			vip.process("E:\\angrycat_workitem\\member\\2016_03_18_vip_renew_list_from_miko\\VIP_adjusted.xlsx");
 		});
 	}
+	
+	private static void startupProcess(){
+		BaseTest.executeApplicationContext(acac->{
+			RenewVip vip = acac.getBean(RenewVip.class);
+			vip.process("E:\\angrycat_workitem\\member\\2016_03_18_vip_renew_list_from_miko\\VIP_adjusted.xlsx");
+		});
+	}
+	
 	public static void main(String[]args){
 		testProcess();
 	}
