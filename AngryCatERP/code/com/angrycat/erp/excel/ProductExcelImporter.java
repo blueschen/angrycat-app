@@ -19,6 +19,8 @@ import org.springframework.stereotype.Component;
 
 import com.angrycat.erp.model.Product;
 import com.angrycat.erp.model.ProductCategory;
+
+import static com.angrycat.erp.common.XSSFUtil.*;
 @Component
 @Scope("prototype")
 public class ProductExcelImporter extends ExcelImporter {
