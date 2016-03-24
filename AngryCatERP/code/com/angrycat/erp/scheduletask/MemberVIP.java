@@ -4,6 +4,7 @@ import static com.angrycat.erp.common.EmailContact.BLUES;
 import static com.angrycat.erp.common.EmailContact.IFLY;
 import static com.angrycat.erp.common.EmailContact.JERRY;
 import static com.angrycat.erp.common.EmailContact.MIKO;
+import static com.angrycat.erp.shortnews.MitakeSMSHttpPost.*;
 
 import java.text.SimpleDateFormat;
 import java.time.Instant;
@@ -79,11 +80,14 @@ public class MemberVIP {
 			
 			StringBuffer sb = mitakeSMSHttpPost.sendShortMsgToMembers(hql, params, content);
 			String sendMsg = sb.toString();
-			
+			String subject = month + "月VIP生日優惠簡訊發送後訊息";
+			if(sendMsg.contains(NO_DATA_FOUND_STOP_SEND_SHORT_MSG)){
+				subject = month + "月VIP生日優惠沒有找到符合資格的會員";
+			}
 			SimpleMailMessage simpleMailMessage = new SimpleMailMessage(templateMessage);
 			simpleMailMessage.setTo(MIKO);
 			simpleMailMessage.setText(sendMsg);
-			simpleMailMessage.setSubject(month + "月VIP生日優惠簡訊發送後訊息");
+			simpleMailMessage.setSubject(subject);
 			String[] cc = new String[]{IFLY,BLUES,JERRY};
 			simpleMailMessage.setCc(cc);
 			mailSender.send(simpleMailMessage);
@@ -114,11 +118,15 @@ public class MemberVIP {
 			return content;
 		}));
 		
+		String sendMsg = sb.toString();
+		String subject = nextMonth + "月VIP到期簡訊發送後訊息";
+		if(sendMsg.contains(NO_DATA_FOUND_STOP_SEND_SHORT_MSG)){
+			subject = nextMonth + "月VIP到期沒有找到符合資格的會員";
+		}
 		SimpleMailMessage simpleMailMessage = new SimpleMailMessage(templateMessage);
 		simpleMailMessage.setTo(MIKO);
-		String sendMsg = sb.toString();
 		simpleMailMessage.setText(sendMsg);
-		simpleMailMessage.setSubject(nextMonth + "月VIP到期簡訊發送後訊息");
+		simpleMailMessage.setSubject(subject);
 		String[] cc = new String[]{IFLY,BLUES,JERRY};
 		simpleMailMessage.setCc(cc);
 		mailSender.send(simpleMailMessage);
