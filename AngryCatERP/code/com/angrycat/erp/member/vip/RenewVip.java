@@ -8,6 +8,7 @@ import static com.angrycat.erp.common.EmailContact.BLUES;
 import static com.angrycat.erp.common.EmailContact.IFLY;
 import static com.angrycat.erp.common.EmailContact.JERRY;
 import static com.angrycat.erp.common.EmailContact.MIKO;
+import static com.angrycat.erp.shortnews.MitakeSMSHttpPost.NO_DATA_FOUND_STOP_SEND_SHORT_MSG;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -104,12 +105,17 @@ public class RenewVip {
 				return content;
 			});
 			
+			String sendMsg = sb.toString();
+			String subject = "VIP續會簡訊發送後訊息";
+			if(sendMsg.contains(NO_DATA_FOUND_STOP_SEND_SHORT_MSG)){
+				subject = "VIP續會沒有找到符合資格的會員";
+			}
+			
 			// 發email通知相關人員
 			SimpleMailMessage simpleMailMessage = new SimpleMailMessage(templateMessage);
 			simpleMailMessage.setTo(MIKO);
-			String sendMsg = sb.toString();
 			simpleMailMessage.setText(sendMsg);
-			simpleMailMessage.setSubject("VIP續會簡訊發送後訊息");
+			simpleMailMessage.setSubject(subject);
 			String[] cc = new String[]{IFLY,BLUES,JERRY};
 			simpleMailMessage.setCc(cc);
 			mailSender.send(simpleMailMessage);
