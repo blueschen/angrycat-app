@@ -79,6 +79,8 @@ public class MitakeSMSHttpPost {
 	private static final String TIMEOUT_READ_PROP_NAME = "sun.net.client.defaultReadTimeout";
 	private static final String TIMEOUT_CONNECT_PROP_NAME = "sun.net.client.defaultConnectTimeout";
 	
+	public static final String NO_DATA_FOUND_STOP_SEND_SHORT_MSG = "沒有符合條件的資料，終止發送簡訊過程";
+	
 	@Autowired
 	@Qualifier("queryBaseService")
 	private QueryBaseService<Member, Member> memberQueryService;
@@ -274,6 +276,10 @@ public class MitakeSMSHttpPost {
 //				System.out.println(ReflectionToStringBuilder.toString(m, ToStringStyle.MULTI_LINE_STYLE)); // enable this statement, must take consideration in lazy loading issue
 				System.out.println(genContent.apply(m));
 			});
+			return sb;
+		}
+		if(members == null || members.isEmpty()){
+			sb.append(NO_DATA_FOUND_STOP_SEND_SHORT_MSG);
 			return sb;
 		}
 		sendPostShortMsg(out->{
