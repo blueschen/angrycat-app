@@ -12,6 +12,7 @@ import java.net.URL;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -38,8 +39,10 @@ import com.angrycat.erp.initialize.config.RootConfig;
 import com.angrycat.erp.model.Member;
 import com.angrycat.erp.service.QueryBaseService;
 import com.angrycat.erp.service.TimeService;
+import com.angrycat.erp.test.BaseTest;
 
 import static com.angrycat.erp.common.EmailContact.*;
+import static com.angrycat.erp.shortnews.MitakeSMSHttpPost.NO_DATA_FOUND_STOP_SEND_SHORT_MSG;
 /**
  * 三竹簡訊服務，主要搭配會員查詢功能
  * @author JerryLin
@@ -140,9 +143,11 @@ public class MitakeSMSHttpPost {
 //		testSendBirthMonthMsg();
 //		testGetLocalDateTime();
 //		testQueryMembers();
-		testSendShortMsgToBirthMonth();
+//		testSendShortMsgToBirthMonth();
 //		testSendSelf();
 //		testSendShortMsg();
+//		shortMsgNotify20160401Activity();
+		shortMsgNotifyForTesting();
 	}
 	private static String betweenBraces(String name){
 		return "{" + name + "}";
@@ -334,6 +339,7 @@ public class MitakeSMSHttpPost {
 					String[] s = msg.split("=");
 					String remainingPoints = s[1];
 					int remaining = Integer.parseInt(remainingPoints);
+					System.out.println("remainingPoints: " + remainingPoints + ", remaining: " + remaining);
 					if(remaining <= 500){						
 						String sendMsg = "簡訊點數即將用完，請盡快儲值，剩餘點數: " + remainingPoints;
 						SimpleMailMessage simpleMailMessage = new SimpleMailMessage(templateMessage);
@@ -588,4 +594,56 @@ public class MitakeSMSHttpPost {
 	private static void testGetLocalDateTime(){
 		System.out.println(getLocalDateTime());
 	}
+	
+	private static void shortMsgNotify20160401Activity(){
+		BaseTest.executeApplicationContext(acac->{
+			MitakeSMSHttpPost service = acac.getBean(MitakeSMSHttpPost.class);
+			service.setTestMode(true);
+			
+			String queryHql = "SELECT DISTINCT(p) FROM " + Member.class.getName() + " p WHERE p.mobile IS NOT NULL";
+			String content = "4/2-4/5 OHM敦南誠品，單筆滿5000送500，可現抵可累贈，詳情請洽02-27716304";
+			StringBuffer sb = service.sendShortMsgToMembers(queryHql, Collections.emptyMap(), content);
+			
+			String sendMsg = sb.toString();
+			String subject = "4/2-4/5 OHM敦南誠品活動簡訊發送後訊息";
+			if(sendMsg.contains(NO_DATA_FOUND_STOP_SEND_SHORT_MSG)){
+				subject = "4/2-4/5 OHM敦南誠品活動沒有找到符合資格的會員";
+			}
+			SimpleMailMessage simpleMailMessage = new SimpleMailMessage(service.templateMessage);
+			simpleMailMessage.setTo(IFLY);
+			simpleMailMessage.setText(sendMsg);
+			simpleMailMessage.setSubject(subject);
+			String[] cc = new String[]{MIKO,BLUES,JERRY};
+			simpleMailMessage.setCc(cc);
+			service.mailSender.send(simpleMailMessage);
+		});
+	}
+	
+	private static void shortMsgNotifyForTesting(){
+		BaseTest.executeApplicationContext(acac->{
+			MitakeSMSHttpPost service = acac.getBean(MitakeSMSHttpPost.class);
+//			service.setTestMode(true);
+			
+			String queryHql = "SELECT DISTINCT(p) FROM " + Member.class.getName() + " p WHERE p.name = :pName";
+			String content = "發給自家人的測試簡訊";
+			Map<String, Object> params = new HashMap<>();
+			params.put("pName", "t1");
+			StringBuffer sb = service.sendShortMsgToMembers(queryHql, params, content);
+			
+			String sendMsg = sb.toString();
+			String subject = "發給自家人的測試簡訊發送後訊息";
+			if(sendMsg.contains(NO_DATA_FOUND_STOP_SEND_SHORT_MSG)){
+				subject = "發給自家人的測試簡訊沒有找到符合資格的會員";
+			}
+			System.out.println("sendMsg: " + sendMsg);
+//			SimpleMailMessage simpleMailMessage = new SimpleMailMessage(service.templateMessage);
+//			simpleMailMessage.setTo(IFLY);
+//			simpleMailMessage.setText(sendMsg);
+//			simpleMailMessage.setSubject(subject);
+//			String[] cc = new String[]{MIKO,BLUES,JERRY};
+//			simpleMailMessage.setCc(cc);
+//			service.mailSender.send(simpleMailMessage);
+		});
+	}	
+	
 }
