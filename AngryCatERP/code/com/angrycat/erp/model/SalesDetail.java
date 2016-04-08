@@ -33,6 +33,7 @@ public class SalesDetail {
 	private Date orderDate;
 	private String otherNote;
 	private String checkBillStatus;
+	private String mobile;
 	private String idNo;
 	private String discountType;
 	private String arrivalStatus;
@@ -146,6 +147,13 @@ public class SalesDetail {
 	}
 	public void setCheckBillStatus(String checkBillStatus) {
 		this.checkBillStatus = checkBillStatus;
+	}
+	@Column(name="mobile")
+	public String getMobile() {
+		return mobile;
+	}
+	public void setMobile(String mobile) {
+		this.mobile = mobile;
 	}
 	@Column(name="idNo")
 	public String getIdNo() {
