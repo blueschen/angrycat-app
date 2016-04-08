@@ -8,6 +8,7 @@ import java.util.List;
 import java.util.Map;
 
 import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.math.NumberUtils;
 import org.apache.poi.ss.usermodel.Cell;
 import org.apache.poi.ss.usermodel.Row;
 import org.hibernate.Session;
@@ -46,6 +47,7 @@ public class SalesDetailExcelImporter extends ExcelImporter {
 		Date orderDate			= null;
 		String otherNote		= null;
 		String checkBillStatus	= null;
+		String mobile			= null;
 		String idNo				= null;
 		String discountType 	= null;
 		String arrivalStatus	= null;
@@ -72,6 +74,7 @@ public class SalesDetailExcelImporter extends ExcelImporter {
 			orderDate		= parseSqlDateVal(row, 		getColumnIdxFromTitle("接單日"));
 			otherNote		= parseStrVal(row, 			getColumnIdxFromTitle("其他備註"));
 			checkBillStatus = parseStrVal(row, 			getColumnIdxFromTitle("對帳狀態"));
+			mobile			= parseStrVal(row, 			getColumnIdxFromTitle("手機號"));
 			idNo			= parseStrVal(row, 			getColumnIdxFromTitle("身份證字號"));
 			discountType	= parseBooleanVal(row, 		getColumnIdxFromTitle("會員九折")) ? "會員九折" : parseStrVal(row, getColumnIdxFromTitle("會員九折"));
 			arrivalStatus 	= parseBooleanVal(row, 		getColumnIdxFromTitle("已到貨")) ? "v" : null;
@@ -88,6 +91,7 @@ public class SalesDetailExcelImporter extends ExcelImporter {
 			price			= parseNumericOrEmpty(row, 	getColumnIdxFromTitle("定價"));
 			memberPrice		= parseNumericOrEmpty(row, 	getColumnIdxFromTitle("會員價(實收價格)"));
 			payDate			= parseSqlDateVal(row, 	getColumnIdxFromTitle("付款日期"));
+			mobile			= parseStrVal(row, 		getColumnIdxFromTitle("手機號"));
 			idNo			= parseStrVal(row, 		getColumnIdxFromTitle("身份證字號"));
 			discountType 	= parseStrVal(row, 		getColumnIdxFromTitle("折扣説明"));
 			note 			= parseStrVal(row, 		getColumnIdxFromTitle("備註"));
@@ -104,6 +108,8 @@ public class SalesDetailExcelImporter extends ExcelImporter {
 			idNo = null;
 		}
 		
+		mobile = adjustMobile(mobile);
+		
 		SalesDetail salesDetail = new SalesDetail();
 		salesDetail.setSalePoint(salePoint);
 		salesDetail.setSaleStatus(saleStatus);
@@ -117,6 +123,7 @@ public class SalesDetailExcelImporter extends ExcelImporter {
 		salesDetail.setOrderDate(orderDate);
 		salesDetail.setOtherNote(otherNote);
 		salesDetail.setCheckBillStatus(checkBillStatus);
+		salesDetail.setMobile(mobile);
 		salesDetail.setIdNo(idNo);
 		salesDetail.setDiscountType(discountType);
 		salesDetail.setArrivalStatus(arrivalStatus);
@@ -135,6 +142,14 @@ public class SalesDetailExcelImporter extends ExcelImporter {
 			}
 		}
 		
+		if(StringUtils.isBlank(salesDetail.getMemberId())
+		&& StringUtils.isNotBlank(mobile)){
+			Object obj = s.createQuery("SELECT m.id FROM " + Member.class.getName() + " m WHERE m.mobile = :mobile").setString("mobile", mobile).uniqueResult();
+			if(obj != null){
+				salesDetail.setMemberId((String)obj);
+			}
+		}
+		
 		String sheetName = getWorkbook().getSheetAt(sheetIdx).getSheetName();
 		sheetName = sheetName.trim();
 		
@@ -148,6 +163,20 @@ public class SalesDetailExcelImporter extends ExcelImporter {
 	@Override
 	protected List<Integer> sheetRange(){
 		return DEFAULT_SHEET_RANGE;
+	}
+	/**
+	 * 因為Excel的手機號前面的0常常被自動省略，所以盡量幫他加回來
+	 * @param mobile
+	 * @return
+	 */
+	private String adjustMobile(String mobile){
+		if(StringUtils.isBlank(mobile)){
+			return null;
+		}
+		if(NumberUtils.isNumber(mobile) && mobile.length() == 9 && mobile.indexOf("9") == 0){
+			mobile = "0" + mobile;
+		}
+		return mobile;
 	}
 	
 	private boolean parseBooleanVal(Row row, int colIdx){
