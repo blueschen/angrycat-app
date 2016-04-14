@@ -1,11 +1,14 @@
 package com.angrycat.erp.excel;
 
+import static com.angrycat.erp.common.XSSFUtil.parseCellNumericOrStr;
+
 import java.sql.Date;
 import java.text.DateFormat;
-import java.text.SimpleDateFormat;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.math.NumberUtils;
@@ -17,7 +20,6 @@ import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
 
 import com.angrycat.erp.common.DatetimeUtil;
-import com.angrycat.erp.excel.ExcelColumn.SalesDetail.EsliteDunnan;
 import com.angrycat.erp.excel.ExcelColumn.SalesDetail.Fb;
 import com.angrycat.erp.initialize.config.RootConfig;
 import com.angrycat.erp.model.Member;
@@ -28,6 +30,7 @@ import com.angrycat.erp.model.SalesDetail;
 public class SalesDetailExcelImporter extends ExcelImporter {
 	
 	private static final List<Integer> DEFAULT_SHEET_RANGE = Arrays.asList(0, 1);
+	private static final Pattern IDNO = Pattern.compile("([a-z]|[A-Z]){1}[0-9]{9}");
 	
 	private String fileName;
 	
@@ -77,26 +80,26 @@ public class SalesDetailExcelImporter extends ExcelImporter {
 			mobile			= parseStrVal(row, 			getColumnIdxFromTitle("手機號"));
 			idNo			= parseStrVal(row, 			getColumnIdxFromTitle("身份證字號"));
 			discountType	= parseBooleanVal(row, 		getColumnIdxFromTitle("會員九折")) ? "會員九折" : parseStrVal(row, getColumnIdxFromTitle("會員九折"));
-			arrivalStatus 	= parseBooleanVal(row, 		getColumnIdxFromTitle("已到貨")) ? "v" : null;
+//			arrivalStatus 	= parseBooleanVal(row, 		getColumnIdxFromTitle("已到貨")) ? "v" : null;
 			shippingDate  	= parseSqlDateVal(row, 		getColumnIdxFromTitle("出貨日"));
 			sendMethod 		= parseStrOrDate(row, 		getColumnIdxFromTitle("郵寄方式"));
 			note 			= parseStrVal(row, 			getColumnIdxFromTitle("備註"));
 		}else{
 			salePoint		= SalesDetail.SALE_POINT_ESLITE_DUNNAN;
-			saleStatus		= parseStrVal(row, 		getColumnIdxFromTitle("狀態"));
-			fbName			= parseStrVal(row, 		getColumnIdxFromTitle("FB名稱/客人姓名"));
-			orderDate		= parseSqlDateVal(row, 	getColumnIdxFromTitle("銷售日期"));
-			modelId			= parseStrVal(row, 		getColumnIdxFromTitle("型號"));
-			productName		= parseStrVal(row, 		getColumnIdxFromTitle("明細"));
+			saleStatus		= parseStrVal(row, 			getColumnIdxFromTitle("狀態"));
+			fbName			= parseStrVal(row, 			getColumnIdxFromTitle("FB名稱/客人姓名"));
+			orderDate		= parseSqlDateVal(row, 		getColumnIdxFromTitle("銷售日期"));
+			modelId			= parseStrVal(row, 			getColumnIdxFromTitle("型號"));
+			productName		= parseStrVal(row, 			getColumnIdxFromTitle("明細"));
 			price			= parseNumericOrEmpty(row, 	getColumnIdxFromTitle("定價"));
 			memberPrice		= parseNumericOrEmpty(row, 	getColumnIdxFromTitle("會員價(實收價格)"));
-			payDate			= parseSqlDateVal(row, 	getColumnIdxFromTitle("付款日期"));
-			mobile			= parseStrVal(row, 		getColumnIdxFromTitle("手機號"));
+			payDate			= parseSqlDateVal(row, 		getColumnIdxFromTitle("付款日期"));
+			mobile			= parseCellNumericOrStr(row,getColumnIdxFromTitle("手機號"));
 			idNo			= parseStrVal(row, 		getColumnIdxFromTitle("身份證字號"));
 			discountType 	= parseStrVal(row, 		getColumnIdxFromTitle("折扣説明"));
 			note 			= parseStrVal(row, 		getColumnIdxFromTitle("備註"));
 			shippingDate  	= parseSqlDateVal(row, 	getColumnIdxFromTitle("出貨日"));
-			//contactInfo 	= parseStrVal(row, 		getColumnIdxFromTitle(""));
+			//contactInfo 	= parseStrVal(row, 		getColumnIdxFromTitle("郵寄地址電話"));
 			registrant		= parseStrVal(row, 		getColumnIdxFromTitle("登單者"));
 		}
 		
@@ -108,7 +111,13 @@ public class SalesDetailExcelImporter extends ExcelImporter {
 			idNo = null;
 		}
 		
+		if(StringUtils.isNotBlank(idNo) && idNo.contains("@")){
+			Long count = (Long)s.createQuery("SELECT COUNT(m.id) FROM " + Member.class.getName() + " m WHERE upper(m.email) = :idNo").setString("idNo", idNo.toUpperCase()).uniqueResult();
+			System.out.println("idNo seems email: " + idNo + " count: " + count);
+		}
+		
 		mobile = adjustMobile(mobile);
+		idNo = adjustIdNo(idNo);
 		
 		SalesDetail salesDetail = new SalesDetail();
 		salesDetail.setSalePoint(salePoint);
@@ -169,7 +178,7 @@ public class SalesDetailExcelImporter extends ExcelImporter {
 	 * @param mobile
 	 * @return
 	 */
-	private String adjustMobile(String mobile){
+	private static String adjustMobile(String mobile){
 		if(StringUtils.isBlank(mobile)){
 			return null;
 		}
@@ -177,6 +186,17 @@ public class SalesDetailExcelImporter extends ExcelImporter {
 			mobile = "0" + mobile;
 		}
 		return mobile;
+	}
+	
+	private static String adjustIdNo(String idNo){
+		if(StringUtils.isBlank(idNo)){
+			return null;
+		}
+		Matcher m = IDNO.matcher(idNo);
+		if(m.matches()){
+			return idNo.toUpperCase();
+		}
+		return idNo;
 	}
 	
 	private boolean parseBooleanVal(Row row, int colIdx){
@@ -233,14 +253,13 @@ public class SalesDetailExcelImporter extends ExcelImporter {
 	}
 	
 	private static void testReadAndPersist(){
-		String fileName = "201602_OHM銷售明細-";
-		//String src1 = "E:\\angrycat_workitem\\銷售明細\\2016_01_22_from_ifly\\OHM 201601銷售明細.xlsx";
-		String src2 = "E:\\angrycat_workitem\\銷售明細\\2016_03_08_from_miko\\"+fileName+".xlsx";
+		String fileName = "201603_OHM銷售明細-";
+		String src = "E:\\angrycat_workitem\\銷售明細\\2016_04_08_from_miko\\"+fileName+".xlsx";
 		Map<String, String> msg = null;
 		try(AnnotationConfigApplicationContext acac = new AnnotationConfigApplicationContext(RootConfig.class);){
 			SalesDetailExcelImporter i = acac.getBean(SalesDetailExcelImporter.class);
 			i.setFileName(fileName); // for rowId use
-			msg = i.readAndPersist(src2);
+			msg = i.readAndPersist(src);
 		}finally{
 			if(msg != null && !msg.isEmpty()){
 				msg.forEach((k,v)->{
@@ -250,7 +269,22 @@ public class SalesDetailExcelImporter extends ExcelImporter {
 		}		
 	}
 	
+	private static void testAdjustMobile(){
+		String t = "981189186";
+		String m = adjustMobile(t);
+		System.out.println(m);
+	}
+	
+	private static void testAdjustIdNo(){
+		String i1 = "p122879009";
+		String i2 = "f009334123";
+		String i3 = "  ";
+		System.out.println(adjustIdNo(i1) + "|" + adjustIdNo(i2) + "|" + adjustIdNo(i3));
+	}
+	
 	public static void main(String[]args){
 		testReadAndPersist();
+//		testAdjustMobile();
+//		testAdjustIdNo();
 	}
 }
