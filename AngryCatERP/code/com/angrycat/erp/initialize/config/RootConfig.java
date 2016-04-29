@@ -82,9 +82,9 @@ public class RootConfig {
 			throw new RuntimeException(e);
 		}
 		String serverRoot = System.getProperty(CATALINA_HOME);
-		String remoteUrl = env.getProperty("jdbc.remote.url");
-		String jdbcUrl = env.getProperty("jdbc.url");
-		String nasJdbcUrl = env.getProperty("jdbc.intranet.url");
+		String remoteUrl = env.getProperty("jdbc.remote.url"); // 透過內網，從本地端連到資料庫位置
+		String jdbcUrl = env.getProperty("jdbc.url"); // 在本地端，連到本地資料庫位置
+		String nasJdbcUrl = env.getProperty("jdbc.intranet.url"); // 在主機上，連到主機資料庫位置
 //		if(LOCAL_TOMCAT_PATH.equals(serverRoot)){
 //			jdbcUrl = env.getProperty("jdbc.url");
 //		}else if(NAS_TOMCAT_PRODUCTION_PATH.equals(serverRoot)){
