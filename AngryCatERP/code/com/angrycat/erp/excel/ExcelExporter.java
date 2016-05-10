@@ -16,7 +16,7 @@ import org.apache.poi.xssf.streaming.SXSSFWorkbook;
 import org.hibernate.Session;
 
 import com.angrycat.erp.format.ObjectFormat;
-import com.angrycat.erp.service.QueryBaseService;
+import com.angrycat.erp.query.QueryScrollable;
 
 public abstract class ExcelExporter<T> {
 	
@@ -26,7 +26,7 @@ public abstract class ExcelExporter<T> {
 	 * @param queryQueryService
 	 * @return
 	 */
-	public File normal(QueryBaseService<T, ?> queryQueryService){
+	public File normal(QueryScrollable queryQueryService){
 		File tempFile = queryQueryService.executeScrollableQuery((rs, sfw)->{
 			List<ObjectFormat> formats = getFormats();
 			String tempPath = FileUtils.getTempDirectoryPath() + RandomStringUtils.randomAlphanumeric(8) + ".xlsx";
