@@ -145,17 +145,18 @@ public class SalesDetailExcelImporter extends ExcelImporter {
 		
 		if(StringUtils.isNotBlank(idNo)){
 			String idNoToUpper = idNo.toUpperCase();
-			Object obj = s.createQuery("SELECT m.id FROM " + Member.class.getName() + " m WHERE upper(m.idNo) = :idNo").setString("idNo", idNoToUpper).uniqueResult();
+			Object obj = s.createQuery("SELECT m FROM " + Member.class.getName() + " m WHERE upper(m.idNo) = :idNo").setString("idNo", idNoToUpper).uniqueResult();
 			if(obj != null){
-				salesDetail.setMemberId((String)obj);
+				salesDetail.setMember((Member)obj);
 			}
 		}
 		
-		if(StringUtils.isBlank(salesDetail.getMemberId())
+		if(salesDetail.getMember() != null
+		&& StringUtils.isBlank(salesDetail.getMember().getId())
 		&& StringUtils.isNotBlank(mobile)){
-			Object obj = s.createQuery("SELECT m.id FROM " + Member.class.getName() + " m WHERE m.mobile = :mobile").setString("mobile", mobile).uniqueResult();
+			Object obj = s.createQuery("SELECT m FROM " + Member.class.getName() + " m WHERE m.mobile = :mobile").setString("mobile", mobile).uniqueResult();
 			if(obj != null){
-				salesDetail.setMemberId((String)obj);
+				salesDetail.setMember((Member)obj);
 			}
 		}
 		
