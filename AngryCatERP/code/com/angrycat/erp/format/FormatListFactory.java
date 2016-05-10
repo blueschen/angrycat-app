@@ -40,6 +40,7 @@ public class FormatListFactory {
 		PropertyFormat payDate = new PropertyFormat("付款日", "payDate");
 		payDate.setDateFormat(dateFormat);
 		
+		f.add(new PropertyFormat("會員名稱", "member.name"));
 		f.add(new PropertyFormat("銷售點", "salePoint"));
 		f.add(new PropertyFormat("銷售狀態", "saleStatus"));
 		f.add(new PropertyFormat("FB名稱", "fbName"));
@@ -49,6 +50,7 @@ public class FormatListFactory {
 		f.add(new PropertyFormat("定價", "price"));
 		f.add(new PropertyFormat("會員價", "memberPrice"));
 		f.add(new PropertyFormat("優先順序", "priority"));
+		f.add(new PropertyFormat("手機", "mobile"));
 		f.add(orderDate);
 		f.add(new PropertyFormat("其他備註", "otherNote"));
 		f.add(new PropertyFormat("對帳狀態", "checkBillStatus"));
