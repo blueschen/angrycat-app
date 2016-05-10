@@ -2,8 +2,6 @@ package com.angrycat.erp.service;
 
 import java.sql.Date;
 import java.sql.Timestamp;
-import java.text.DateFormat;
-import java.text.SimpleDateFormat;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
@@ -30,13 +28,14 @@ import com.angrycat.erp.condition.TimestampStartExpression;
 import com.angrycat.erp.log.DataChangeLogger;
 import com.angrycat.erp.query.ConditionalQuery;
 import com.angrycat.erp.query.QueryGenerator;
+import com.angrycat.erp.query.QueryScrollable;
 import com.angrycat.erp.security.User;
 import com.angrycat.erp.security.extend.UserInfo;
 import com.angrycat.erp.web.component.ConditionConfig;
 
 @Service
 @Scope("prototype")
-public class QueryBaseService<T, R> extends ConditionalQuery<T> implements ConditionalQueryService<T, R> {
+public class QueryBaseService<T, R> extends ConditionalQuery<T> implements ConditionalQueryService<T, R>, QueryScrollable {
 	private static final long serialVersionUID = -8528962281827660052L;
 		
 	public static final String DEFAULT_ROOT_ALIAS = "p";
