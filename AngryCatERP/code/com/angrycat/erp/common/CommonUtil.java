@@ -88,13 +88,11 @@ public final class CommonUtil {
 		Map<String, String> displayCountry = new TreeMap<>();
 		Map<String, String> countryLanguage = initCountryLanguage();
 		String[]countries = Locale.getISOCountries();
-		System.out.println("lack of language: ");
 		for(String countrycode : countries){
 			Locale locale = null;
 			String language = countryLanguage.get(countrycode);
 			if(language == null){// 代表這個國家沒有對應的語言
 				locale = new Locale("", countrycode);
-				System.out.println(locale.getDisplayCountry());
 			}else{
 				locale = new Locale(language, countrycode);
 				displayCountry.put(locale.getCountry(), locale.getDisplayCountry(locale));
