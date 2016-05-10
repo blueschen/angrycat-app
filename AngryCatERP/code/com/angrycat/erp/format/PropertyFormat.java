@@ -8,6 +8,8 @@ import java.text.SimpleDateFormat;
 
 import org.apache.commons.beanutils.PropertyUtils;
 
+import com.angrycat.erp.service.ModelPropertyService;
+
 public class PropertyFormat implements ObjectFormat {
 	private String name;
 	private String property;
@@ -37,7 +39,7 @@ public class PropertyFormat implements ObjectFormat {
 	
 	public Object getPropertyObject(Object obj){
 		try{
-			return PropertyUtils.getProperty(obj, property);
+			return ModelPropertyService.getNestedProperty(obj, property);
 		}catch(Throwable e){
 			throw new RuntimeException(e);
 		}
