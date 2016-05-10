@@ -147,8 +147,16 @@ public class MitakeSMSHttpPost {
 //		testSendSelf();
 //		testSendShortMsg();
 //		shortMsgNotify20160401Activity();
-		shortMsgNotifyForTesting();
+//		shortMsgNotifyForTesting();
+//		strLen();
+//		shortMsgNotify20160429Activity(); // 4/29活動簡訊
 	}
+	
+	private static void strLen(){
+		String content = "4/2-4/5 OHM敦南誠品，單筆滿5000送500，可現抵可累贈，詳情請洽02-27716304";
+		System.out.println(content.length());
+	}
+	
 	private static String betweenBraces(String name){
 		return "{" + name + "}";
 	}
@@ -608,6 +616,30 @@ public class MitakeSMSHttpPost {
 			String subject = "4/2-4/5 OHM敦南誠品活動簡訊發送後訊息";
 			if(sendMsg.contains(NO_DATA_FOUND_STOP_SEND_SHORT_MSG)){
 				subject = "4/2-4/5 OHM敦南誠品活動沒有找到符合資格的會員";
+			}
+			SimpleMailMessage simpleMailMessage = new SimpleMailMessage(service.templateMessage);
+			simpleMailMessage.setTo(IFLY);
+			simpleMailMessage.setText(sendMsg);
+			simpleMailMessage.setSubject(subject);
+			String[] cc = new String[]{MIKO,BLUES,JERRY};
+			simpleMailMessage.setCc(cc);
+			service.mailSender.send(simpleMailMessage);
+		});
+	}
+	
+	private static void shortMsgNotify20160429Activity(){
+		BaseTest.executeApplicationContext(acac->{
+			MitakeSMSHttpPost service = acac.getBean(MitakeSMSHttpPost.class);
+			service.setTestMode(true);
+			
+			String queryHql = "SELECT DISTINCT(p) FROM " + Member.class.getName() + " p WHERE p.mobile IS NOT NULL";
+			String content = "4/29-5/9 OHM母親節特惠活動，單筆滿6600即贈純銀手鏈/手環一只，網路社團與誠品敦南專櫃同步詳情請洽02-27716304";
+			StringBuffer sb = service.sendShortMsgToMembers(queryHql, Collections.emptyMap(), content);
+			
+			String sendMsg = sb.toString();
+			String subject = "4/29-5/9 OHM活動簡訊發送後訊息";
+			if(sendMsg.contains(NO_DATA_FOUND_STOP_SEND_SHORT_MSG)){
+				subject = "4/29-5/9 OHM活動沒有找到符合資格的會員";
 			}
 			SimpleMailMessage simpleMailMessage = new SimpleMailMessage(service.templateMessage);
 			simpleMailMessage.setTo(IFLY);
