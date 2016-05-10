@@ -232,7 +232,7 @@ public abstract class BaseQueryController<T, R> implements Serializable {
 		}
 	}
 	
-	private String getMimeType(String fileName){
+	private static String getMimeType(String fileName){
 		String extension = fileName.substring(fileName.lastIndexOf(".")+1, fileName.length());
 		String mimeType = "application/octet-stream";
 		if("xls".equals(extension)){
@@ -242,7 +242,7 @@ public abstract class BaseQueryController<T, R> implements Serializable {
 		}
 		return mimeType;
 	}
-	void writeExcelToResponse(HttpServletResponse response, FileInputStream fis, String fileName) throws Throwable{
+	public static void writeExcelToResponse(HttpServletResponse response, FileInputStream fis, String fileName) throws Throwable{
 		response.setContentType(getMimeType(fileName));
 		response.setHeader("Pragma", "");
 		response.setHeader("cache-control", "");
