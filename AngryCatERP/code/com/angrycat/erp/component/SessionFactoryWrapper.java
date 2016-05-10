@@ -106,4 +106,18 @@ public class SessionFactoryWrapper {
 	public void executeSaveOrUpdate(Consumer<Session> c){
 		executeTransaction(c);
 	}
+	
+	public <T>List<T> executeFindResults(Function<Session, List<T>> execute){
+		Session s = null;
+		List<T> results = Collections.emptyList();
+		try{
+			s = openSession();
+			results = execute.apply(s);
+		}catch(Throwable e){
+			throw new RuntimeException(e);
+		}finally{
+			s.close();
+		}
+		return results;
+	}
 }
