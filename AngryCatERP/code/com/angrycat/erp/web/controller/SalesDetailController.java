@@ -11,8 +11,11 @@ import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestMapping;
 
+import com.angrycat.erp.common.CommonUtil;
 import com.angrycat.erp.excel.SalesDetailExcelExporter;
 import com.angrycat.erp.excel.SalesDetailExcelImporter;
+import com.angrycat.erp.jackson.mixin.MemberIgnoreDetail;
+import com.angrycat.erp.model.Member;
 import com.angrycat.erp.model.SalesDetail;
 @Controller
 @RequestMapping(value="/salesdetail")
@@ -63,6 +66,12 @@ public class SalesDetailController extends BaseUpdateController<SalesDetail, Sal
 	@Override
 	SalesDetailExcelImporter getExcelImporter() {
 		return salesDetailExcelImporter;
+	}
+	
+	@Override
+	String conditionConfigToJsonStr(Object obj){
+		String result = CommonUtil.parseToJson(obj, Member.class, MemberIgnoreDetail.class);
+		return result;
 	}
 
 	@Override
