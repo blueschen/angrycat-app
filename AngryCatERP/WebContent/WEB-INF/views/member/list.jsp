@@ -59,11 +59,9 @@
 					<li ng-class="{'active': mainCtrl.moduleName == 'salesdetail'}">
 						<a href="${pageContext.request.contextPath}/salesdetail/list">銷售明細查詢</a>
 					</li>
-					<!-- 
-					<li>
-						<a href="${pageContext.request.contextPath}/salesdetail/add">銷售明細新增</a>
-					</li>
-					 -->										
+					<li ng-class="{'active': mainCtrl.moduleName == 'salesdetail2'}">
+						<a href="${pageContext.request.contextPath}/salesdetail2/list">銷售明細新介面</a>
+					</li>															
 				</ul>
 				<ul class="nav navbar-nav navbar-right">
 					<li>
