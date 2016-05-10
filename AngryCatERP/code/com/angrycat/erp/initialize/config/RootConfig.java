@@ -15,6 +15,7 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.PropertySource;
+import org.springframework.context.annotation.Scope;
 import org.springframework.core.env.Environment;
 import org.springframework.mail.MailSender;
 import org.springframework.mail.SimpleMailMessage;
@@ -26,6 +27,7 @@ import org.springframework.transaction.PlatformTransactionManager;
 import org.springframework.transaction.annotation.EnableTransactionManagement;
 
 import com.angrycat.erp.common.CommonUtil;
+import com.angrycat.erp.sql.SqlRoot;
 import com.mchange.v2.c3p0.ComboPooledDataSource;
 
 @Configuration
@@ -215,5 +217,11 @@ public class RootConfig {
 		SimpleMailMessage templateMessage = new SimpleMailMessage();
 		templateMessage.setFrom("jerrylin@ohmbeads.com.tw");
 		return templateMessage;
+	}
+	
+	@Bean
+	@Scope("prototype")
+	public SqlRoot getSqlRoot(){
+		return SqlRoot.getInstance();
 	}
 }
