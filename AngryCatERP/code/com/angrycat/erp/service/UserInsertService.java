@@ -43,14 +43,14 @@ public class UserInsertService {
 		sfw.executeTransaction(s->{
 			UserInfo userInfo = new UserInfo();
 			userInfo.setCode("User");
-			userInfo.setName("陳怡蓁");
-			userInfo.setNameEng("User");
+			userInfo.setName("Dash");
+			userInfo.setNameEng("Dash");
 			s.save(userInfo);
 			s.flush();
 			
 			User user = new User();
-			user.setUserId("yijen0529");
-			user.setPassword("jay68118");
+			user.setUserId("dash");
+			user.setPassword("0411");
 			user.setDefaultGroup(newOneIfNotFound(s, "UserGroup"));
 			user.setInfo(userInfo);
 			s.save(user);
