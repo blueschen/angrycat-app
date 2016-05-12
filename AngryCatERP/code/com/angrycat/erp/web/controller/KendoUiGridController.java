@@ -22,10 +22,8 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.ResponseBody;
 
-import com.angrycat.erp.common.CommonUtil;
 import com.angrycat.erp.component.SessionFactoryWrapper;
 import com.angrycat.erp.excel.ExcelExporter;
-import com.angrycat.erp.service.KendoUiAutocompleteService;
 import com.angrycat.erp.service.KendoUiService;
 import com.angrycat.erp.web.WebUtils;
 import com.angrycat.erp.web.component.ConditionConfig;
@@ -33,9 +31,7 @@ import com.angrycat.erp.web.component.ConditionConfig;
 public abstract class KendoUiGridController<T, R> implements Serializable{
 	private static final long serialVersionUID = 6941560925887626505L;
 	@Autowired
-	KendoUiService<T, R> kendoUiGridService;
-	@Autowired
-	KendoUiAutocompleteService kendoUiAutocompleteService;
+	KendoUiService<T, R> kendoUiGridService;	
 	@Autowired
 	private SessionFactoryWrapper sfw;
 	private Class<T> rootType;
@@ -67,7 +63,7 @@ public abstract class KendoUiGridController<T, R> implements Serializable{
 	}
 	
 	String conditionConfigToJsonStr(Object cc){
-		String json = CommonUtil.parseToJson(cc);
+		String json = kendoUiGridService.conditionConfigToJsonStr(cc);
 		return json;
 	}
 
