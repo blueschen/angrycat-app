@@ -3,6 +3,8 @@ package com.angrycat.erp.service;
 import static com.angrycat.erp.common.DatetimeUtil.DF_yyyyMMdd_DASHED;
 
 import java.io.Serializable;
+import java.lang.reflect.ParameterizedType;
+import java.lang.reflect.Type;
 import java.sql.Date;
 import java.sql.Timestamp;
 import java.util.ArrayList;
@@ -10,8 +12,8 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.UnknownFormatConversionException;
-import java.util.logging.Logger;
 
+import javax.annotation.PostConstruct;
 import javax.servlet.http.HttpSession;
 
 import org.apache.commons.beanutils.PropertyUtils;
@@ -27,6 +29,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import com.angrycat.erp.common.CommonUtil;
 import com.angrycat.erp.component.SessionFactoryWrapper;
+import com.angrycat.erp.log.DataChangeLogger;
 import com.angrycat.erp.model.Member;
 import com.angrycat.erp.query.QueryScrollable;
 import com.angrycat.erp.sql.ISqlNode;
@@ -53,14 +56,9 @@ public class KendoUiService<T, R> implements Serializable{
 	private static final String SIMPLE_CONDITION_PREFIX = "cond_";
 	private static final String CURRENT_PAGE			= "currentPage";
 	private static final String COUNT_PER_PAGE			= "countPerPage";
-	private static final String ORDER_TYPE				= "orderType";
 	private static final String KENDO_UI_GRID_FILTER	= "filter";
-	private static final String KENDO_UI_FILTER_LOGIC_AND	= "and";
-	private static final String KENDO_UI_FILTER_LOGIC_OR	= "or";
 	public static final String KENDO_UI_DATA	= "kendoData";
 	private static final String GROUP_AS_KENDO_UI_FILTER = "GROUP_AS_KENDO_UI_FILTER";
-	
-	private Logger logger = Logger.getLogger(KendoUiService.class.getName());
 	
 	@Autowired
 	private ExecutableQuery<T> q;
@@ -68,12 +66,28 @@ public class KendoUiService<T, R> implements Serializable{
 	private SessionFactoryWrapper sfw;
 	@Autowired
 	private ModelPropertyService modelPropertyService;
+	@Autowired
+	protected DataChangeLogger dataChangeLogger;
 	
 	private int filterCount;
 	private String alias;
 	private SqlTarget target;
 	private Map<String, String> filterFieldConverter = Collections.emptyMap(); // 將前端回傳的field，轉成適當或預期的名字，讓hql可以正常執行；譬如member->member.name
 	private Map<String, Class<?>> customDeclaredFieldTypes = Collections.emptyMap(); // 自定義field的型別，一般來說應該不需要
+	
+	@PostConstruct
+	void init(){
+		Type superClz = getClass().getGenericSuperclass();
+		if(superClz != null && superClz instanceof ParameterizedType){
+			@SuppressWarnings("unchecked")
+			Class<T> genericType = (Class<T>)((ParameterizedType)superClz).getActualTypeArguments()[0];
+			q.getSqlRoot()
+				.select()
+					.target("p").getRoot()
+				.from()
+					.target(genericType, "p");
+		}
+	}
 	
 	public ConditionConfig<T> copyToConditionConfig(){
 		ConditionConfig<T> cc = new ConditionConfig<T>();
@@ -97,7 +111,6 @@ public class KendoUiService<T, R> implements Serializable{
 	public void copyFromConditionConfig(ConditionConfig<T> conds){
 		SqlRoot root = getSqlRootImpl();
 		Map<String, Object> all = conds.getConds();
-		SqlTarget target = getFirstSqlTarget();
 		// predefined conditions populate value
 		all.keySet().stream().filter(k->k.startsWith(SIMPLE_CONDITION_PREFIX)).forEach(k->{
 			String id = k.replace(SIMPLE_CONDITION_PREFIX, "");
@@ -108,13 +121,16 @@ public class KendoUiService<T, R> implements Serializable{
 			}
 		});
 		
+		@SuppressWarnings("unchecked")
 		Map<String, Object> kendoData = (Map<String, Object>)all.get(KENDO_UI_DATA);		
 		if(kendoData != null){
 			if(all.get("moduleName")!=null){
 				String moduleName = (String)all.get("moduleName");
-				HttpSession session = WebUtils.currentSession();
-				session.setAttribute(moduleName + "KendoData", CommonUtil.parseToJson(kendoData));
-				session.setAttribute(moduleName + "KendoDataPojo", kendoData);
+				HttpSession session = getCurrentHttpSession();
+				if(session != null){
+					session.setAttribute(moduleName + "KendoData", CommonUtil.parseToJson(kendoData));
+					session.setAttribute(moduleName + "KendoDataPojo", kendoData);
+				}
 			}
 			
 			// kendo ui filter conditions
@@ -136,6 +152,7 @@ public class KendoUiService<T, R> implements Serializable{
 			}
 		
 			// order by configuration
+			@SuppressWarnings("unchecked")
 			List<Map<String, String>> orderTypes = (List<Map<String, String>>)kendoData.get("sort");
 			OrderBy orderBy = root.find(OrderBy.class);
 			if(null == orderBy){
@@ -168,6 +185,7 @@ public class KendoUiService<T, R> implements Serializable{
 		
 		for(int i = 0; i < targets.size(); i++){
 			T target = targets.get(i);
+			T oldSnapshot = null;
 			String pk = null;
 			try{
 				Object propVal = PropertyUtils.getProperty(target, q.getIdFieldName());
@@ -180,7 +198,15 @@ public class KendoUiService<T, R> implements Serializable{
 			if(StringUtils.isBlank(pk)){
 				s.save(target);
 			}else{
+				oldSnapshot  = (T)s.createQuery("SELECT DISTINCT p FROM " + target.getClass().getName() + " p WHERE p." + q.getIdFieldName() + " = :pk").setString("pk", pk).uniqueResult();
+				s.evict(oldSnapshot);
 				s.update(target);
+			}
+			dataChangeLogger.setUser(WebUtils.getSessionUser());
+			if(oldSnapshot == null){
+				dataChangeLogger.logAdd(target, s);
+			}else{
+				dataChangeLogger.logUpdate(oldSnapshot, target, s);
 			}
 			if(++count % batchSize == 0){
 				s.flush();
@@ -203,6 +229,8 @@ public class KendoUiService<T, R> implements Serializable{
 			Object target = results.get()[0];
 			s.evict(target);
 			saved.add(target);
+			dataChangeLogger.setUser(WebUtils.getSessionUser());
+			dataChangeLogger.logDelete(target, s);
 			s.delete(target);
 		}
 		s.flush();
@@ -232,8 +260,10 @@ public class KendoUiService<T, R> implements Serializable{
 			conds = where.andConds();
 		}
 		
+		@SuppressWarnings("unchecked")
 		Map<String, Object> filter = (Map<String, Object>)filterObj;
 		String logic = (String)filter.get("logic");
+		@SuppressWarnings("unchecked")
 		List<Map<String, Object>> filters = (List<Map<String, Object>>)filter.get("filters");
 		
 		filterCount = 0;
@@ -246,6 +276,7 @@ public class KendoUiService<T, R> implements Serializable{
 			Map<String, Object> filter = filters.get(i);
 			String logic = (String)filter.get("logic");
 			if(StringUtils.isNotBlank(logic)){
+				@SuppressWarnings("unchecked")
 				List<Map<String, Object>> f= (List<Map<String, Object>>)filter.get("filters");
 				addFilterCondtions(f, parent.andCollectConds(), logic);
 			}else{
@@ -383,6 +414,18 @@ public class KendoUiService<T, R> implements Serializable{
 		return null;
 	}
 	
+	
+	public String conditionConfigToJsonStr(Object cc){
+		String json = CommonUtil.parseToJson(cc);
+		return json;
+	}
+	
+	public String findTargetPageable(ConditionConfig<T> conditionConfig){
+		ConditionConfig<T> cc = executeQueryPageable(conditionConfig);
+		String result = conditionConfigToJsonStr(cc);
+		return result;
+	}
+	
 	public ConditionConfig<T> executeQueryPageable(ConditionConfig<T> conditionConfig){
 		if(conditionConfig != null){
 			copyFromConditionConfig(conditionConfig);
@@ -397,6 +440,25 @@ public class KendoUiService<T, R> implements Serializable{
 		return cc;
 	}
 	
+	public String findTargetList(ConditionConfig<T> conditionConfig){
+		ConditionConfig<T> cc = executeQueryList(conditionConfig);
+		String result = conditionConfigToJsonStr(cc);
+		return result;
+	}
+	
+	public ConditionConfig<T> executeQueryList(ConditionConfig<T> conditionConfig){
+		if(conditionConfig != null){
+			copyFromConditionConfig(conditionConfig);
+		}
+		return genCondtitionsAfterExecuteQueryList();
+	}
+	
+	public ConditionConfig<T> genCondtitionsAfterExecuteQueryList(){
+		List<T> results = q.executeQueryList();
+		ConditionConfig<T> cc = copyToConditionConfig();
+		cc.setResults(results);
+		return cc;
+	}	
 	public QueryScrollable executeQueryScrollable(ConditionConfig<T> conditionConfig){
 		if(conditionConfig != null){
 			copyFromConditionConfig(conditionConfig);
@@ -518,6 +580,10 @@ public class KendoUiService<T, R> implements Serializable{
 			result += (firstToUpper + firstRemoved);
 		}		
 		return result;
+	}
+	
+	public HttpSession getCurrentHttpSession(){
+		return WebUtils.currentSession();
 	}
 	
 	private static void testBaseOperation(){
