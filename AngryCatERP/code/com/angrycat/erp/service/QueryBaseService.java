@@ -31,6 +31,7 @@ import com.angrycat.erp.query.QueryGenerator;
 import com.angrycat.erp.query.QueryScrollable;
 import com.angrycat.erp.security.User;
 import com.angrycat.erp.security.extend.UserInfo;
+import com.angrycat.erp.web.WebUtils;
 import com.angrycat.erp.web.component.ConditionConfig;
 
 @Service
@@ -46,8 +47,7 @@ public class QueryBaseService<T, R> extends ConditionalQuery<T> implements Condi
 	private static final List<String> CONFIG_RANGES			= Arrays.asList(CURRENT_PAGE, COUNT_PER_PAGE, ORDER_TYPE);
 	
 	private SessionFactoryWrapper sfw;
-	private Class<R> root;	
-	private User user;
+	private Class<R> root;
 	
 	@Autowired
 	private DataChangeLogger dataChangeLogger;
@@ -77,14 +77,6 @@ public class QueryBaseService<T, R> extends ConditionalQuery<T> implements Condi
 	public void setRootAndInitDefault(Class<R> root){
 		setRoot(root);
 		init();
-	}
-	/**
-	 * User一般指的是在Web環境下的Session User，QueryBaseService在異動紀錄的時候會用到。
-	 * QueryBaseService非Web環境、或沒有User的情況下應當可以運作，所以只有提供setter加入User。
-	 * @param user
-	 */
-	public void setUser(User user){
-		this.user = user;
 	}
 	
 	@Transactional
@@ -325,7 +317,7 @@ public class QueryBaseService<T, R> extends ConditionalQuery<T> implements Condi
 	}
 	
 	private User defaultUserIfNotExisted(){
-		User u = user;
+		User u = WebUtils.getSessionUser();
 		if(u == null){
 			String defaultName = "SomeBody";
 			u = new User();
