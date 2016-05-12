@@ -357,8 +357,6 @@ public class MemberController extends BaseUpdateController<Member, Member>{
 		User user = WebUtils.getSessionUser();
 		if(dataChangeLogger.getUser() == null){
 			dataChangeLogger.setUser(user);
-			queryBaseService.setUser(user);
-			findTargetService.setUser(user);
 		}
 		return user;
 	}
