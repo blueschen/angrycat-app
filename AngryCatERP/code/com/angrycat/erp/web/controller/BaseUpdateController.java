@@ -79,6 +79,8 @@ public abstract class BaseUpdateController<T, R> extends
 			}
 			s.saveOrUpdate(target);// update member, or add or update detail
 			s.flush();
+			User user = WebUtils.getSessionUser();
+			dataChangeLogger.setUser(user);
 			if(oldSnapshot == null){
 				dataChangeLogger.logAdd(target, s);
 			}else{
