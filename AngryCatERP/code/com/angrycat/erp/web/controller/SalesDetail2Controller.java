@@ -17,6 +17,8 @@ import com.angrycat.erp.jackson.mixin.MemberIgnoreDetail;
 import com.angrycat.erp.model.Member;
 import com.angrycat.erp.model.Product;
 import com.angrycat.erp.model.SalesDetail;
+import com.angrycat.erp.service.MemberQueryService;
+import com.angrycat.erp.service.ProductQueryService;
 import com.angrycat.erp.web.component.ConditionConfig;
 
 @Controller
@@ -34,6 +36,10 @@ public class SalesDetail2Controller extends
 
 	@Autowired
 	private SalesDetailExcelExporter salesDetailExcelExporter;
+	@Autowired
+	private MemberQueryService memberQueryService;
+	@Autowired
+	private ProductQueryService productQueryService;
 	
 	@Override
 	void init(){
@@ -52,7 +58,7 @@ public class SalesDetail2Controller extends
 			produces={"application/xml", "application/json"},
 			headers="Accept=*/*")
 	public @ResponseBody String queryMemberAutocomplete(@RequestBody ConditionConfig<Member> conditionConfig){
-		String result = kendoUiAutocompleteService.queryMembers(conditionConfig);
+		String result = memberQueryService.findTargetPageable(conditionConfig);
 		return result;
 	}
 	
@@ -61,7 +67,7 @@ public class SalesDetail2Controller extends
 			produces={"application/xml", "application/json"},
 			headers="Accept=*/*")
 	public @ResponseBody String queryProductAutocomplete(@RequestBody ConditionConfig<Product> conditionConfig){
-		String result = kendoUiAutocompleteService.queryProducts(conditionConfig);
+		String result = productQueryService.findTargetPageable(conditionConfig);
 		return result;
 	}
 
