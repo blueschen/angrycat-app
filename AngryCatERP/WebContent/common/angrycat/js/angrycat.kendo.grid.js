@@ -6,6 +6,7 @@
 		
 	function init(opts){
 		var moduleName = opts.moduleName,
+			rootPath = opts.rootPath,
 			moduleBaseUrl = opts.moduleBaseUrl,
 			gridId = opts.gridId || "#mainGrid",
 			notiId = opts.notiId || "#updateNoti",
@@ -42,6 +43,7 @@
 				filter.value = minusTimezoneOffset(filter.value);
 			}
 		}
+				
 		function parseFilterDates(filter, fields){
 			if(filter.filters){
 				for(var i = 0; i < filter.filters.length; i++){
@@ -62,7 +64,9 @@
 				oriFilter = filters[0];
 			for(var i = 0; i < fields.length; i++){
 				var field = fields[i];
-				filters.push($.extend({}, oriFilter, {field: field}));
+				if(field !== oriFilter.field){
+					filters.push($.extend({}, oriFilter, {field: field}));
+				}
 			}
 			return filterObj;
 		}
@@ -151,7 +155,7 @@
 		}
 		
 		function getDefaultFieldAutoCompleteDataSource(settings){
-			var readUrl = settings.readUrl,
+			var action = settings.action,
 				autocompleteFieldsToFilter = settings.autocompleteFieldsToFilter,
 				ds = {
 				serverPaging: true,
@@ -159,7 +163,7 @@
 				pageSize: DEFAULT_AUTOCOMPLETE_PAGESIZE_VALUE,
 				transport: {
 					read:{
-						url: readUrl,
+						url: moduleBaseUrl + "/" + action + ".json",
 						type: "POST",
 						dataType: "json",
 						contentType: "application/json;charset=utf-8",
@@ -193,9 +197,8 @@
 			return ds;
 		}
 		
-		function getAutoCompleteEditor(settings){
+		function getAutoCompleteCellEditor(settings){
 			var textField = settings.textField,
-				readUrl = settings.readUrl,
 				filter = settings.filter ? settings.filter : "contains",
 				autocompleteFieldsToFilter = settings.autocompleteFieldsToFilter,
 				template = settings.template ? settings.template : getAutoCompleteDefaultTemplate(autocompleteFieldsToFilter),
@@ -252,6 +255,61 @@
 						}
 					});
 			};
+		}		
+		
+		function getDefaultAutoCompleteFilterEditor(settings){
+			var ele = settings.ele,
+				action = settings.action,
+				filter = settings.filter,
+				dataTextField = settings.dataTextField,
+				dataValueField = settings.dataValueField,
+				ds = new kendo.data.DataSource(getDefaultFieldAutoCompleteDataSource(settings));			
+			ele.kendoAutoComplete({
+				valuePrimitive: true,
+				dataSource: ds,
+				dataTextField: dataTextField,
+				filter: filter,
+				dataValueField: dataValueField				
+			});
+		}		
+		
+		function getDefaultRemoteDropDownList(settings){
+			var ele = settings.ele,
+				action = settings.action,
+				dataTextField = settings.dataTextField,
+				dataValueField = settings.dataValueField,
+				ds = new kendo.data.DataSource({
+					transport: {
+						read: getDefaultRemoteConfig(action),
+						parameterMap: function(data, type){
+							if(type === "read"){
+								//console.log("data: " + JSON.stringify(data));
+								var r = {
+									conds: {
+										kendoData: {
+											filter: data.filter
+										}
+									}
+								};
+								return JSON.stringify(r);
+							}
+						}						
+					},
+					schema:{
+						type: "json",
+						data: function(response){
+							var results = response.results; // read
+							return results;
+						}
+					}					
+				});
+			//ds.pageSize(ds.total());
+			ele.kendoDropDownList({
+				valuePrimitive: true,
+				dataSource: ds,
+				dataTextField: dataTextField,
+				dataValueField: dataValueField
+			});
 		}		
 		
 		function initDefaultNotification(options){
@@ -344,7 +402,7 @@
 						.wrap(parent); // 跟原來預設的版型一樣，有圓角，而且與相鄰元件(按鈕)對齊
 				};
 			columns.push({
-				command: ["destroy"], // 刪除欄位最後決定放在最前方，因為如果cloumn太多，更新完後會跳回到最前面欄位位置；
+				command: ["destroy"],
 				width: "100px"
 			});
 			if("incell" !== DEFAULT_EDIT_MODE){
@@ -364,7 +422,7 @@
 						filterable: {
 							cell: {
 								operator: field[4],
-								template: defaultFilterTemplate
+								template: "date" === field[3] ? null : defaultFilterTemplate // 如果是日期欄位，不用改filter cell template，其他要自訂預設template，這是為了防止內建change事件觸發查詢的動作
 							}
 						},
 						template: defaultTemplate.replace(/{field}/g, fieldName)
@@ -373,10 +431,16 @@
 					column["editor"] = editor;
 				}
 				if("date" === field[3]){
-					column["format"] = "{0:yyyy-MM-dd}";
-					column["parseFormats"] = "{0:yyyy-MM-dd}";
-					column["filterable"]["ui"] = "datetimepicker";
-					column["template"] = "<span title='#= kendo.toString(" + fieldName +", \"u\")#'>#= kendo.toString("+ fieldName +", \"u\")#</span>";
+					var format = "yyyy-MM-dd";
+					column["format"] = "{0:"+format+"}";
+					column["parseFormats"] = "{0:"+format+"}";
+					column["filterable"]["ui"] = function(element){
+						return element.kendoDatePicker({
+							format: format,
+							parseFormats: [format]
+						});
+					};
+					column["template"] = "<span>#= kendo.toString("+ fieldName +", \""+format+"\") ? kendo.toString("+ fieldName +", \""+format+"\") : \"\"#</span>"; // 如果null顯示空字串
 				}
 				if(field[6]){
 					$.extend(column, field[6]);
@@ -466,7 +530,11 @@
 				},
 				error: function(e){
 					var status = (e && e.xhr && e.xhr.status) ? e.xhr.status : null;
-					if(status != 200){
+					if(status == 401){
+						window.location.href = rootPath + "/login.jsp"
+						return;
+					}
+					if(status != 200){// TODO 401
 						$(updateInfoWindowId).data("kendoWindow")
 							.content("<h3 style='color:red;'>主機發生錯誤</h3><br><h4><xmp>"+ JSON.stringify(e) +"</xmp></h4>")
 							.center()
@@ -565,56 +633,58 @@
 					//ds.transport.options.read.url = readUrl;
 				});
 				
-				var tdTotal = 0;
-				mainGrid.tbody.on("keydown", "td[data-role='editable'] input", function(e){
-					var $target = $(e.target);
-					if(e.keyCode == 13){
-						/* not work!!
-						$(gridId).data("kendoGrid").one("afterClose", function(e){
-							var $td = e.container,
-								tdIdx = $td.index(),
-								$tr = $td.closest("tr");
+				if(DEFAULT_EDIT_MODE === "incell"){
+					var tdTotal = 0;
+					mainGrid.tbody.on("keydown", "td[data-role='editable'] input", function(e){
+						var $target = $(e.target);
+						if(e.keyCode == 13){
+							/* not work!!
+							$(gridId).data("kendoGrid").one("afterClose", function(e){
+								var $td = e.container,
+									tdIdx = $td.index(),
+									$tr = $td.closest("tr");
 						
-							do{
-								var nextCell = $tr.find("td:eq("+ (++tdIdx) +")");
-							}while(nextCell.css("display") === "none");
+								do{
+									var nextCell = $tr.find("td:eq("+ (++tdIdx) +")");
+								}while(nextCell.css("display") === "none");
 					
-							if(nextCell.length === 0){
-								return;
-							}
-							setTimeout(function(){
-								var grid = $(gridId).data("kendoGrid");
-								grid.current(nextCell);
-								grid.editCell(nextCell);
-							},0);
-						});
-						*/
-						mainGrid.options["afterClose"] = once(function(e){ // 不得已直接從kendo ui widget的options加入事件處理器
-							var $td = e.container,
-								tdIdx = $td.index(),
-								$tr = $td.closest("tr");
-							if(!tdTotal){
-								tdTotal = $tr.find("td").length;
-							}
-							do{
-								if(tdIdx+1 >= tdTotal){// 如果已經是該行最後一欄，從下一行前面開始
-									$tr = $tr.next("tr");
-									tdIdx = 0;// TODO 第一列可能是或不是可編輯儲存格
+								if(nextCell.length === 0){
+									return;
 								}
-								var nextCell = $tr.find("td:eq("+ (++tdIdx) +")");
-							}while(nextCell.css("display") === "none"); // 如果是隱藏欄位就跳下一筆
+								setTimeout(function(){
+									var grid = $(gridId).data("kendoGrid");
+									grid.current(nextCell);
+									grid.editCell(nextCell);
+								},0);
+							});
+							 */
+							mainGrid.options["afterClose"] = once(function(e){ // 不得已直接從kendo ui widget的options加入事件處理器
+								var $td = e.container,
+									tdIdx = $td.index(),
+									$tr = $td.closest("tr");
+								if(!tdTotal){
+									tdTotal = $tr.find("td").length;
+								}
+								do{
+									if(tdIdx+1 >= tdTotal){// 如果已經是該行最後一欄，從下一行前面開始
+										$tr = $tr.next("tr");
+										tdIdx = 0;// TODO 第一列可能是或不是可編輯儲存格
+									}
+									var nextCell = $tr.find("td:eq("+ (++tdIdx) +")");
+								}while(nextCell.css("display") === "none"); // 如果是隱藏欄位就跳下一筆
 						
-							if(nextCell.length === 0){
-								return;
-							}
-							setTimeout(function(){
-								var grid = $(gridId).data("kendoGrid");
-								grid.current(nextCell);
-								grid.editCell(nextCell);
-							},0);
-						});
-					}
-				});
+								if(nextCell.length === 0){
+									return;
+								}
+								setTimeout(function(){
+									var grid = $(gridId).data("kendoGrid");
+									grid.current(nextCell);
+									grid.editCell(nextCell);
+								},0);
+							});
+						}
+					});
+				}
 				
 				$(document.body).keydown(function(e){
 					var altKey = e.altKey,
@@ -700,7 +770,7 @@
 	
 		return {
 			getAutoCompleteDefaultTemplate: getAutoCompleteDefaultTemplate,
-			getAutoCompleteEditor: getAutoCompleteEditor,
+			getAutoCompleteCellEditor: getAutoCompleteCellEditor,
 			getDefaultFieldAutoCompleteDataSource: getDefaultFieldAutoCompleteDataSource,
 			getLocalDropDownEditor: getLocalDropDownEditor,
 			getLocalDropDownEditor: getLocalDropDownEditor,
@@ -709,6 +779,8 @@
 			getDefaultColumns: getDefaultColumns,
 			getDefaultGridDataSource: getDefaultGridDataSource,
 			getDefaultFieldAutoCompleteValidation: getDefaultFieldAutoCompleteValidation,
+			getDefaultRemoteDropDownList: getDefaultRemoteDropDownList,
+			getDefaultAutoCompleteFilterEditor: getDefaultAutoCompleteFilterEditor,
 			fieldsReady: fieldsReady
 		};
 	}
