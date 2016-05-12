@@ -63,11 +63,9 @@
 					<li ng-class="{'active': mainCtrl.moduleName == 'salesdetail'}">
 						<a href="${pageContext.request.contextPath}/salesdetail/list">銷售明細查詢</a>
 					</li>
-					<!-- 
 					<li>
-						<a href="${pageContext.request.contextPath}/salesdetail/add">銷售明細新增</a>
-					</li>
-					 -->															
+						<a href="${pageContext.request.contextPath}/salesdetail2/list">銷售明細新介面</a>
+					</li>															
 				</ul>
 				<ul class="nav navbar-nav navbar-right">
 					<li>
@@ -270,7 +268,10 @@
 				initialState = null;
 				
 			self.actionTypes = [{label: '刪除', value: 'DELETE'}, {label: '修改', value: 'UPDATE'}, {label: '新增', value: 'ADD'}];
-			self.docTypes = [{label: '會員', value: 'com.angrycat.erp.model.Member'}, {label: '銷售明細', value: 'com.angrycat.erp.model.SalesDetail'}];
+			self.docTypes = [
+				{label: '會員', value: 'com.angrycat.erp.model.Member'}, 
+				{label: '銷售明細', value: 'com.angrycat.erp.model.SalesDetail'}
+			];
 			
 			self.queryAll = function(){
 				AjaxService.post(queryAllUrl)
