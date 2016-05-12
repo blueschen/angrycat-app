@@ -86,10 +86,7 @@ public abstract class BaseQueryController<T, R> implements Serializable {
 	 */
 	@PostConstruct
 	public void init(){
-		queryBaseService.setRootAndInitDefault(getRoot());
-		User currentUser = WebUtils.getSessionUser();
-		queryBaseService.setUser(currentUser);
-		
+		queryBaseService.setRootAndInitDefault(getRoot());		
 		findTargetService
 			.createFromAlias(getRoot().getName(), "p")
 			.addWhere(putStr("p.id = :pId"))
