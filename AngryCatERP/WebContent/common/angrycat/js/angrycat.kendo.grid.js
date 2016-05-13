@@ -702,10 +702,11 @@
 					if(altKey && keyCode == 81){// Alt + Q 直接觸發 Cancel changes
 						mainGrid.dataSource.cancelChanges();
 					}
-					if(altKey && keyCode == 68){// Alt + D 直接觸發 Delete；
+					/*
+					if(altKey && keyCode == 71){// Alt + G 直接觸發 Delete；
 						mainGrid.current().closest(".k-grid-delete").click();
 					}
-					/*
+					
 					if(e.altKey && e.keyCode == 69){// Alt + E 直接觸發 Edit；
 						mainGrid.current().closest(".k-grid-edit");
 					}
