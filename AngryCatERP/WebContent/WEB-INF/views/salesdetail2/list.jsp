@@ -82,7 +82,7 @@
 	</nav>
 </div>
 
-<div class="container">
+<div class="container-fluid">
 <div class="well">
 </div>
 	<span id="updateInfoWindow" style="display:none;"></span>
