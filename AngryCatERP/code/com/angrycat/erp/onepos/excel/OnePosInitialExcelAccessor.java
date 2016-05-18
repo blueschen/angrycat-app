@@ -467,19 +467,21 @@ public class OnePosInitialExcelAccessor {
 		String t3 = "E:\\angrycat_workitem\\產品\\臺灣OHM商品總庫存清單(類別)_T20151028.xlsx";
 		String t4 = "E:\\angrycat_workitem\\產品\\2015_12_01\\臺灣OHM商品總庫存清單(類別)_T20150924.xlsx";
 		String t5 = "E:\\angrycat_workitem\\產品\\2015_12_16\\臺灣OHM商品總庫存清單(類別)_T20150924.xlsx";
+		String t6 = "E:\\angrycat_workitem\\產品\\2016_05_17\\臺灣OHM商品總庫存清單(類別)_T20150924 (1).xlsx";
 		try(
-			FileInputStream fis = new FileInputStream(t5)){
+			FileInputStream fis = new FileInputStream(t6)){
 			byte[] data = IOUtils.toByteArray(fis);
 			OnePosInitialExcelAccessor accessor = acac.getBean(OnePosInitialExcelAccessor.class);
 //			accessor.setImgProcessEnabled(true);
-			accessor.setClientProcessEnabled(true);
+//			accessor.setClientProcessEnabled(true);
 			accessor.setTemplatePath("E:\\angrycat_workitem\\member\\v36 ONE-POS Data Quick Import  快速匯入 - Empty .xls");
-			accessor.process(data, "1214保養品項");
+			accessor.process(data, "0517新品(綠色手動鍵條碼");
 			
 		}catch(Throwable e){
 			throw new RuntimeException(e);
+		}finally{
+			acac.close();
 		}
-		acac.close();
 		long endtime = System.currentTimeMillis();
 		System.out.println("start time: " + (endtime - starttime)/(1000*60) + "分鐘");
 	}
@@ -688,13 +690,14 @@ public class OnePosInitialExcelAccessor {
 				Iterator<Row> generalSheetRows = generalSheet.iterator();
 				int rowNum = 0;
 				Set<String> categories = new LinkedHashSet<>();
+				System.out.println("Sheet2.類別: " + Sheet2.類別 + ", Sheet2.型號: " + Sheet2.型號 + ", Sheet2.英文名字: " + Sheet2.英文名字);
 				while(generalSheetRows.hasNext()){
 					Row row = generalSheetRows.next();
 					rowNum = row.getRowNum();
 					if(rowNum == 0){// 略過標題列
 						continue;
 					}
-					System.out.println("Sheet2.類別: " + Sheet2.類別 + ", Sheet2.型號: " + Sheet2.型號 + ", Sheet2.英文名字: " + Sheet2.英文名字);
+					
 					Cell cat = row.getCell(Sheet2.類別);
 					Cell no = row.getCell(Sheet2.型號);
 					Cell nameEng = row.getCell(Sheet2.英文名字);
@@ -716,7 +719,10 @@ public class OnePosInitialExcelAccessor {
 					
 					Row pRow = productSheet.createRow(rowNum);
 					System.out.println("noVal: " + noVal + ", nameEngVal: " + nameEngVal + ", catVal: " + catVal + ", priceVal: " + priceVal);
-					String barCode = barCodes.get(noVal);
+					String barCode = barcodeVal;
+					if(StringUtils.isBlank(barCode)){
+						barCode = barCodes.get(noVal);
+					}
 					
 					addProductCells(pRow, noVal, nameEngVal, catVal, priceVal, barCode);
 					
