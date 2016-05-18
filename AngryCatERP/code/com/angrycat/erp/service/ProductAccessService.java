@@ -1,5 +1,7 @@
 package com.angrycat.erp.service;
 
+import static com.angrycat.erp.common.XSSFUtil.getXSSFValueByCellType;
+
 import java.io.BufferedInputStream;
 import java.io.BufferedOutputStream;
 import java.io.ByteArrayInputStream;
@@ -11,6 +13,8 @@ import java.io.StringReader;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -24,16 +28,24 @@ import org.apache.lucene.document.Document;
 import org.apache.lucene.document.Field;
 import org.apache.pdfbox.io.IOUtils;
 import org.apache.pdfbox.lucene.LucenePDFDocument;
+import org.apache.poi.ss.usermodel.Cell;
+import org.apache.poi.ss.usermodel.Row;
+import org.apache.poi.ss.usermodel.Sheet;
+import org.apache.poi.xssf.usermodel.XSSFWorkbook;
+import org.hibernate.Session;
+import org.hibernate.Transaction;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.AnnotationConfigApplicationContext;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Service;
 
 import com.angrycat.erp.component.SessionFactoryWrapper;
+import com.angrycat.erp.excel.ExcelColumn.Product.Sheet2;
 import com.angrycat.erp.excel.ProductExcelExporter;
 import com.angrycat.erp.excel.ProductExcelImporter;
 import com.angrycat.erp.initialize.config.RootConfig;
 import com.angrycat.erp.model.Product;
+import com.angrycat.erp.model.ProductCategory;
 import com.angrycat.erp.onepos.excel.OnePosInitialExcelAccessor;
 import com.angrycat.erp.service.http.HttpService;
 
@@ -61,6 +73,116 @@ public class ProductAccessService {
 	}
 	public void importProductFromExcelToDB(byte[]data){
 		productExcelImporter.persist(data);
+	}
+	/**
+	 * 匯入miko給的產品excel到資料庫
+	 * 產品資料來源很不穩定，有時候要依據miko給的，有時候要依據Kit給的。
+	 * 這隻程式依據miko給的Excel匯入資料庫。
+	 * 原本條碼由Kit提供，到新的Excel已經轉由miko提供。
+	 * @param data
+	 * @param updateOld: 資料庫遇到舊的資料，是否以新資料更新
+	 * @param sheetNames: 指定sheetName範圍，若無指定，則掃瞄全部的sheet
+	 */
+	public void importProductFromExcelToDB(byte[]data, boolean updateOld, String...sheetNames){
+		Session s = null;
+		Transaction tx = null;
+		try(ByteArrayInputStream bais = new ByteArrayInputStream(data);
+			XSSFWorkbook productWb = new XSSFWorkbook(bais);){
+			
+			s = sfw.openSession();
+			tx = s.beginTransaction();
+			
+			Iterator<Sheet> sheets = productWb.iterator();
+			while(sheets.hasNext()){
+				Sheet sheet = sheets.next();
+				String mappingSheetName = Arrays.asList(sheetNames).stream().filter(sn->sn.equals(sheet.getSheetName())).findFirst().get();
+				// 有指定sheetName，就必須有對應到才會往下跑；如果沒有指定，就跑全部的sheet
+				if(sheetNames.length > 0 &&  mappingSheetName == null){
+					continue;
+				}
+				
+				Iterator<Row> rows = sheet.iterator();
+				while(rows.hasNext()){
+					Row row = rows.next();
+					int rowCount = row.getRowNum();
+					if(rowCount == 0){
+						continue;
+					}
+					
+					Cell cat = row.getCell(Sheet2.類別);
+					Cell no = row.getCell(Sheet2.型號);
+					Cell nameEng = row.getCell(Sheet2.英文名字);
+					Cell price = row.getCell(Sheet2.定價);
+					Cell serialName = row.getCell(Sheet2.系列名);
+					Cell barcode = row.getCell(Sheet2.系列名+1);
+					
+					String catVal = retrieveStrVal(cat);
+					String noVal = retrieveStrVal(no);
+					if(StringUtils.isBlank(catVal) || StringUtils.isBlank(noVal)){ // 進入資料庫的時候，類別並不重要，但在OnePos為必填欄位，為求一致，所以先限定為必填
+						System.out.println("sheetName: " + sheet.getSheetName() + ", rowCount: " + rowCount + ", catVal: " + catVal + ", noVal: " + noVal + ", 其中有一項為空值，略過處理");
+						continue;
+					}
+					Object nameEngVal = getXSSFValueByCellType(nameEng);
+					Object priceVal = getXSSFValueByCellType(price);
+					String serialNameVal = retrieveStrVal(serialName);
+					String barcodeVal = retrieveStrVal(barcode);
+					
+					Product product = (Product)s.createQuery("SELECT p FROM " + Product.class.getName() + " p WHERE UPPER(p.modelId) = : modelId").setString("modelId", noVal.toUpperCase()).uniqueResult();
+					if(product == null){
+						product = new Product();
+					}else if(!updateOld){
+						System.out.println("sheetName: " + sheet.getSheetName() + ", rowCount: " + rowCount + ", noVal: " + noVal + ", 資料重複不繼續處理");
+						continue;
+					}
+					
+					List<ProductCategory> cats = s.createQuery("FROM " + ProductCategory.class.getName() + " p WHERE UPPER(p.code) = :pCode").setString("pCode", catVal.toUpperCase()).list();
+					ProductCategory category = null;
+					if(!cats.isEmpty()){
+						category = cats.get(0);
+					}else{
+						category = new ProductCategory();
+						category.setCode(catVal);
+						s.save(category);
+					}
+					product.setProductCategory(category);
+					product.setModelId(noVal);
+					if(nameEngVal != null){
+						if(nameEngVal instanceof Double){
+							product.setNameEng(new BigDecimal((Double)nameEngVal).toString());
+						}else{
+							product.setNameEng((String)nameEngVal);
+						}
+					}
+					if(priceVal != null){
+						product.setSuggestedRetailPrice(Double.valueOf(priceVal.toString()));
+					}
+					product.setSeriesName(serialNameVal);
+					product.setBarcode(barcodeVal);
+					
+					s.saveOrUpdate(product);
+					s.flush();
+					s.clear();
+				}
+			}
+		}catch(Throwable e){
+			tx.rollback();
+			throw new RuntimeException(e);
+		}finally{
+			if(!tx.wasRolledBack()){
+				tx.commit();
+			}
+			s.close();
+		}
+	}
+	
+	private static String retrieveStrVal(Cell cell){
+		Object val = getXSSFValueByCellType(cell);
+		if(val == null || StringUtils.isBlank(val.toString())){
+			return null;
+		}
+		String strVal = val.toString();
+		strVal.replace(" ", "");
+		return StringUtils.trim(strVal);
 	}
 	
 	/**
@@ -387,7 +509,7 @@ public class ProductAccessService {
 	}
 	
 	private static void testImportProductFromExcelToDB(){
-		String file = "E:\\angrycat_workitem\\產品\\2016_01_25\\臺灣OHM商品總庫存清單(類別)_T20150924.xlsx";
+		String file = "E:\\angrycat_workitem\\產品\\2016_05_17\\臺灣OHM商品總庫存清單(類別)_T20150924 (1).xlsx";
 		try(AnnotationConfigApplicationContext acac = new AnnotationConfigApplicationContext(RootConfig.class);
 			FileInputStream fis = new FileInputStream(file);){
 			byte[]data = IOUtils.toByteArray(fis);
@@ -425,9 +547,9 @@ public class ProductAccessService {
 	}
 	
 	public static void main(String[]args){
-//		testImportProductFromExcelToDB();
+		testImportProductFromExcelToDB();
 //		testImportProductFromPDFToDB();
-		testToOnePosImportExcelExcludingBarcodeNotExisted();
+//		testToOnePosImportExcelExcludingBarcodeNotExisted();
 //		testProductModelIdAdjusted();
 //		testDoubleToString();
 //		testSplits();
