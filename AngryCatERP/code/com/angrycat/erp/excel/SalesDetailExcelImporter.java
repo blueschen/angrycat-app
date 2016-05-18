@@ -254,8 +254,8 @@ public class SalesDetailExcelImporter extends ExcelImporter {
 	}
 	
 	private static void testReadAndPersist(){
-		String fileName = "201603_OHM銷售明細-";
-		String src = "E:\\angrycat_workitem\\銷售明細\\2016_04_08_from_miko\\"+fileName+".xlsx";
+		String fileName = "201604_OHM銷售明細";
+		String src = "E:\\angrycat_workitem\\銷售明細\\2016_05_13_from_miko\\"+fileName+".xlsx";
 		Map<String, String> msg = null;
 		try(AnnotationConfigApplicationContext acac = new AnnotationConfigApplicationContext(RootConfig.class);){
 			SalesDetailExcelImporter i = acac.getBean(SalesDetailExcelImporter.class);
