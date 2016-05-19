@@ -129,14 +129,6 @@ public class OnePosMdbAccessor {
 			try (ResultSet rs = prepared.executeQuery();) {
 				pojos = collectPojosFromResultSet(rs, mappingClz, columnNames,
 						writeMethods);
-				pojos.stream()
-						.forEach(
-								p -> {
-									System.out.println(ReflectionToStringBuilder
-											.toString(
-													p,
-													ToStringStyle.MULTI_LINE_STYLE));
-								});
 			} catch (Throwable e) {
 				throw new RuntimeException(e);
 			}
@@ -322,17 +314,30 @@ public class OnePosMdbAccessor {
 		});
 	}
 
-	public static void testProcessInvItems() {
+	private static void testProcessInvItems() {
 		OnePosMdbAccessor accessor = new OnePosMdbAccessor();
 		accessor.processInvItems();
 	}
 
-	public static void testProcessInvHeaders() {
+	private static void testProcessInvHeaders() {
 		OnePosMdbAccessor accessor = new OnePosMdbAccessor();
 		accessor.processInvHeaders();
 	}
 
+	private static void testSelectMdb(){
+		String mdb = "E:\\angrycat_workitem\\pos\\onepos\\2016_05_19\\onepos.mdb";
+		List<String> ids = Arrays.asList("AAH029", "AAL025");
+		List<Object> params = Collections.nCopies(ids.size(), "?");
+		String paramsStr = StringUtils.join(params, ",");
+		String sql = "SELECT * FROM Products WHERE productid IN (" + paramsStr
+				+ ")";
+		List<OnePosProduct> products = selectMdb(mdb, sql, params, OnePosProduct.class);
+		products.stream().forEach(p->{
+			System.out.println(ReflectionToStringBuilder.toString(p,ToStringStyle.MULTI_LINE_STYLE));
+		});
+	}
+	
 	public static void main(String[] args) {
-		testUcanaccess();
+		testSelectMdb();
 	}
 }
