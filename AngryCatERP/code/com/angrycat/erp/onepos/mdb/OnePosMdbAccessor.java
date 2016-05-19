@@ -326,12 +326,12 @@ public class OnePosMdbAccessor {
 
 	private static void testSelectMdb(){
 		String mdb = "E:\\angrycat_workitem\\pos\\onepos\\2016_05_19\\onepos.mdb";
-		List<String> ids = Arrays.asList("AAH029", "AAL025");
+		List<Object> ids = Arrays.asList("AAH029", "AAL025", "AAA005");
 		List<Object> params = Collections.nCopies(ids.size(), "?");
 		String paramsStr = StringUtils.join(params, ",");
 		String sql = "SELECT * FROM Products WHERE productid IN (" + paramsStr
 				+ ")";
-		List<OnePosProduct> products = selectMdb(mdb, sql, params, OnePosProduct.class);
+		List<OnePosProduct> products = selectMdb(mdb, sql, ids, OnePosProduct.class);
 		products.stream().forEach(p->{
 			System.out.println(ReflectionToStringBuilder.toString(p,ToStringStyle.MULTI_LINE_STYLE));
 		});
