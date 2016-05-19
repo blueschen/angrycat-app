@@ -1,6 +1,7 @@
 package com.angrycat.erp.test;
 
 import java.util.List;
+import java.util.Map;
 import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 
@@ -12,9 +13,13 @@ import org.hibernate.Transaction;
 import org.springframework.context.annotation.AnnotationConfigApplicationContext;
 import org.springframework.orm.hibernate4.LocalSessionFactoryBean;
 
+import com.angrycat.erp.component.SessionFactoryWrapper;
 import com.angrycat.erp.initialize.config.RootConfig;
 import com.angrycat.erp.model.Member;
+import com.angrycat.erp.model.ModuleConfig;
 import com.angrycat.erp.model.SalesDetail;
+import com.fasterxml.jackson.databind.ObjectMapper;
+
 
 public class BaseTest {
 	
@@ -86,9 +91,39 @@ public class BaseTest {
 		}
 	}
 	
+	private static void testStrLength(){
+		String t = "Bearonthemoon@daum.net";
+		System.out.println(t.length());
+	}
+	
+	private static void testArgs(String...args){
+		System.out.println(args.length);
+	}
+	
+	private static void testFromJsonStrToObj(){
+		executeApplicationContext(acac->{
+			SessionFactoryWrapper sfw = acac.getBean(SessionFactoryWrapper.class);
+			sfw.executeSession(s->{
+				List<ModuleConfig> configs = s.createQuery("SELECT DISTINCT p FROM " + ModuleConfig.class.getName() + " p").list();
+				configs.forEach(c->{
+					ObjectMapper om = new ObjectMapper();
+					try {
+						Map<?, ?> result = om.readValue(c.getJson(), Map.class);
+						result.forEach((k,v)->{
+							System.out.println(k);
+							System.out.println(v);
+						});
+					} catch (Exception e) {
+						// TODO Auto-generated catch block
+						e.printStackTrace();
+					}
+				});
+			});
+		});
+	}
 	
 	public static void main(String[]args){
-		testNestedProperty();
+		testFromJsonStrToObj();
 	}
 
 	
