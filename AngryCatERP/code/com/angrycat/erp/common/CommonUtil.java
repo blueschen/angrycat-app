@@ -47,6 +47,17 @@ public final class CommonUtil {
 		return json;
 	}
 	
+	public static Map<?, ?> parseJsonStrToMap(String json){
+		Map<?, ?> result = null;
+		try{
+			ObjectMapper om = new ObjectMapper();
+			result = om.readValue(json, Map.class);
+		}catch(Throwable e){
+			throw new RuntimeException(e);
+		}
+		return result;
+	}
+	
 	@SuppressWarnings("unchecked")
 	public static <T>T getProxyTargetObject(Object proxy){
 		T t = null;
