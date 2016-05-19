@@ -17,6 +17,7 @@ import java.util.Arrays;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Optional;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import javax.annotation.PostConstruct;
@@ -86,6 +87,8 @@ public class ProductAccessService {
 	public void importProductFromExcelToDB(byte[]data, boolean updateOld, String...sheetNames){
 		Session s = null;
 		Transaction tx = null;
+		int insertCount = 0;
+		int updateCount = 0;
 		try(ByteArrayInputStream bais = new ByteArrayInputStream(data);
 			XSSFWorkbook productWb = new XSSFWorkbook(bais);){
 			
@@ -95,7 +98,11 @@ public class ProductAccessService {
 			Iterator<Sheet> sheets = productWb.iterator();
 			while(sheets.hasNext()){
 				Sheet sheet = sheets.next();
-				String mappingSheetName = Arrays.asList(sheetNames).stream().filter(sn->sn.equals(sheet.getSheetName())).findFirst().get();
+				Optional<String> filter = Arrays.asList(sheetNames).stream().filter(sn->sn.equals(sheet.getSheetName())).findFirst();
+				if(!filter.isPresent()){
+					continue;
+				}
+				String mappingSheetName = filter.get();
 				// 有指定sheetName，就必須有對應到才會往下跑；如果沒有指定，就跑全部的sheet
 				if(sheetNames.length > 0 &&  mappingSheetName == null){
 					continue;
@@ -125,14 +132,20 @@ public class ProductAccessService {
 					Object nameEngVal = getXSSFValueByCellType(nameEng);
 					Object priceVal = getXSSFValueByCellType(price);
 					String serialNameVal = retrieveStrVal(serialName);
-					String barcodeVal = retrieveStrVal(barcode);
+					Object barcodeVal = getXSSFValueByCellType(barcode);
 					
-					Product product = (Product)s.createQuery("SELECT p FROM " + Product.class.getName() + " p WHERE UPPER(p.modelId) = : modelId").setString("modelId", noVal.toUpperCase()).uniqueResult();
+					Product product = (Product)s.createQuery("SELECT p FROM " + Product.class.getName() + " p WHERE UPPER(p.modelId) = :modelId").setString("modelId", noVal.toUpperCase()).uniqueResult();
 					if(product == null){
 						product = new Product();
 					}else if(!updateOld){
 						System.out.println("sheetName: " + sheet.getSheetName() + ", rowCount: " + rowCount + ", noVal: " + noVal + ", 資料重複不繼續處理");
 						continue;
+					}
+					
+					if(StringUtils.isBlank(product.getId())){
+						insertCount++;
+					}else{
+						updateCount++;
 					}
 					
 					List<ProductCategory> cats = s.createQuery("FROM " + ProductCategory.class.getName() + " p WHERE UPPER(p.code) = :pCode").setString("pCode", catVal.toUpperCase()).list();
@@ -157,7 +170,17 @@ public class ProductAccessService {
 						product.setSuggestedRetailPrice(Double.valueOf(priceVal.toString()));
 					}
 					product.setSeriesName(serialNameVal);
-					product.setBarcode(barcodeVal);
+					if(barcodeVal != null){
+						if(barcodeVal instanceof Double){
+							BigDecimal d = new BigDecimal((Double)barcodeVal);
+							product.setBarcode(d.toString());
+						}else if(barcodeVal instanceof String){
+							product.setBarcode((String)barcodeVal);
+						}else{
+							throw new RuntimeException("條碼還能傳進什麼型別??");
+						}
+					}
+					
 					
 					s.saveOrUpdate(product);
 					s.flush();
@@ -173,6 +196,8 @@ public class ProductAccessService {
 			}
 			s.close();
 		}
+		System.out.println("新增" + insertCount + "筆");
+		System.out.println("修改" + updateCount + "筆");
 	}
 	
 	private static String retrieveStrVal(Cell cell){
@@ -521,6 +546,19 @@ public class ProductAccessService {
 		}
 	}
 	
+	private static void testImportProductFromExcelToDB2(){
+		String file = "E:\\angrycat_workitem\\產品\\2016_05_17\\臺灣OHM商品總庫存清單(類別)_T20150924 (1).xlsx";
+		try(AnnotationConfigApplicationContext acac = new AnnotationConfigApplicationContext(RootConfig.class);
+			FileInputStream fis = new FileInputStream(file);){
+			byte[]data = IOUtils.toByteArray(fis);
+			ProductAccessService ser = acac.getBean(ProductAccessService.class);
+			ser.importProductFromExcelToDB(data, true, "0517新品(綠色手動鍵條碼");
+			
+		}catch(Throwable e){
+			throw new RuntimeException(e);
+		}
+	}
+	
 	private static void testProductModelIdAdjusted(){
 		String t1 = "TT175(TT175)";
 		String t2 = "TT017 (A)";
@@ -547,7 +585,7 @@ public class ProductAccessService {
 	}
 	
 	public static void main(String[]args){
-		testImportProductFromExcelToDB();
+//		testImportProductFromExcelToDB();
 //		testImportProductFromPDFToDB();
 //		testToOnePosImportExcelExcludingBarcodeNotExisted();
 //		testProductModelIdAdjusted();
@@ -556,6 +594,7 @@ public class ProductAccessService {
 //		testToOnePosImportExcel();
 //		testDownloadOHMImageIfNotExisted();
 //		testCopyAndPackImage();
+		testImportProductFromExcelToDB2();
 		
 	}
 }
