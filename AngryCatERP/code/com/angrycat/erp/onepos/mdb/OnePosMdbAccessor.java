@@ -60,146 +60,114 @@ public class OnePosMdbAccessor {
 		}
 		return results;
 	}
-	public static void testUcanaccess(){
+	
+	private static void moveUcanaccessDriverToFirst(){
+		// ref. http://ucanaccess.sourceforge.net/site.html
+		Driver driver = null;
+		Enumeration<Driver> drivers = DriverManager.getDrivers();
+		while(drivers.hasMoreElements()){
+			driver = drivers.nextElement();
+			System.out.println(driver.getClass().getName());
+			// 因為先註冊org.mariadb.jdbc.Driver，導致不管怎麼拿都沒辦法使用net.ucanaccess.jdbc.UcanaccessDriver
+			// 下面的做法是，先移除org.mariadb.jdbc.Driver，再加到最後面，這樣就會確保拿到net.ucanaccess.jdbc.UcanaccessDriver
+			// TODO 在Web環境下如果要同時使用兩者，需要測試有無狀況
+			// ref. http://stackoverflow.com/questions/31304195/wrong-jdbc-driver-being-used
+			if(!driver.getClass().getName().equals("net.ucanaccess.jdbc.UcanaccessDriver")){
+				try{
+					DriverManager.deregisterDriver(driver);
+					DriverManager.registerDriver(driver);
+				}catch(Throwable e){
+					throw new RuntimeException(e);
+				}
+			}else{
+				break;
+			}
+		}
+	}
+	/**
+	 * 透過ucanaccess函式庫，可以以jdbc和sql語法查詢Microsoft Access取得資料。並以適合的POJO傳回查詢結果
+	 * mapping class要用JPA annotation定義好對應欄位名稱
+	 * @param mdb
+	 * @param sql
+	 * @param params
+	 * @param mappingClz
+	 * @return
+	 */
+	public static <T>List<T> selectMdb(String mdb, String sql, List<Object> params, Class<T> mappingClz){
+		int paramsCount = StringUtils.countMatches(sql, "?");
+		if(paramsCount != params.size()){
+			throw new RuntimeException("參數數量沒有正確對應!!");
+		}
+		
+		moveUcanaccessDriverToFirst();
+		
+		String user = "sa";
+		String encryptPwd = "31072100";
+		String jackcessOpener = CryptCodecOpener.class.getName();
+		String jdbcUrl = "jdbc:ucanaccess://"+mdb+";jackcessOpener="+jackcessOpener;
+		
+		List<T> pojos = Collections.emptyList();
+		try(Connection conn = DriverManager.getConnection(jdbcUrl, user, encryptPwd);
+			PreparedStatement prepared = conn.prepareStatement(sql);) {
+			for(int i = 0; i < params.size(); i++){
+				Object param = params.get(i);
+				prepared.setObject(i+1, param);
+			}
+			try(ResultSet rs = prepared.executeQuery();){					
+				pojos = collectPojosFromResultSet(rs, mappingClz);
+				pojos.stream().forEach(p->{
+					System.out.println(ReflectionToStringBuilder.toString(p, ToStringStyle.MULTI_LINE_STYLE));
+				});
+			}catch(Throwable e){
+				throw new RuntimeException(e);
+			}
+		} catch (Throwable e) {
+			throw new RuntimeException(e);
+		}
+		System.out.println("共"  + pojos.size() + "筆");
+		return pojos;
+	}
+	
+	public static void testUcanaccess(){		
+		// ref. http://ucanaccess.sourceforge.net/site.html
+		moveUcanaccessDriverToFirst();
+		
 		String mdb = "E:\\angrycat_workitem\\pos\\onepos\\2016_05_19\\onepos.mdb";
 		String user = "sa";
 		String encryptPwd = "31072100";
 		String jackcessOpener = CryptCodecOpener.class.getName();
 		String jdbcUrl = "jdbc:ucanaccess://"+mdb+";jackcessOpener="+jackcessOpener;
 		
-		Connection conn = null;
-		PreparedStatement prepared = null;
-		ResultSet rs = null;
-		try {
-			// ref. http://ucanaccess.sourceforge.net/site.html
-			Driver driver = null;
-			Enumeration<Driver> drivers = DriverManager.getDrivers();
-			while(drivers.hasMoreElements()){
-				driver = drivers.nextElement();
-				System.out.println(driver.getClass().getName());
-				// 因為先註冊org.mariadb.jdbc.Driver，導致不管怎麼拿都沒辦法使用net.ucanaccess.jdbc.UcanaccessDriver
-				// 下面的做法是，先移除org.mariadb.jdbc.Driver，再加到最後面，這樣就會確保拿到net.ucanaccess.jdbc.UcanaccessDriver
-				// TODO 在Web環境下如果要同時使用兩者，需要測試有無狀況
-				// ref. http://stackoverflow.com/questions/31304195/wrong-jdbc-driver-being-used
-				if(driver.getClass().getName().equals("org.mariadb.jdbc.Driver")){
-					try{
-						DriverManager.deregisterDriver(driver);
-						DriverManager.registerDriver(driver);
-					}catch(Throwable e){
-						throw new RuntimeException(e);
-					}
-				}
-			}
+		List<String> ids = Arrays.asList("AAH029","AAL025");
+		List<String> params = Collections.nCopies(ids.size(), "?");
+		String paramsStr = StringUtils.join(params, ",");
+		String sql = "SELECT * FROM Products WHERE productid IN ("+paramsStr+")";
+		
+		try(Connection conn = DriverManager.getConnection(jdbcUrl, user, encryptPwd);
+			PreparedStatement prepared = conn.prepareStatement(sql);) {
 
-			conn = DriverManager.getConnection(jdbcUrl, user, encryptPwd);
-			
-			
-			
-			
-			List<String> ids = Arrays.asList("AAH029"
-					,"AAL025"
-					,"AAN003"
-					,"AAP006"
-					,"AAU001"
-					,"AAU002"
-					,"AAU003"
-					,"AAU004"
-					,"AAX100"
-					,"AAX101"
-					,"AAX102"
-					,"AAX103"
-					,"AAX104"
-					,"AAX105"
-					,"AAY026"
-					,"ACS000"
-					,"ACS000G"
-					,"ACS001"
-					,"ACS002"
-					,"ACS002G"
-					,"AMV01900"
-					,"WHG001"
-					,"WHG002"
-					,"WHG003"
-					,"WHG004"
-					,"WHG007"
-					,"WHG010"
-					,"WHG012"
-					,"WHG015"
-					,"WHG016"
-					,"WHG017"
-					,"WHG018"
-					,"WHG019"
-					,"WHG020"
-					,"WHG021"
-					,"WHG024"
-					,"WHG026"
-					,"WHH001"
-					,"WHH002"
-					,"WHH003"
-					,"WHH004"
-					,"WHH005"
-					,"WHH009"
-					,"WHH010"
-					,"AAL024"
-					,"AAL031"
-					,"AHKS002"
-					,"AHKS003"
-					,"AHKS004"
-					,"AMV02000"
-					,"AAA056"
-					,"AAA057"
-					,"AAA058"
-					,"AAA059"
-					,"AAA060"
-					,"AAA061"
-					,"BGL004BXS"
-					,"BGL004BS"
-					,"BGL004BM"
-					,"BGL004BL"
-					,"WHW01950"
-					,"WHW01970"
-					,"WHW01950B"
-					,"WHW01970B");
-			
-			List<String> params = Collections.nCopies(ids.size(), "?");
-			String paramsStr = StringUtils.join(params, ",");
-			
-			prepared = conn.prepareStatement("SELECT * FROM Products WHERE productid IN ("+paramsStr+")");
 			for(int i = 0; i < ids.size(); i++){
 				String id = ids.get(i);
 				prepared.setString(i+1, id);
 			}
-			rs = prepared.executeQuery();
-			ResultSetMetaData meta= rs.getMetaData();
-//			int columnCount = meta.getColumnCount();
-//			for(int i = 0; i < columnCount; i++){
-//				String label = meta.getColumnLabel(i); // not work via net.ucanaccess.jdbc.UcanaccessDriver
-//				String columnName = meta.getColumnName(i); // not work via net.ucanaccess.jdbc.UcanaccessDriver
-//				System.out.println(label + ":" + columnName);
-//			}
-			
-			List<OnePosProduct> products = collectPojosFromResultSet(rs, OnePosProduct.class);
-			products.stream().forEach(p->{
-				System.out.println(ReflectionToStringBuilder.toString(p, ToStringStyle.MULTI_LINE_STYLE));
-			});
-			
-		} catch (Throwable e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		} finally{
-			try{
-				if(rs!=null){
-					rs.close();
-				}
-				if(prepared!=null){
-					prepared.close();
-				}
-				if(conn != null){
-					conn.close();
-				}
+			try(ResultSet rs = prepared.executeQuery();){
+				ResultSetMetaData meta= rs.getMetaData();
+//				int columnCount = meta.getColumnCount();
+//				for(int i = 0; i < columnCount; i++){
+//					String label = meta.getColumnLabel(i); // not work via net.ucanaccess.jdbc.UcanaccessDriver
+//					String columnName = meta.getColumnName(i); // not work via net.ucanaccess.jdbc.UcanaccessDriver
+//					System.out.println(label + ":" + columnName);
+//				}
+				
+				List<OnePosProduct> products = collectPojosFromResultSet(rs, OnePosProduct.class);
+				products.stream().forEach(p->{
+					System.out.println(ReflectionToStringBuilder.toString(p, ToStringStyle.MULTI_LINE_STYLE));
+				});
 			}catch(Throwable e){
 				throw new RuntimeException(e);
 			}
+		} catch (Throwable e) {
+			throw new RuntimeException(e);
 		}
 	}
 	
@@ -249,7 +217,6 @@ public class OnePosMdbAccessor {
 		} catch (Throwable e) {
 			throw new RuntimeException(e);
 		}
-		System.out.println("共"  + targets.size() + "筆");
 		return targets;
 	}
 	
