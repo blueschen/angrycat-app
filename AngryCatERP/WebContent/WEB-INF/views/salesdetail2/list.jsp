@@ -14,7 +14,8 @@
 <c:set value="${angrycatRoot}/js" var="angrycatJs"/>
 <c:set value="${angrycatRoot}/styles" var="angrycatStyle"/>
 <c:set value="${rootPath}/vendor/bootstrap/3.3.5" var="bootstrapRoot"/>
-<c:set value="${bootstrapRoot}/css" var="bootstrapCss"/> 
+<c:set value="${bootstrapRoot}/css" var="bootstrapCss"/>
+<c:set value="${bootstrapRoot}/js" var="bootstrapJs"/>
    
 <!DOCTYPE html>
 <html>
@@ -34,53 +35,13 @@
 	<script type="text/javascript" src="${kendouiJs}/jquery.min.js"></script>
 	<script type="text/javascript" src="${kendouiJs}/kendo.web.min.js"></script>
 	<script type="text/javascript" src="${kendouiJs}/messages/kendo.messages.zh-TW.min.js"></script>
+	<script type="text/javascript" src="${bootstrapJs}/bootstrap.min.js"></script>
 
 
 </head>
 <body>
 
-<div>
-	<nav role="navigation" class="navbar navbar-default navbar-fixed-top">
-		<div class="container">
-			<div class="navbar-header">
-				<button type="button" data-target="#navbarCollapse" data-toggle="collapse" class="navbar-toggle">
-					<span class="sr-only">Toggle navigation</span>
-					<span class="icon-bar"></span>
-					<span class="icon-bar"></span>
-					<span class="icon-bar"></span>
-				</button>
-				<a href="#" class="navbar-brand">Angrycat</a>
-			</div>
-			<div id="navbarCollapse" class="collapse navbar-collapse">
-				<ul class="nav navbar-nav">
-					<li>
-						<a href="${rootPath}/member/list">會員查詢</a>
-					</li>
-					<li>
-						<a href="${rootPath}/member/add">會員新增</a>
-					</li>
-					<li>
-						<a href="${rootPath}/datachangelog/list">異動紀錄查詢</a>
-					</li>
-					<li>
-						<a href="${rootPath}/datadeletelog/list">已刪除資料異動紀錄查詢</a>
-					</li>
-					<li>
-						<a href="${rootPath}/salesdetail/list">銷售明細查詢</a>
-					</li>
-					<li class="active">
-						<a href="${rootPath}/salesdetail2/list">銷售明細新介面</a>
-					</li>															
-				</ul>
-				<ul class="nav navbar-nav navbar-right">
-					<li>
-						<a href="${rootPath}/logout"><span class="glyphicon glyphicon-user"></span>登出</a>
-					</li>
-				</ul>
-			</div>		
-		</div>
-	</nav>
-</div>
+<jsp:include page="/WEB-INF/views/navigation.jsp"></jsp:include>
 
 <div class="container-fluid">
 <div class="well">
@@ -93,24 +54,24 @@
 	<script type="text/javascript" src="${angrycatJs}/angrycat.js"></script>
 	<script type="text/javascript" src="${angrycatJs}/angrycat.kendo.grid.js"></script>	
 	<script type="text/javascript">
-		(function($, kendo, angrycat){
+		(function($, kendo, angrycat){"use strict"
 			var lastKendoData = ${sessionScope[kendoDataKey] == null ? "null" : sessionScope[kendoDataKey]},
-			opts = {
-				moduleName: "${moduleName}",
-				rootPath: "${rootPath}",
-				moduleBaseUrl: "${moduleBaseUrl}",
-				gridId: "#mainGrid",
-				notiId: "#updateNoti",
-				updateInfoWindowId: "#updateInfoWindow",
-				page: 1,
-				pageSize: 15,
-				filter: null,
-				sort: null,
-				group: null,
-				editMode: "incell",
-				pk: "id",
-				lastKendoData: lastKendoData
-			};
+				opts = {
+					moduleName: "${moduleName}",
+					rootPath: "${rootPath}",
+					moduleBaseUrl: "${moduleBaseUrl}",
+					gridId: "#mainGrid",
+					notiId: "#updateNoti",
+					updateInfoWindowId: "#updateInfoWindow",
+					page: 1,
+					pageSize: 15,
+					filter: null,
+					sort: null,
+					group: null,
+					editMode: "incell",
+					pk: "id",
+					lastKendoData: lastKendoData
+				};
 			
 			function fieldsReadyHandler(){
 				var context = this,
@@ -170,6 +131,7 @@
 						autocompleteFieldsToFilter: ["modelId", "nameEng"],
 						selectAction: function(model, dataItem){
 							model.set("productName", dataItem.nameEng);
+							model.set("price", dataItem.suggestedRetailPrice);
 						}
 					}),
 					mobileFieldName = "mobile",
