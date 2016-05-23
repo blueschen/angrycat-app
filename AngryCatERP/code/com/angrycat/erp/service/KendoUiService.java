@@ -9,9 +9,11 @@ import java.sql.Date;
 import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.UnknownFormatConversionException;
+import java.util.stream.Collectors;
 
 import javax.annotation.PostConstruct;
 import javax.servlet.http.HttpSession;
@@ -31,6 +33,7 @@ import com.angrycat.erp.common.CommonUtil;
 import com.angrycat.erp.component.SessionFactoryWrapper;
 import com.angrycat.erp.log.DataChangeLogger;
 import com.angrycat.erp.model.Member;
+import com.angrycat.erp.model.ModuleConfig;
 import com.angrycat.erp.query.QueryScrollable;
 import com.angrycat.erp.sql.ISqlNode;
 import com.angrycat.erp.sql.ISqlRoot;
@@ -124,15 +127,22 @@ public class KendoUiService<T, R> implements Serializable{
 		@SuppressWarnings("unchecked")
 		Map<String, Object> kendoData = (Map<String, Object>)all.get(KENDO_UI_DATA);		
 		if(kendoData != null){
-			if(all.get("moduleName")!=null){
-				String moduleName = (String)all.get("moduleName");
-				HttpSession session = getCurrentHttpSession();
-				if(session != null){
-					session.setAttribute(moduleName + "KendoData", CommonUtil.parseToJson(kendoData));
-					session.setAttribute(moduleName + "KendoDataPojo", kendoData);
+			HttpSession session = getCurrentHttpSession();
+			if(session != null){
+				if(all.get("moduleName")!=null){
+					String moduleName = (String)all.get("moduleName");
+					String kendoDataJson = CommonUtil.parseToJson(kendoData); 
+					session.setAttribute(moduleName + "KendoData", kendoDataJson); // 前端使用，代表最後一次的查詢條件
+					session.setAttribute(moduleName + "KendoDataPojo", kendoData); // 後端使用，代表最後一次的查詢條件
+					if(all.get("selectedCondition")!=null){// 前後端使用，代表最後一次選擇的條件設定範圍
+						Object selectedCondition = all.get("selectedCondition");
+						String json = CommonUtil.parseToJson(selectedCondition);
+						session.setAttribute(moduleName + "SelectedCondition", json);
+						System.out.println("add Session selecedCondition: " + json);
+					}
 				}
 			}
-			
+
 			// kendo ui filter conditions
 			Object filter = kendoData.get(KENDO_UI_GRID_FILTER);
 			// remove kendo ui filter conditions
@@ -238,7 +248,52 @@ public class KendoUiService<T, R> implements Serializable{
 		
 		return saved;
 	}
+	
+	@Transactional
+	public void saveModuleConfig(ModuleConfig config){
+		Session s = sfw.currentSession();
+		s.save(config);
+		s.flush();
+		s.clear();
+	}
+	
+	@Transactional
+	public void deleteModuleConfigs(List<String> configIds){
+		String deleteHql = "DELETE FROM " + ModuleConfig.class.getName() + " m WHERE m.id IN (:configIds)";
+		Session s = sfw.currentSession();
+		s.createQuery(deleteHql).executeUpdate();
+		s.flush();
+		s.clear();
+	}
+	
+	@Transactional
+	public List<Map<String, Object>> listModuleConfigs(String moduleName){
+		String queryHql = "SELECT DISTINCT p FROM " + ModuleConfig.class.getName() + " p WHERE p.moduleName = :moduleName";
+		Session s = sfw.currentSession();
+		List<ModuleConfig> moduleConfigs = s.createQuery(queryHql).setString("moduleName", moduleName).list();
 		
+		List<Map<String, Object>> transformed = 
+			moduleConfigs.stream().map(config->{
+				Map<String, Object> result = moduleConfigToMap(config);
+				return result;
+			}).collect(Collectors.toList());
+		
+		return transformed;
+	}
+	
+	public static Map<String, Object> moduleConfigToMap(ModuleConfig config){
+		Map<String, Object> result = new LinkedHashMap<>();
+		result.put("id", config.getId());
+		result.put("name", config.getName());
+		System.out.println("moduleConfigToMap: ");
+		Map<?, ?> json = CommonUtil.parseJsonStrToMap(config.getJson());
+		json.forEach((k,v)->{
+			System.out.println(k+":"+v);
+		});
+		result.put("json", json);
+		return result;
+	}
+	
 	private void adjustConditionByKendoUIGridFilter(Object filterObj){		
 		SqlRoot root = getSqlRootImpl();
 		Where where = root.find(Where.class);
