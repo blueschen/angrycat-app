@@ -500,7 +500,6 @@
 						//console.log("parameterMap data: " + JSON.stringify(data));
 						if(type === "read"){
 							if(data.filter && data.filter.filters){
-								console.log("value: " + data.filter.filters[0].value + ", type: " + (typeof data.filter.filters[0].value));
 								minusFilterDateTimezoneOffset(data.filter, modelFields);
 							}
 							var viewModelConds = viewModel ? viewModel.get("conds"): {},
@@ -670,19 +669,21 @@
 					valuePrimitive: false,
 					changeAction: function(){
 						var dataItem = this.dataItem();
-						console.log("change dataItem.json: " + JSON.stringify(dataItem.json));
+						// console.log("change dataItem.json: " + JSON.stringify(dataItem.json));
 						var json3 = {};
+						console.log("dataItem.id: " + dataItem.id);
 						if(defaultDropdownItems){
 							for(var i = 0; i < defaultDropdownItems.length; i++){
 								var defaultDropdownItem = defaultDropdownItems[i];
 								if(dataItem.id == defaultDropdownItem.id){
+									console.log("defaultDropdownItem json: " + JSON.stringify(defaultDropdownItem.json));
 									json3 = defaultDropdownItem.json;
 									break;
 								}
 							}
 						}
 						// 這邊不會也不用轉換date，因為從後端回來的date是UTC的string，所以也不會因為透過JSON.stringify()的轉換，讓date的值少掉八個小時
-						mainGrid.dataSource.query(json3);
+						mainGrid.dataSource.query($.extend({selectedCondition: dataItem.id}, json3));
 					},
 					modelFields: modelFields,
 					autoBind: true,
@@ -729,11 +730,7 @@
 						moduleName: moduleName,
 						json: query // 此處日期欄位不需轉換，假設我在filter填入2016-04-26，這邊出來的資料會是Tue Apr 26 2016 08:00:00 GMT+0800；透過JSON.stringify(減掉八小時)之後，並不會變更日期；有趣得是，如果是直接從dataSource取得的日期資料，會變成Tue Apr 26 2016 00:00:00 GMT+0800，JSON.stringify(減掉八小時)之後，傳出的時間就不正確
 					};
-					var data = JSON.stringify(moduleConfig);
-					if(query.filter && query.filter.filters){
-						console.log("value: " + query.filter.filters[0].value + ", type: " + (typeof query.filter.filters[0].value));
-					}
-					
+					var data = JSON.stringify(moduleConfig);					
 					$.ajax(baseConfig.url, $.extend(baseConfig, {// TODO 是否換成kendo ui dataSource
 						data: data,
 						traditional: true,
