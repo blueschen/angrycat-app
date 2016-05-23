@@ -14,6 +14,7 @@ import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
 
 import org.apache.commons.io.FileUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.annotation.AnnotationUtils;
 import org.springframework.ui.Model;
@@ -22,8 +23,10 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.ResponseBody;
 
+import com.angrycat.erp.common.CommonUtil;
 import com.angrycat.erp.component.SessionFactoryWrapper;
 import com.angrycat.erp.excel.ExcelExporter;
+import com.angrycat.erp.model.ModuleConfig;
 import com.angrycat.erp.service.KendoUiService;
 import com.angrycat.erp.web.WebUtils;
 import com.angrycat.erp.web.component.ConditionConfig;
@@ -130,4 +133,27 @@ public abstract class KendoUiGridController<T, R> implements Serializable{
 			}
 		}
 	}
+	
+	@RequestMapping(value="/saveCondition",
+			method=RequestMethod.POST,
+			produces={"application/xml", "application/json"},
+			headers="Accept=*/*")
+	public @ResponseBody Map<String, Object> saveCondition(@RequestBody Map<String, Object> config){
+		ModuleConfig moduleConfig = new ModuleConfig();
+		moduleConfig.setModuleName(moduleName);
+		moduleConfig.setName((String)config.get("name"));
+		String json = CommonUtil.parseToJson(config.get("json"));
+		moduleConfig.setJson(json);
+		kendoUiGridService.saveModuleConfig(moduleConfig);
+		config.put("id", moduleConfig.getId());
+		return config;
+	}
+	
+	@RequestMapping(value="/listConditionConfigs",
+			method=RequestMethod.POST,
+			produces={"application/xml", "application/json"},
+			headers="Accept=*/*")
+	public @ResponseBody List<Map<String, Object>> listConditionConfigs(){
+		return kendoUiGridService.listModuleConfigs(moduleName);
+	}	
 }
