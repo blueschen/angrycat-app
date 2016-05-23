@@ -6,6 +6,7 @@
 
 <c:set value="${pageContext.request.contextPath}" var="rootPath"/>
 <c:set value="${moduleName}KendoData" var="kendoDataKey"/>
+<c:set value="${moduleName}SelectedCondition" var="selectedCondition"/>
 <c:set value="${rootPath}/${moduleName}" var="moduleBaseUrl"/>
 <c:set value="${rootPath}/vendor/kendoui/professional.2016.1.226.trial" var="kendouiRoot"/>
 <c:set value="${kendouiRoot}/styles" var="kendouiStyle"/>
@@ -32,12 +33,6 @@
 	<link rel="stylesheet" href="${bootstrapCss}/bootstrap.css">
 	<link rel="stylesheet" href="${bootstrapCss}/bootstrap-theme.css">
 	
-	<script type="text/javascript" src="${kendouiJs}/jquery.min.js"></script>
-	<script type="text/javascript" src="${kendouiJs}/kendo.web.min.js"></script>
-	<script type="text/javascript" src="${kendouiJs}/messages/kendo.messages.zh-TW.min.js"></script>
-	<script type="text/javascript" src="${bootstrapJs}/bootstrap.min.js"></script>
-
-
 </head>
 <body>
 
@@ -49,13 +44,18 @@
 	<span id="updateInfoWindow" style="display:none;"></span>
 	<div id="mainGrid"></div>
 	<div id="updateNoti"></div>
-</div>	
+</div>
+	<script type="text/javascript" src="${kendouiJs}/jquery.min.js"></script>
+	<script type="text/javascript" src="${kendouiJs}/kendo.web.min.js"></script>
+	<script type="text/javascript" src="${kendouiJs}/messages/kendo.messages.zh-TW.min.js"></script>
+	<script type="text/javascript" src="${bootstrapJs}/bootstrap.min.js"></script>
 	
 	<script type="text/javascript" src="${angrycatJs}/angrycat.js"></script>
 	<script type="text/javascript" src="${angrycatJs}/angrycat.kendo.grid.js"></script>	
 	<script type="text/javascript">
 		(function($, kendo, angrycat){"use strict"
 			var lastKendoData = ${sessionScope[kendoDataKey] == null ? "null" : sessionScope[kendoDataKey]},
+				lastSelectedCondition = ${sessionScope[selectedCondition] == null ? "null" : sessionScope[selectedCondition]},
 				opts = {
 					moduleName: "${moduleName}",
 					rootPath: "${rootPath}",
@@ -70,7 +70,8 @@
 					group: null,
 					editMode: "incell",
 					pk: "id",
-					lastKendoData: lastKendoData
+					lastKendoData: lastKendoData,
+					lastSelectedCondition: lastSelectedCondition
 				};
 			
 			function fieldsReadyHandler(){
