@@ -1,5 +1,7 @@
 package com.angrycat.erp.test;
 
+import java.text.SimpleDateFormat;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.function.BiConsumer;
@@ -18,7 +20,11 @@ import com.angrycat.erp.initialize.config.RootConfig;
 import com.angrycat.erp.model.Member;
 import com.angrycat.erp.model.ModuleConfig;
 import com.angrycat.erp.model.SalesDetail;
+import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.ArrayNode;
+import com.fasterxml.jackson.databind.node.JsonNodeType;
+
 
 
 public class BaseTest {
@@ -122,8 +128,53 @@ public class BaseTest {
 		});
 	}
 	
+	/**
+	 * 結論:透過JsonNode無法自動轉換日期格式成Java Date
+	 */
+	private static void testJsonNode(){
+		executeApplicationContext(acac->{
+			
+			String sample = "{\"page\":1,\"filter\":{\"logic\":\"and\",\"filters\":[{\"operator\":\"gte\",\"value\":\"2016-04-26T00:00:00.000Z\",\"field\":\"orderDate\"}]}}";
+			try{
+				ObjectMapper om = new ObjectMapper();
+				om.setDateFormat(new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.sssZ"));
+				JsonNode node = om.readValue(sample, JsonNode.class);										
+				JsonNode element = node.findValue("filters");
+				System.out.println("root node: " + node.getClass().getName() + ", isValueNode: " + node.isValueNode()); // ObjectNode
+				System.out.println("filters node: " + element.getClass().getName() + ", isValueNode: " + element.isValueNode()); // ArrayNode
+				
+				ArrayNode array = (ArrayNode)element;
+				Iterator<JsonNode> iterator = array.elements();
+				while(iterator.hasNext()){
+					JsonNode n = iterator.next();
+					JsonNodeType type = n.getNodeType();
+					System.out.println(type);
+					System.out.println(n.isValueNode());
+					Iterator<String> fieldNames = n.fieldNames();
+					while(fieldNames.hasNext()){
+						String fieldName = fieldNames.next();
+						JsonNode field = n.get(fieldName);
+						System.out.println(fieldName + ":"+field.asText() + ", isValueNode: " + field.isValueNode() + ", type: " + field.getNodeType());
+						if("field".equals(fieldName) && "orderDate".equals(field.asText())){
+							System.out.println("isInt: " + field.isInt());
+							System.out.println("isDouble: " + field.isDouble());
+							System.out.println("isFloat: " + field.isFloat());
+							System.out.println("isFloatingPointNumber: " + field.isFloatingPointNumber());
+							System.out.println("isLong: " + field.isLong());
+							System.out.println("isTextual: " + field.isTextual());
+						}
+					}
+				}
+				
+			}catch(Throwable e){
+				throw new RuntimeException(e);
+			}
+			
+		});
+	}
+	
 	public static void main(String[]args){
-		testFromJsonStrToObj();
+		testJsonNode();
 	}
 
 	
