@@ -288,7 +288,7 @@
 				changeAction = settings.changeAction,
 				modelFields = settings.modelFields,
 				autoBind = settings.autoBind ? settings.autoBind : false,
-				optionLabel = settings.optionLabel ? settings.optionLabel : "請選擇",
+				optionLabel = settings.optionLabel ? settings.optionLabel : "請選擇條件",
 				ds = new kendo.data.DataSource({
 					transport: {
 						read: getDefaultRemoteConfig(action),
@@ -497,9 +497,10 @@
 					destroy: getDefaultRemoteConfig("deleteByIds"),
 					parameterMap: function(data, type){
 						console.log("parameterMap type: " + type);
-						console.log("parameterMap data: " + JSON.stringify(data));
+						//console.log("parameterMap data: " + JSON.stringify(data));
 						if(type === "read"){
 							if(data.filter && data.filter.filters){
+								console.log("value: " + data.filter.filters[0].value + ", type: " + (typeof data.filter.filters[0].value));
 								minusFilterDateTimezoneOffset(data.filter, modelFields);
 							}
 							var viewModelConds = viewModel ? viewModel.get("conds"): {},
@@ -605,21 +606,21 @@
 						text: " 下載Excel",
 						name: "downloadExcel",
 						iconClass: "k-font-icon k-i-xls"
-					},
-					{
-						text: " 儲存條件",
-						name: "saveCondition",
-						iconClass: "k-font-icon k-i-lock"
-					},
-					{
-						text: " 選擇條件",
-						name: "selectCondition"
 					}];
 				
 				if("incell" === DEFAULT_EDIT_MODE){// in relation with batch update
 					toolbar.push({name: "save"});
 					toolbar.push({name: "cancel"});
 				}
+				toolbar.push({
+					text: " 儲存條件",
+					name: "saveCondition",
+					iconClass: "k-font-icon k-i-lock"
+				});
+				toolbar.push({
+					text: " 選擇條件",
+					name: "selectCondition"
+				});
 				
 				var mainGrid = $(gridId).kendoGrid({
 					columns: columns,
@@ -680,6 +681,7 @@
 								}
 							}
 						}
+						// 這邊不會也不用轉換date，因為從後端回來的date是UTC的string，所以也不會因為透過JSON.stringify()的轉換，讓date的值少掉八個小時
 						mainGrid.dataSource.query(json3);
 					},
 					modelFields: modelFields,
@@ -725,12 +727,14 @@
 					var moduleConfig = {
 						name: name,
 						moduleName: moduleName,
-						json: query // TODO 日期欄位是否需要轉換
+						json: query // 此處日期欄位不需轉換，假設我在filter填入2016-04-26，這邊出來的資料會是Tue Apr 26 2016 08:00:00 GMT+0800；透過JSON.stringify(減掉八小時)之後，並不會變更日期；有趣得是，如果是直接從dataSource取得的日期資料，會變成Tue Apr 26 2016 00:00:00 GMT+0800，JSON.stringify(減掉八小時)之後，傳出的時間就不正確
 					};
 					var data = JSON.stringify(moduleConfig);
-					console.log("moduleConfig json: " + data);					
+					if(query.filter && query.filter.filters){
+						console.log("value: " + query.filter.filters[0].value + ", type: " + (typeof query.filter.filters[0].value));
+					}
 					
-					$.ajax(baseConfig.url, $.extend(baseConfig, {
+					$.ajax(baseConfig.url, $.extend(baseConfig, {// TODO 是否換成kendo ui dataSource
 						data: data,
 						traditional: true,
 						beforeSend: function(jqxhr, settings){
@@ -888,10 +892,8 @@
 				initDefaultInfoWindow({windowId: updateInfoWindowId, title: "更新訊息"});
 				initDefaultNotification({notiId: notiId});
 				
-				if(lastKendoData){
-					mainGrid.dataSource.query(lastKendoData).then(function(){
-						console.log("onload: " + JSON.stringify(mainGrid.dataSource.filter()));
-					});
+				if(lastKendoData){// 沒有date型別轉換問題，因為從後端回來的date在前端已經是UTC的string
+					mainGrid.dataSource.query(lastKendoData);
 				}else{
 					mainGrid.dataSource.query(DEFAULT_QUERY_OPTIONS);
 				}
