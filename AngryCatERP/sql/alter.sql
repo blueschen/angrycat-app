@@ -30,3 +30,12 @@ CREATE TABLE `angrycat`.`salesdetail`(
   PRIMARY KEY (`id`)
 )
 COMMENT='銷售明細';
+
+-- 2016-05-23
+CREATE TABLE `shr_module_config` (
+  `id` varchar(100) COLLATE utf8_bin NOT NULL,
+  `name` varchar(500) COLLATE utf8_bin DEFAULT NULL,
+  `moduleName` varchar(100) COLLATE utf8_bin DEFAULT NULL,
+  `json` text COLLATE utf8_bin,
+  PRIMARY KEY (`id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_bin;

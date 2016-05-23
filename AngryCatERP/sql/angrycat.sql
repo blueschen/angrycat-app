@@ -639,6 +639,19 @@ LOCK TABLES `shr_storagefile` WRITE;
 /*!40000 ALTER TABLE `shr_storagefile` DISABLE KEYS */;
 /*!40000 ALTER TABLE `shr_storagefile` ENABLE KEYS */;
 UNLOCK TABLES;
+
+/*Table structure for table `shr_module_config` */
+
+DROP TABLE IF EXISTS `shr_module_config`;
+
+CREATE TABLE `shr_module_config` (
+  `id` varchar(100) COLLATE utf8_bin NOT NULL,
+  `name` varchar(500) COLLATE utf8_bin DEFAULT NULL,
+  `moduleName` varchar(100) COLLATE utf8_bin DEFAULT NULL,
+  `json` text COLLATE utf8_bin,
+  PRIMARY KEY (`id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_bin;
+
 /*!40103 SET TIME_ZONE=@OLD_TIME_ZONE */;
 
 /*!40101 SET SQL_MODE=@OLD_SQL_MODE */;
