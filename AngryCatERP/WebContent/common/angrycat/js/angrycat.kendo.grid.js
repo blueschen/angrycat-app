@@ -31,6 +31,7 @@
 			lastKendoData = opts.lastKendoData || null,
 			lastSelectedCondition = opts.lastSelectedCondition || null,
 			defaultDropdownItems = null,
+			defaultDropdownItems3 = null,
 			defaultDropdownOptionId = "select",
 			selectedVal = null;
 			
@@ -289,6 +290,7 @@
 				modelFields = settings.modelFields,
 				autoBind = settings.autoBind ? settings.autoBind : false,
 				optionLabel = settings.optionLabel ? settings.optionLabel : "請選擇條件",
+				value = settings.value ? settings.value : "",
 				ds = new kendo.data.DataSource({
 					transport: {
 						read: getDefaultRemoteConfig(action),
@@ -314,6 +316,12 @@
 						data: function(response){
 							var results = response.results ? response.results : response; // read
 							defaultDropdownItems = results;
+							defaultDropdownItems3 = {};
+							console.log("schema data...");
+							for(var i = 0; i < results.length; i++){
+								var result = results[i];
+								defaultDropdownItems3[result.id] = {id: result.id, name: result.name, json: JSON.stringify(result.json)};
+							}
 							return results;
 						}
 					}					
@@ -327,7 +335,8 @@
 				select: selectAction,
 				change: changeAction,
 				autoBind: autoBind,
-				optionLabel: optionLabel
+				optionLabel: optionLabel,
+				value: value
 			}).data("kendoDropDownList");
 			return dropdown;
 		}		
@@ -502,6 +511,7 @@
 							if(data.filter && data.filter.filters){
 								minusFilterDateTimezoneOffset(data.filter, modelFields);
 							}
+							console.log("defaultDropdownItems3 aaa: " +JSON.stringify(defaultDropdownItems3));
 							var viewModelConds = viewModel ? viewModel.get("conds"): {},
 								conds = $.extend({moduleName: moduleName}, viewModelConds, {kendoData: data});
 							if(data.selectedCondition){
@@ -672,6 +682,7 @@
 						// console.log("change dataItem.json: " + JSON.stringify(dataItem.json));
 						var json3 = {};
 						console.log("dataItem.id: " + dataItem.id);
+						/*
 						if(defaultDropdownItems){
 							for(var i = 0; i < defaultDropdownItems.length; i++){
 								var defaultDropdownItem = defaultDropdownItems[i];
@@ -681,7 +692,8 @@
 									break;
 								}
 							}
-						}
+						}*/
+						json3 = defaultDropdownItems3[dataItem.id] ? JSON.parse(defaultDropdownItems3[dataItem.id].json) : ORIGINAL_DEFAULT_QUERY_OPTIONS;
 						// 這邊不會也不用轉換date，因為從後端回來的date是UTC的string，所以也不會因為透過JSON.stringify()的轉換，讓date的值少掉八個小時
 						mainGrid.dataSource.query($.extend({selectedCondition: dataItem.id}, json3));
 					},
@@ -689,9 +701,10 @@
 					autoBind: true,
 					optionLabel: {
 						id: defaultDropdownOptionId,
-						name: "請選擇",
+						name: "請選擇條件",
 						json: ORIGINAL_DEFAULT_QUERY_OPTIONS
-					}
+					},
+					value: lastSelectedCondition ? lastSelectedCondition : defaultDropdownOptionId
 				});
 				
 				$(".k-grid-reset").click(function(e){
@@ -704,12 +717,6 @@
 						ds.query(DEFAULT_QUERY_OPTIONS);
 					}
 				});
-				
-				if(lastSelectedCondition){
-					dropdown.value(lastSelectedCondition);
-					dropdown.trigger("change");
-				}
-				
 				$(".k-grid-saveCondition").click(function(e){
 					var name = prompt("請輸入設定名稱");
 					if(!name){
@@ -748,8 +755,9 @@
 						},
 						success: function(ret, textStatus, jqxhr){
 							dropdown.dataSource.add(ret);
-							defaultDropdownItems = defaultDropdownItems || [];
-							defaultDropdownItems.push(ret);
+							dropdown.value(ret.id);
+							defaultDropdownItems3 = defaultDropdownItems3 || {};
+							defaultDropdownItems3[ret.id] = {id: ret.id, name: ret.name, json: JSON.stringify(ret.json)};
 							$(notiId).data("kendoNotification").show("條件儲存成功");
 						},
 						error: function(jqxhr){
