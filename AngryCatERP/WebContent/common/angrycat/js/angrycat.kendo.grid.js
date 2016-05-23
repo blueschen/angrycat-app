@@ -17,17 +17,22 @@
 			DEFAULT_FILTER_VALUE = opts.filter || null,
 			DEFAULT_SORT_VALUE = opts.sort || null,
 			DEFAULT_GROUP_VALUE = opts.group || null,
-			DEFAULT_QUERY_OPTIONS = {
+			ORIGINAL_DEFAULT_QUERY_OPTIONS =
+			{
 				filter: DEFAULT_FILTER_VALUE,
 				page: DEFAULT_PAGE_VALUE,
 				pageSize: DEFAULT_PAGESIZE_VALUE,
 				sort: DEFAULT_SORT_VALUE,
 				group: DEFAULT_GROUP_VALUE				
-			},
+			},	
+			DEFAULT_QUERY_OPTIONS = $.extend({}, ORIGINAL_DEFAULT_QUERY_OPTIONS),
 			DEFAULT_EDIT_MODE = opts.editMode || "incell",
 			pk = opts.pk || "id",
-			lastKendoData = opts.lastKendoData || null;
-		var selectedVal = null;
+			lastKendoData = opts.lastKendoData || null,
+			lastSelectedCondition = opts.lastSelectedCondition || null,
+			defaultDropdownItems = null,
+			defaultDropdownOptionId = "select",
+			selectedVal = null;
 			
 		function minusFilterDateTimezoneOffset(filter, modelFields){
 			if(!filter){
@@ -278,12 +283,21 @@
 				action = settings.action,
 				dataTextField = settings.dataTextField,
 				dataValueField = settings.dataValueField,
+				valuePrimitive = settings.valuePrimitive ? settings.valuePrimitive : true,
+				selectAction = settings.selectAction,
+				changeAction = settings.changeAction,
+				modelFields = settings.modelFields,
+				autoBind = settings.autoBind ? settings.autoBind : false,
+				optionLabel = settings.optionLabel ? settings.optionLabel : "請選擇",
 				ds = new kendo.data.DataSource({
 					transport: {
 						read: getDefaultRemoteConfig(action),
 						parameterMap: function(data, type){
 							if(type === "read"){
 								//console.log("data: " + JSON.stringify(data));
+								if(data.filter && data.filter.filters && modelFields){
+									minusFilterDateTimezoneOffset(data.filter, modelFields);
+								}								
 								var r = {
 									conds: {
 										kendoData: {
@@ -298,18 +312,24 @@
 					schema:{
 						type: "json",
 						data: function(response){
-							var results = response.results; // read
+							var results = response.results ? response.results : response; // read
+							defaultDropdownItems = results;
 							return results;
 						}
 					}					
 				});
-			//ds.pageSize(ds.total());
-			ele.kendoDropDownList({
-				valuePrimitive: true,
+			
+			var dropdown = ele.kendoDropDownList({
+				valuePrimitive: valuePrimitive,
 				dataSource: ds,
 				dataTextField: dataTextField,
-				dataValueField: dataValueField
-			});
+				dataValueField: dataValueField,
+				select: selectAction,
+				change: changeAction,
+				autoBind: autoBind,
+				optionLabel: optionLabel
+			}).data("kendoDropDownList");
+			return dropdown;
 		}		
 		
 		function initDefaultNotification(options){
@@ -477,13 +497,16 @@
 					destroy: getDefaultRemoteConfig("deleteByIds"),
 					parameterMap: function(data, type){
 						console.log("parameterMap type: " + type);
-						//console.log("parameterMap data: " + JSON.stringify(data));
+						console.log("parameterMap data: " + JSON.stringify(data));
 						if(type === "read"){
 							if(data.filter && data.filter.filters){
 								minusFilterDateTimezoneOffset(data.filter, modelFields);
 							}
 							var viewModelConds = viewModel ? viewModel.get("conds"): {},
 								conds = $.extend({moduleName: moduleName}, viewModelConds, {kendoData: data});
+							if(data.selectedCondition){
+								conds["selectedCondition"] = data.selectedCondition;
+							}
 							return JSON.stringify({conds: conds});
 						}else if(type == "create" || type == "update"){
 							var dataModels = data['models'];
@@ -531,10 +554,10 @@
 				error: function(e){
 					var status = (e && e.xhr && e.xhr.status) ? e.xhr.status : null;
 					if(status == 401){
-						window.location.href = rootPath + "/login.jsp"
+						window.location.href = rootPath + "/login.jsp";
 						return;
 					}
-					if(status != 200){// TODO 401
+					if(status != 200){
 						$(updateInfoWindowId).data("kendoWindow")
 							.content("<h3 style='color:red;'>主機發生錯誤</h3><br><h4><xmp>"+ JSON.stringify(e) +"</xmp></h4>")
 							.center()
@@ -582,6 +605,15 @@
 						text: " 下載Excel",
 						name: "downloadExcel",
 						iconClass: "k-font-icon k-i-xls"
+					},
+					{
+						text: " 儲存條件",
+						name: "saveCondition",
+						iconClass: "k-font-icon k-i-lock"
+					},
+					{
+						text: " 選擇條件",
+						name: "selectCondition"
 					}];
 				
 				if("incell" === DEFAULT_EDIT_MODE){// in relation with batch update
@@ -619,18 +651,113 @@
 					selectable: "multiple, cell",
 					columnMenu: true
 				}).data("kendoGrid");				
-				
-				$(".k-grid-reset").click(function(e){
-					var ds = mainGrid.dataSource;
-					ds.query(DEFAULT_QUERY_OPTIONS);
-				});
-				
+								
 				$(".k-grid-downloadExcel").click(function(e){
 					var ds = mainGrid.dataSource,
 						readUrl = ds.transport.options.read.url;
 					window.location.href = moduleBaseUrl + "/downloadExcel.json";
-					//ds.query();
-					//ds.transport.options.read.url = readUrl;
+				});
+								
+				var $selectCondition = $(".k-grid-selectCondition"),
+					$input = $("<input class='k-grid-selectCondition'/>");
+				$selectCondition.replaceWith($input);
+				var dropdown = getDefaultRemoteDropDownList({
+					ele: $input,
+					action: "listConditionConfigs",
+					dataValueField: "id",
+					dataTextField: "name",
+					valuePrimitive: false,
+					changeAction: function(){
+						var dataItem = this.dataItem();
+						console.log("change dataItem.json: " + JSON.stringify(dataItem.json));
+						var json3 = {};
+						if(defaultDropdownItems){
+							for(var i = 0; i < defaultDropdownItems.length; i++){
+								var defaultDropdownItem = defaultDropdownItems[i];
+								if(dataItem.id == defaultDropdownItem.id){
+									json3 = defaultDropdownItem.json;
+									break;
+								}
+							}
+						}
+						mainGrid.dataSource.query(json3);
+					},
+					modelFields: modelFields,
+					autoBind: true,
+					optionLabel: {
+						id: defaultDropdownOptionId,
+						name: "請選擇",
+						json: ORIGINAL_DEFAULT_QUERY_OPTIONS
+					}
+				});
+				
+				$(".k-grid-reset").click(function(e){
+					var optionLabel = dropdown.options.optionLabel;
+					if(optionLabel && optionLabel.id == defaultDropdownOptionId){
+						dropdown.value(defaultDropdownOptionId);
+						dropdown.trigger("change");
+					}else{
+						var ds = mainGrid.dataSource;
+						ds.query(DEFAULT_QUERY_OPTIONS);
+					}
+				});
+				
+				if(lastSelectedCondition){
+					dropdown.value(lastSelectedCondition);
+					dropdown.trigger("change");
+				}
+				
+				$(".k-grid-saveCondition").click(function(e){
+					var name = prompt("請輸入設定名稱");
+					if(!name){
+						return;
+					}
+					var ds = mainGrid.dataSource,
+						query = {
+							page: ds.page(),
+							pageSize: ds.pageSize(),
+							sort: ds.sort(),
+							group: ds.group(),
+							filter: ds.filter()
+						},
+						baseConfig = getDefaultRemoteConfig("saveCondition");
+										
+					var moduleConfig = {
+						name: name,
+						moduleName: moduleName,
+						json: query // TODO 日期欄位是否需要轉換
+					};
+					var data = JSON.stringify(moduleConfig);
+					console.log("moduleConfig json: " + data);					
+					
+					$.ajax(baseConfig.url, $.extend(baseConfig, {
+						data: data,
+						traditional: true,
+						beforeSend: function(jqxhr, settings){
+							kendo.ui.progress(mainGrid.wrapper, true);
+						},
+						complete: function(){
+							kendo.ui.progress(mainGrid.wrapper, false);
+						},
+						statusCode: {
+							401: function(){
+								window.location.href = rootPath + "/login.jsp";
+								return;
+							}
+						},
+						success: function(ret, textStatus, jqxhr){
+							dropdown.dataSource.add(ret);
+							defaultDropdownItems = defaultDropdownItems || [];
+							defaultDropdownItems.push(ret);
+							$(notiId).data("kendoNotification").show("條件儲存成功");
+						},
+						error: function(jqxhr){
+							$(updateInfoWindowId).data("kendoWindow")
+								.content("<h3 style='color:red;'>主機發生錯誤</h3><br><h4><xmp>"+ JSON.stringify(jqxhr.statusText) +"</xmp></h4>")
+								.center()
+								.open();
+						}
+					}));
 				});
 				
 				if(DEFAULT_EDIT_MODE === "incell"){
@@ -762,9 +889,11 @@
 				initDefaultNotification({notiId: notiId});
 				
 				if(lastKendoData){
-					mainGrid.dataSource.query(lastKendoData);
+					mainGrid.dataSource.query(lastKendoData).then(function(){
+						console.log("onload: " + JSON.stringify(mainGrid.dataSource.filter()));
+					});
 				}else{
-					mainGrid.dataSource.read();
+					mainGrid.dataSource.query(DEFAULT_QUERY_OPTIONS);
 				}
 			});
 		}
