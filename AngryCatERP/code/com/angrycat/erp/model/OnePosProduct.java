@@ -7,7 +7,6 @@ import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.Table;
 
-@Entity
 @Table(name="Products")
 public class OnePosProduct {
 	// 數字(雙精準數):double or Double
