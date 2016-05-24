@@ -281,7 +281,8 @@
 		
 		function getDefaultRemoteDropDownList(settings){
 			var ele = settings.ele,
-				action = settings.action,
+				readAction = settings.readAction,
+				destroyAction = settings.destroyAction,
 				dataTextField = settings.dataTextField,
 				dataValueField = settings.dataValueField,
 				valuePrimitive = settings.valuePrimitive ? settings.valuePrimitive : true,
@@ -293,7 +294,8 @@
 				value = settings.value ? settings.value : "",
 				ds = new kendo.data.DataSource({
 					transport: {
-						read: getDefaultRemoteConfig(action),
+						read: getDefaultRemoteConfig(readAction),
+						destroy: (destroyAction ? getDefaultRemoteConfig(destroyAction) : null),
 						parameterMap: function(data, type){
 							if(type === "read"){
 								//console.log("data: " + JSON.stringify(data));
@@ -308,6 +310,12 @@
 									}
 								};
 								return JSON.stringify(r);
+							}else if(type == "destroy"){
+								if(data && data.id){
+									return JSON.stringify(data);
+								}else{
+									console.log("刪除資料格式不正確");
+								}
 							}
 						}						
 					},
@@ -316,15 +324,26 @@
 						data: function(response){
 							var results = response.results ? response.results : response; // read
 							defaultDropdownItems = results;
-							defaultDropdownItems3 = {};
-							console.log("schema data...");
-							for(var i = 0; i < results.length; i++){
-								var result = results[i];
-								defaultDropdownItems3[result.id] = {id: result.id, name: result.name, json: JSON.stringify(result.json)};
+							if($.isArray(results)){
+								defaultDropdownItems3 = {};
+								for(var i = 0; i < results.length; i++){
+									var result = results[i];
+									defaultDropdownItems3[result.id] = {id: result.id, name: result.name, json: JSON.stringify(result.json)};
+								}
 							}
 							return results;
+						},
+						model: {
+							id: pk // 加上這段設定，dataSource.sync才會驅動
 						}
-					}					
+					},
+					requestEnd: function(e){
+						var type = e.type,
+							response = e.response;
+						if("destroy" === type){
+							$(notiId).data("kendoNotification").show(response.name + "刪除成功");
+						}
+					}
 				});
 			
 			var dropdown = ele.kendoDropDownList({
@@ -511,7 +530,6 @@
 							if(data.filter && data.filter.filters){
 								minusFilterDateTimezoneOffset(data.filter, modelFields);
 							}
-							console.log("defaultDropdownItems3 aaa: " +JSON.stringify(defaultDropdownItems3));
 							var viewModelConds = viewModel ? viewModel.get("conds"): {},
 								conds = $.extend({moduleName: moduleName}, viewModelConds, {kendoData: data});
 							if(data.selectedCondition){
@@ -627,6 +645,11 @@
 					iconClass: "k-font-icon k-i-lock"
 				});
 				toolbar.push({
+					text: " 移除條件",
+					name: "removeCondition",
+					iconClass: "k-font-icon k-i-cut"
+				});
+				toolbar.push({
 					text: " 選擇條件",
 					name: "selectCondition"
 				});
@@ -673,7 +696,8 @@
 				$selectCondition.replaceWith($input);
 				var dropdown = getDefaultRemoteDropDownList({
 					ele: $input,
-					action: "listConditionConfigs",
+					readAction: "listConditionConfigs",
+					destroyAction: "deleteConditionConfig",
 					dataValueField: "id",
 					dataTextField: "name",
 					valuePrimitive: false,
@@ -705,6 +729,30 @@
 						json: ORIGINAL_DEFAULT_QUERY_OPTIONS
 					},
 					value: lastSelectedCondition ? lastSelectedCondition : defaultDropdownOptionId
+				});
+				
+				$(".k-grid-removeCondition").click(function(e){
+					var ddds = dropdown.dataSource,
+						items = ddds.data(),
+						selected = dropdown.value();
+					for(var i = 0; i < items.length; i++){
+						var item = items[i];
+						if(selected == item.id){
+							var newSelected = null;
+							if(items[i+1]){ // 找看看後面選項是否存在
+								newSelected = items[i+1].id;
+							}else if(items[i-1]){// 找看看前面選項是否存在
+								newSelected = items[i-1].id;
+							}else{// 預設選項
+								newSelected = defaultDropdownOptionId;
+							}
+							ddds.remove(item);
+							ddds.sync();
+							dropdown.value(newSelected);
+							dropdown.trigger("change");
+							break;
+						}
+					}
 				});
 				
 				$(".k-grid-reset").click(function(e){
