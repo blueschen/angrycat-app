@@ -261,7 +261,7 @@ public class KendoUiService<T, R> implements Serializable{
 	public void deleteModuleConfigs(List<String> configIds){
 		String deleteHql = "DELETE FROM " + ModuleConfig.class.getName() + " m WHERE m.id IN (:configIds)";
 		Session s = sfw.currentSession();
-		s.createQuery(deleteHql).executeUpdate();
+		s.createQuery(deleteHql).setParameterList("configIds", configIds).executeUpdate();
 		s.flush();
 		s.clear();
 	}
