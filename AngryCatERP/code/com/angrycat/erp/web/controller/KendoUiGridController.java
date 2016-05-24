@@ -4,6 +4,7 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.Serializable;
 import java.lang.reflect.ParameterizedType;
+import java.util.Arrays;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -155,5 +156,16 @@ public abstract class KendoUiGridController<T, R> implements Serializable{
 			headers="Accept=*/*")
 	public @ResponseBody List<Map<String, Object>> listConditionConfigs(){
 		return kendoUiGridService.listModuleConfigs(moduleName);
-	}	
+	}
+	
+	@RequestMapping(value="/deleteConditionConfig",
+			method=RequestMethod.POST,
+			produces={"application/xml", "application/json"},
+			headers="Accept=*/*")
+	public @ResponseBody Map<String, Object> deleteConditionConfig(@RequestBody Map<String, Object> config){
+		if(config.containsKey("id")){
+			kendoUiGridService.deleteModuleConfigs(Arrays.asList((String)config.get("id")));
+		}
+		return config;
+	}
 }
