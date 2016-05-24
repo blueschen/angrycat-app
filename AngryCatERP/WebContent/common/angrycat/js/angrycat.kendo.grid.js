@@ -747,9 +747,10 @@
 								newSelected = defaultDropdownOptionId;
 							}
 							ddds.remove(item);
-							ddds.sync();
-							dropdown.value(newSelected);
-							dropdown.trigger("change");
+							ddds.sync().then(function(e){
+								dropdown.value(newSelected);
+								dropdown.trigger("change");
+							});
 							break;
 						}
 					}
