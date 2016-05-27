@@ -34,6 +34,7 @@ import com.angrycat.erp.component.SessionFactoryWrapper;
 import com.angrycat.erp.log.DataChangeLogger;
 import com.angrycat.erp.model.Member;
 import com.angrycat.erp.model.ModuleConfig;
+import com.angrycat.erp.model.Parameter;
 import com.angrycat.erp.query.QueryScrollable;
 import com.angrycat.erp.sql.ISqlNode;
 import com.angrycat.erp.sql.ISqlRoot;
@@ -279,6 +280,23 @@ public class KendoUiService<T, R> implements Serializable{
 			}).collect(Collectors.toList());
 		
 		return transformed;
+	}
+	
+	@Transactional
+	public Map<String, List<Parameter>> listParameters(List<String> catNames){
+		String queryHql = "SELECT DISTINCT p FROM " + Parameter.class.getName() + " p WHERE p.parameterCategory.name IN (:catNames)";
+		Session s = sfw.currentSession();
+		List<Parameter> params = s.createQuery(queryHql).setParameterList("catNames", catNames).list();
+		Map<String, List<Parameter>> results = new LinkedHashMap<>();
+		params.forEach(p->{
+			List<Parameter> subset = results.get(p.getParameterCategory().getName());
+			if(subset == null){
+				subset = new ArrayList<>();
+				results.put(p.getParameterCategory().getName(), subset);
+			}
+			subset.add(p);
+		});
+		return results;
 	}
 	
 	public static Map<String, Object> moduleConfigToMap(ModuleConfig config){
