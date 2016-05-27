@@ -483,7 +483,70 @@ public class ProductAccessService {
 	private static void testCopyAndPackImage(){
 		try(AnnotationConfigApplicationContext acac = new AnnotationConfigApplicationContext(RootConfig.class);){
 			ProductAccessService ser = acac.getBean(ProductAccessService.class);
-			ser.copyAndPackImage("AAX005、AAX004、AAX003、AAX002、AAX001、AAX105、AAX104、AAX103、AAX102、AAX101、AAX100、AAN002、AAL024、AAA050B、AAA050、AAY025、AAY024、WHH010、WHH009、WHH008、WHH007、WHH006、WHH005、WHH004、WHH003、WHH002、WHH001、WHG026、WHG025、WHG024、WHG023、WHG022、WHG021、WHG020、WHG019、WHG018、WHG017、WHG016、WHG015、WHG014、WHG013、WHG012、WHG011、WHG010、WHG009、WHG008、WHG007、WHG006、WHG005、WHG004、WHG003、WHG002、WHG001", null);
+			ser.copyAndPackImage("AAH029"
+					+"、AAL025"
+					+"、AAN003"
+					+"、AAP006"
+					+"、AAU001"
+					+"、AAU002"
+					+"、AAU003"
+					+"、AAU004"
+					+"、AAX100"
+					+"、AAX101"
+					+"、AAX102"
+					+"、AAX103"
+					+"、AAX104"
+					+"、AAX105"
+					+"、AAY026"
+					+"、ACS000"
+					+"、ACS000G"
+					+"、ACS001"
+					+"、ACS002"
+					+"、ACS002G"
+					+"、AMV01900"
+					+"、WHG001"
+					+"、WHG002"
+					+"、WHG003"
+					+"、WHG004"
+					+"、WHG007"
+					+"、WHG010"
+					+"、WHG012"
+					+"、WHG015"
+					+"、WHG016"
+					+"、WHG017"
+					+"、WHG018"
+					+"、WHG019"
+					+"、WHG020"
+					+"、WHG021"
+					+"、WHG024"
+					+"、WHG026"
+					+"、WHH001"
+					+"、WHH002"
+					+"、WHH003"
+					+"、WHH004"
+					+"、WHH005"
+					+"、WHH009"
+					+"、WHH010"
+					+"、AAL024"
+					+"、AAL031"
+					+"、AHKS002"
+					+"、AHKS003"
+					+"、AHKS004"
+					+"、AMV02000"
+					+"、AAA056"
+					+"、AAA057"
+					+"、AAA058"
+					+"、AAA059"
+					+"、AAA060"
+					+"、AAA061"
+					+"、BGL004BXS"
+					+"、BGL004BS"
+					+"、BGL004BM"
+					+"、BGL004BL"
+					+"、WHW01950"
+					+"、WHW01970"
+					+"、WHW01950B"
+					+"、WHW01970B", null);
 				
 		}catch(Throwable e){
 			throw new RuntimeException(e);
@@ -593,8 +656,8 @@ public class ProductAccessService {
 //		testSplits();
 //		testToOnePosImportExcel();
 //		testDownloadOHMImageIfNotExisted();
-//		testCopyAndPackImage();
-		testImportProductFromExcelToDB2();
+		testCopyAndPackImage();
+//		testImportProductFromExcelToDB2();
 		
 	}
 }
