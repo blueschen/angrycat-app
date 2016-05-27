@@ -7,6 +7,7 @@
 <c:set value="${pageContext.request.contextPath}" var="rootPath"/>
 <c:set value="${moduleName}KendoData" var="kendoDataKey"/>
 <c:set value="${moduleName}SelectedCondition" var="selectedCondition"/>
+<c:set value="${moduleName}Parameters" var="parameters"/>
 <c:set value="${rootPath}/${moduleName}" var="moduleBaseUrl"/>
 <c:set value="${rootPath}/vendor/kendoui/professional.2016.1.226.trial" var="kendouiRoot"/>
 <c:set value="${kendouiRoot}/styles" var="kendouiStyle"/>
@@ -56,6 +57,7 @@
 		(function($, kendo, angrycat){"use strict"
 			var lastKendoData = ${sessionScope[kendoDataKey] == null ? "null" : sessionScope[kendoDataKey]},
 				lastSelectedCondition = ${sessionScope[selectedCondition] == null ? "null" : sessionScope[selectedCondition]},
+				parameters = ${requestScope[parameters] == null ? "null" : requestScope[parameters]},
 				opts = {
 					moduleName: "${moduleName}",
 					rootPath: "${rootPath}",
@@ -76,6 +78,7 @@
 			
 			function fieldsReadyHandler(){
 				var context = this,
+					paramEditors = context.getParameterDropDownEditors(parameters),
 					hidden = {hidden: true},
 					uneditable = {editable: false},
 					memberDefaultAutoCompleteFilter = "contains",
@@ -110,7 +113,8 @@
 									});
 								}
 							}
-						}
+						},
+						locked: true
 					},
 					memberEditor = context.getAutoCompleteCellEditor({
 						textField: "name",
@@ -122,6 +126,7 @@
 						selectAction: function(model, dataItem){
 							model.set("fbName", dataItem.fbNickname);
 							model.set("idNo", dataItem.idNo);
+							model.set("mobile", dataItem.mobile);
 						}
 					}),
 					modelIdFieldName = "modelId",
@@ -150,9 +155,9 @@
 					fields = [
 		       			//0fieldName		1column title		2column width	3field type	4column filter operator	5field custom		6column custom		7column editor
 						[opts.pk,			"SalesDetail ID",	150,			"string",	"eq",					null,				hidden],
-						[memberFieldName,	"會員姓名",			150,			"string",	"contains",				memberField,		memberColumn,		memberEditor],
-						["salePoint",		"銷售點",				100,			"string",	"eq",					null,				null],
-						["saleStatus",		"狀態",				100,			"string",	"eq"],
+						[memberFieldName,	"會員資料",			150,			"string",	"contains",				memberField,		memberColumn,		memberEditor],
+						["salePoint",		"銷售點",				100,			"string",	"eq",					null,				null,				paramEditors["銷售點"]],
+						["saleStatus",		"狀態",				100,			"string",	"eq",					null,				null,				paramEditors["銷售狀態"]],
 						["fbName",			"FB名稱/客人姓名",		150,			"string",	"contains"],
 						["activity",		"活動",				150,			"string",	"contains"],
 						[modelIdFieldName,	"型號",				150,			"string",	"startswith",			null,				null,				modelIdEditor],
@@ -165,10 +170,10 @@
 						["checkBillStatus",	"對帳狀態",			150,			"string",	"contains"],
 						[mobileFieldName,	"手機",				150,			"string",	"contains",				mobileField],
 						["idNo",			"身份證字號",			150,			"string",	"contains"],
-						["discountType",	"折扣説明",			150,			"string",	"contains"],
+						["discountType",	"折扣別",				150,			"string",	"contains",				null,				null,				paramEditors["折扣別"]],
 						["arrivalStatus",	"已到貨",				150,			"string",	"eq",					null,				hidden],
 						["shippingDate",	"出貨日",				150,			"date",		"gte"],
-						["sendMethod",		"郵寄方式",			150,			"string",	"eq"],
+						["sendMethod",		"郵寄方式",			150,			"string",	"eq",					null,				null,				paramEditors["郵寄方式"]],
 						["note",			"備註",				150,			"string",	"contains",				null,				hidden],
 						["payDate",			"付款日期",			150,			"date",		"gte"],
 						["contactInfo",		"郵寄地址電話",		150,			"string",	"contains",				null,				hidden],
