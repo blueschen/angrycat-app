@@ -5,6 +5,7 @@ import java.io.FileInputStream;
 import java.io.Serializable;
 import java.lang.reflect.ParameterizedType;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -61,6 +62,9 @@ public abstract class KendoUiGridController<T, R> implements Serializable{
 	
 	@RequestMapping(value="/list", method={RequestMethod.POST, RequestMethod.GET})
 	public String list(HttpServletRequest request, Model model){
+		if(!getParameterCatNames().isEmpty()){
+			request.setAttribute(moduleName + "Parameters", CommonUtil.parseToJson(kendoUiGridService.listParameters(getParameterCatNames())));
+		}
 		request.setAttribute("moduleName", moduleName);
 		String listPath = moduleName + "/list";
 		return listPath;
@@ -167,5 +171,9 @@ public abstract class KendoUiGridController<T, R> implements Serializable{
 			kendoUiGridService.deleteModuleConfigs(Arrays.asList((String)config.get("id")));
 		}
 		return config;
+	}
+	
+	List<String> getParameterCatNames(){
+		return Collections.emptyList();
 	}
 }
