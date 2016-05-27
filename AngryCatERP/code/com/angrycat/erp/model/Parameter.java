@@ -15,6 +15,7 @@ import javax.persistence.ManyToOne;
 import javax.persistence.MapKeyColumn;
 import javax.persistence.Table;
 
+import org.hibernate.annotations.Cascade;
 import org.hibernate.annotations.GenericGenerator;
 
 @Entity
@@ -59,6 +60,7 @@ public class Parameter {
 	@Column(name="name")
 	@CollectionTable(name="shr_parameter_i18n", joinColumns=
 	@JoinColumn(name="parameterId"))
+	@Cascade(value={org.hibernate.annotations.CascadeType.DELETE})
 	public Map<String, String> getLocaleNames() {
 		return localeNames;
 	}
