@@ -1,6 +1,8 @@
 package com.angrycat.erp.web.controller;
 
+import java.util.Arrays;
 import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.Map;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -29,6 +31,15 @@ public class SalesDetail2Controller extends
 	private static final long serialVersionUID = -7852973782246983654L;
 	
 	private static final Map<String, String> filterFieldConverter;
+	private static final List<String> parameterCatNames = 
+		Arrays.asList(
+			"銷售狀態",
+			"銷售點",
+			"折扣別",
+			"付款別",
+			"付款狀態",
+			"郵寄方式"
+		);
 	static{
 		filterFieldConverter = new LinkedHashMap<>();
 		filterFieldConverter.put("member", "member.name");
@@ -75,5 +86,10 @@ public class SalesDetail2Controller extends
 	@Override
 	SalesDetailExcelExporter getExcelExporter() {
 		return salesDetailExcelExporter;
-	}	
+	}
+	
+	@Override
+	List<String> getParameterCatNames(){
+		return parameterCatNames;
+	}
 }
