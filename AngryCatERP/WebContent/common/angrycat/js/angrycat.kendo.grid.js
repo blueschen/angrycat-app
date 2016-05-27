@@ -263,6 +263,16 @@
 			};
 		}		
 		
+		function getParameterDropDownEditors(params){
+			var results = {};
+			for(var prop in params){
+				if(params.hasOwnProperty(prop)){
+					results[prop] = getLocalDropDownEditor({dataTextField: "nameDefault", dataValueField: "nameDefault", data: params[prop]});
+				}
+			}
+			return results;
+		}
+		
 		function getDefaultAutoCompleteFilterEditor(settings){
 			var ele = settings.ele,
 				action = settings.action,
@@ -449,10 +459,6 @@
 						.attr("type", "text") // 讓版型更為一致
 						.wrap(parent); // 跟原來預設的版型一樣，有圓角，而且與相鄰元件(按鈕)對齊
 				};
-			columns.push({
-				command: ["destroy"],
-				width: "100px"
-			});
 			if("incell" !== DEFAULT_EDIT_MODE){
 				var idx = columns.length - 1;
 				columns[idx].command.push("edit");
@@ -494,7 +500,11 @@
 					$.extend(column, field[6]);
 				}
 				columns.push(column);
-			}		
+			}
+			columns.push({
+				command: [{name: "destroy", text: ""}],
+				width: "75px"
+			});
 			return columns;
 		}
 
@@ -625,19 +635,14 @@
 						name: "create",
 					},
 					{
-						text: " 重查",
+						text: "Reset",
 						name: "reset",
 						iconClass: "k-font-icon k-i-undo-large"
-					},
-					{
-						text: " 下載Excel",
-						name: "downloadExcel",
-						iconClass: "k-font-icon k-i-xls"
 					}];
 				
 				if("incell" === DEFAULT_EDIT_MODE){// in relation with batch update
-					toolbar.push({name: "save"});
-					toolbar.push({name: "cancel"});
+					toolbar.push({text: "存檔", name: "save"});
+					toolbar.push({text: "回復", name: "cancel"});
 				}
 				toolbar.push({
 					text: " 儲存條件",
@@ -653,6 +658,11 @@
 					text: " 選擇條件",
 					name: "selectCondition"
 				});
+				toolbar.push({
+					text: " 下載Excel",
+					name: "downloadExcel",
+					iconClass: "k-font-icon k-i-xls"
+				});				
 				
 				var mainGrid = $(gridId).kendoGrid({
 					columns: columns,
@@ -959,7 +969,7 @@
 			getAutoCompleteCellEditor: getAutoCompleteCellEditor,
 			getDefaultFieldAutoCompleteDataSource: getDefaultFieldAutoCompleteDataSource,
 			getLocalDropDownEditor: getLocalDropDownEditor,
-			getLocalDropDownEditor: getLocalDropDownEditor,
+			getParameterDropDownEditors: getParameterDropDownEditors,
 			initDefaultInfoWindow: initDefaultInfoWindow,
 			getDefaultModelFields: getDefaultModelFields,
 			getDefaultColumns: getDefaultColumns,
