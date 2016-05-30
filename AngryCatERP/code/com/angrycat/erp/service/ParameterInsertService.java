@@ -28,6 +28,7 @@ public class ParameterInsertService {
 	
 	/**
 	 * 清除舊資料後，初始化參數類別及參數
+	 * 如果有需保留的舊資料，不適合呼叫這個方法
 	 */
 	@Transactional
 	public void initAfterClearOld(){
