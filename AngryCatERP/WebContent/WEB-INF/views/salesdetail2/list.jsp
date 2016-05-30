@@ -73,7 +73,10 @@
 					editMode: "incell",
 					pk: "id",
 					lastKendoData: lastKendoData,
-					lastSelectedCondition: lastSelectedCondition
+					lastSelectedCondition: lastSelectedCondition,
+					addRowInit: function(dataItem, editRow){
+						dataItem.set("orderDate", new Date());
+					}
 				};
 			
 			function fieldsReadyHandler(){
