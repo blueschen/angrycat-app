@@ -78,8 +78,15 @@
 			
 			function fieldsReadyHandler(){
 				var context = this,
-					paramEditors = context.getParameterDropDownEditors(parameters),
+					discountTypeSelectAction = function(model, dataItem){
+						var discount = dataItem.localeNames ? dataItem.localeNames.discount : null;
+						if($.isNumeric(discount) && $.isNumeric(model.price)){
+							model.set("memberPrice", model.price * parseFloat(discount)); // TODO 是否要考量四捨五入的情況
+						}
+					},
+					paramEditors = context.getParameterDropDownEditors(parameters, {"折扣別": {selectAction: discountTypeSelectAction}}),
 					hidden = {hidden: true},
+					locked = {locked: true},
 					uneditable = {editable: false},
 					memberDefaultAutoCompleteFilter = "contains",
 					memberFieldName = "member",
@@ -154,30 +161,32 @@
 					},
 					fields = [
 		       			//0fieldName		1column title		2column width	3field type	4column filter operator	5field custom		6column custom		7column editor
-						[opts.pk,			"SalesDetail ID",	150,			"string",	"eq",					null,				hidden],
+						["saleStatus",		"狀態",				100,			"string",	"eq",					null,				locked,				paramEditors["銷售狀態"]],
+						["fbName",			"姓名",				150,			"string",	"contains",				null,				locked],
 						[memberFieldName,	"會員資料",			150,			"string",	"contains",				memberField,		memberColumn,		memberEditor],
-						["salePoint",		"銷售點",				100,			"string",	"eq",					null,				null,				paramEditors["銷售點"]],
-						["saleStatus",		"狀態",				100,			"string",	"eq",					null,				null,				paramEditors["銷售狀態"]],
-						["fbName",			"FB名稱/客人姓名",		150,			"string",	"contains"],
-						["activity",		"活動",				150,			"string",	"contains"],
-						[modelIdFieldName,	"型號",				150,			"string",	"startswith",			null,				null,				modelIdEditor],
-						["productName",		"明細",				150,			"string",	"contains"],
+						["salePoint",		"銷售點",				100,			"string",	"eq",					null,				locked,				paramEditors["銷售點"]],
+						[modelIdFieldName,	"型號",				150,			"string",	"startswith",			null,				locked,				modelIdEditor],
+						["productName",		"明細",				150,			"string",	"contains",				null,				locked],
 						["price",			"定價",				100,			"number",	"gte"],
-						["memberPrice",		"會員價(實收價格)",		100,			"number",	"gte"],
-						["priority",		"順序",				150,			"string",	"eq",					null,				hidden],
-						["orderDate",		"銷售日期",			150,			"date",		"gte"],
-						["otherNote",		"其他備註",			150,			"string",	"contains",				null,				hidden],
-						["checkBillStatus",	"對帳狀態",			150,			"string",	"contains"],
-						[mobileFieldName,	"手機",				150,			"string",	"contains",				mobileField],
-						["idNo",			"身份證字號",			150,			"string",	"contains"],
-						["discountType",	"折扣別",				150,			"string",	"contains",				null,				null,				paramEditors["折扣別"]],
-						["arrivalStatus",	"已到貨",				150,			"string",	"eq",					null,				hidden],
+						["memberPrice",		"實收",				100,			"number",	"gte"],
+						["discountType",	"折扣別",				150,			"string",	"contains",				null,				null,				paramEditors["折扣別"]],						
+						["orderDate",		"銷售日",				150,			"date",		"gte"],
+						["payDate",			"付款日",				150,			"date",		"gte"],
+						["payType",			"付款別",				150,			"string",	"contains",				null,				null,				paramEditors["付款別"]],
+						["payStatus",		"付款狀態",			150,			"string",	"contains",				null,				null,				paramEditors["付款狀態"]],
 						["shippingDate",	"出貨日",				150,			"date",		"gte"],
 						["sendMethod",		"郵寄方式",			150,			"string",	"eq",					null,				null,				paramEditors["郵寄方式"]],
-						["note",			"備註",				150,			"string",	"contains",				null,				hidden],
-						["payDate",			"付款日期",			150,			"date",		"gte"],
+						["registrant",		"登單者",				150,			"string",	"contains"],
+						["note",			"備註",				150,			"string",	"contains"],
+						[mobileFieldName,	"手機",				150,			"string",	"contains",				mobileField],
+						["idNo",			"身份證",				150,			"string",	"contains"],
+						["checkBillStatus",	"對帳狀態",			150,			"string",	"contains"],
+						["arrivalStatus",	"已到貨",				150,			"string",	"eq",					null,				hidden],
 						["contactInfo",		"郵寄地址電話",		150,			"string",	"contains",				null,				hidden],
-						["registrant",		"登單者",				150,			"string",	"contains",				null,				hidden],
+						["activity",		"活動",				150,			"string",	"contains",				null,				hidden],
+						["priority",		"順序",				150,			"string",	"eq",					null,				hidden],
+						["otherNote",		"其他備註",			150,			"string",	"contains",				null,				hidden],
+						[opts.pk,			"SalesDetail ID",	150,			"string",	"eq",					null,				hidden],
 						["rowId",			"Excel序號",			150,			"string",	"contains",				uneditable,			hidden]
 					];
 				
