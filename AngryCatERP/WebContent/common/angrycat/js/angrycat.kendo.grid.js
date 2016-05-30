@@ -33,7 +33,8 @@
 			defaultDropdownItems = null,
 			defaultDropdownItems3 = null,
 			defaultDropdownOptionId = "select",
-			selectedVal = null;
+			selectedVal = null,
+			addRowInit = opts.addRowInit;
 			
 		function minusFilterDateTimezoneOffset(filter, modelFields){
 			if(!filter){
@@ -647,7 +648,9 @@
 					dataSource = getDefaultGridDataSource({modelFields: modelFields}),
 					toolbar = [
 					{
-						name: "create",
+						text: "新增",
+						name: "new",
+						iconClass: "k-font-icon k-i-plus"
 					},
 					{
 						text: "Reset",
@@ -709,7 +712,16 @@
 					selectable: "multiple, cell",
 					columnMenu: true
 				}).data("kendoGrid");				
-								
+				
+				$(".k-grid-new").click(function(e){
+					mainGrid.addRow();
+					var editRow = $(".k-grid-edit-row"),
+						dataItem = mainGrid.dataItem(editRow);
+					if(addRowInit && (typeof addRowInit === "function")){
+						addRowInit(dataItem, editRow);
+					}
+				});
+				
 				$(".k-grid-downloadExcel").click(function(e){
 					var ds = mainGrid.dataSource,
 						readUrl = ds.transport.options.read.url;
@@ -944,6 +956,8 @@
 							firstDataItem = grid.dataItem(firstRow), // 如果多選的時候，只會拿到第一個dataItem
 							fields = [];
 						
+					    console.log("firstDataItem: " + JSON.stringify(firstDataItem));
+					    
 					    for(var i = startColIdx; i < (lastColIdx+1); i++){
 					    	var field = columnOpts[i].field;
 					    	fields.push(field);
