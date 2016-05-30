@@ -303,11 +303,7 @@ public class KendoUiService<T, R> implements Serializable{
 		Map<String, Object> result = new LinkedHashMap<>();
 		result.put("id", config.getId());
 		result.put("name", config.getName());
-		System.out.println("moduleConfigToMap: ");
 		Map<?, ?> json = CommonUtil.parseJsonStrToMap(config.getJson());
-		json.forEach((k,v)->{
-			System.out.println(k+":"+v);
-		});
 		result.put("json", json);
 		return result;
 	}
