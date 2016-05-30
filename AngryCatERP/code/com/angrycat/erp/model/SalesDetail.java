@@ -48,6 +48,8 @@ public class SalesDetail {
 	private String registrant;
 	
 	private String rowId;
+	private String payType;
+	private String payStatus;
 	
 	@Id
 	@Column(name="id", columnDefinition="ID")
@@ -227,5 +229,19 @@ public class SalesDetail {
 	}
 	public void setRowId(String rowId) {
 		this.rowId = rowId;
+	}
+	@Column(name="payType", columnDefinition="付款別")
+	public String getPayType() {
+		return payType;
+	}
+	public void setPayType(String payType) {
+		this.payType = payType;
+	}
+	@Column(name="payStatus", columnDefinition="付款狀態")
+	public String getPayStatus() {
+		return payStatus;
+	}
+	public void setPayStatus(String payStatus) {
+		this.payStatus = payStatus;
 	}
 }
