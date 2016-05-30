@@ -150,10 +150,11 @@ public class MitakeSMSHttpPost {
 //		shortMsgNotifyForTesting();
 //		strLen();
 //		shortMsgNotify20160429Activity(); // 4/29活動簡訊
+		shortMsgNotify20160530Activity(); // 5/30活動簡訊
 	}
 	
 	private static void strLen(){
-		String content = "4/2-4/5 OHM敦南誠品，單筆滿5000送500，可現抵可累贈，詳情請洽02-27716304";
+		String content = "OHM絕版品特價出清7折起，敦南誠品專櫃及FB網路社團同步優惠，詳情請洽02-27716304";
 		System.out.println(content.length());
 	}
 	
@@ -601,6 +602,40 @@ public class MitakeSMSHttpPost {
 	
 	private static void testGetLocalDateTime(){
 		System.out.println(getLocalDateTime());
+	}
+	/**
+	 * 發送簡訊給所有會員，並且將發送後資訊寄送到相關業務人員
+	 * @param subject
+	 * @param content
+	 */
+	private void shortMsgNotifyAllMembers(String subject, String content){
+		String queryHql = "SELECT DISTINCT(p) FROM " + Member.class.getName() + " p WHERE p.mobile IS NOT NULL";
+		StringBuffer sb = sendShortMsgToMembers(queryHql, Collections.emptyMap(), content);
+		
+		String sendMsg = sb.toString();
+		if(sendMsg.contains(NO_DATA_FOUND_STOP_SEND_SHORT_MSG)){
+			subject += "沒有找到符合資格的會員";
+		}else{
+			subject += "簡訊發送後訊息";
+		}
+		if(!testMode){
+			SimpleMailMessage simpleMailMessage = new SimpleMailMessage(templateMessage);
+			simpleMailMessage.setTo(IFLY);
+			simpleMailMessage.setText(sendMsg);
+			simpleMailMessage.setSubject(subject);
+			String[] cc = new String[]{MIKO,BLUES,JERRY};
+			simpleMailMessage.setCc(cc);
+			mailSender.send(simpleMailMessage);
+		}
+	}
+	
+	private static void shortMsgNotify20160530Activity(){
+		BaseTest.executeApplicationContext(acac->{
+			MitakeSMSHttpPost service = acac.getBean(MitakeSMSHttpPost.class);
+			service.setTestMode(true);
+			
+			service.shortMsgNotifyAllMembers("OHM絕版品特價出清", "OHM絕版品特價出清7折起，敦南誠品專櫃及FB網路社團同步優惠，詳情請洽02-27716304");
+		});
 	}
 	
 	private static void shortMsgNotify20160401Activity(){
