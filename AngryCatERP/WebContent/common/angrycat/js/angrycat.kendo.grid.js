@@ -250,24 +250,39 @@
 		function getLocalDropDownEditor(settings){
 			var dataTextField = settings.dataTextField,
 				dataValueField = settings.dataValueField,
-				data = settings.data;
+				data = settings.data,
+				selectAction = settings.selectAction;
 			return function(container, options){
-				var select = '<input data-text-field="'+dataTextField+'" data-value-field="'+ dataValueField +'" data-bind="value:'+ options.field +'"/>';
+				var select = '<input data-text-field="'+dataTextField+'" data-value-field="'+ dataValueField +'" data-bind="value:'+ options.field +'"/>',
+					field = options.field,
+					model = options.model;
 				$(select)
 					.appendTo(container)
 					.kendoDropDownList({
 						dataSource: {
 							data: data
+						},
+						valuePrimitive: true,
+						select: function(e){
+							var item = e.item,
+								dataItem = this.dataItem(item.index());
+							if(selectAction && (typeof selectAction === "function")){
+								selectAction(model, dataItem);
+							}
 						}
 					});
 			};
 		}		
 		
-		function getParameterDropDownEditors(params){
+		function getParameterDropDownEditors(params, settings){
 			var results = {};
 			for(var prop in params){
 				if(params.hasOwnProperty(prop)){
-					results[prop] = getLocalDropDownEditor({dataTextField: "nameDefault", dataValueField: "nameDefault", data: params[prop]});
+					var base = {dataTextField: "nameDefault", dataValueField: "nameDefault", data: params[prop]};
+					if(settings[prop]){
+						base = $.extend(base, settings[prop]);
+					}
+					results[prop] = getLocalDropDownEditor(base);
 				}
 			}
 			return results;
