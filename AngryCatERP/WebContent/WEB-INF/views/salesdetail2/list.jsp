@@ -58,6 +58,7 @@
 			var lastKendoData = ${sessionScope[kendoDataKey] == null ? "null" : sessionScope[kendoDataKey]},
 				lastSelectedCondition = ${sessionScope[selectedCondition] == null ? "null" : sessionScope[selectedCondition]},
 				parameters = ${requestScope[parameters] == null ? "null" : requestScope[parameters]},
+				lockedFlag = true,
 				opts = {
 					moduleName: "${moduleName}",
 					rootPath: "${rootPath}",
@@ -76,7 +77,8 @@
 					lastSelectedCondition: lastSelectedCondition,
 					addRowInit: function(dataItem, editRow){
 						dataItem.set("orderDate", new Date());
-					}
+					},
+					lockedFlag: lockedFlag
 				};
 			
 			function fieldsReadyHandler(){
@@ -84,14 +86,15 @@
 					discountTypeSelectAction = function(model, dataItem){
 						var discount = dataItem.localeNames ? dataItem.localeNames.discount : null;
 						if($.isNumeric(discount) && $.isNumeric(model.price)){
-							model.set("memberPrice", model.price * parseFloat(discount)); // TODO 是否要考量四捨五入的情況
+							model.set("memberPrice", Math.floor(model.price * parseFloat(discount))); // 無條件捨去
 						}
 					},
+					defaultAutoCompleteFilter = "contains",
 					paramEditors = context.getParameterDropDownEditors(parameters, {"折扣別": {selectAction: discountTypeSelectAction}}),
+					paramFEditors = context.getParameterFilterEditorColumns(parameters, {filter: defaultAutoCompleteFilter}),
 					hidden = {hidden: true},
-					locked = {locked: true},
+					locked = {locked: lockedFlag},
 					uneditable = {editable: false},
-					memberDefaultAutoCompleteFilter = "contains",
 					memberFieldName = "member",
 					memberField = {
 						type: null,
@@ -117,14 +120,14 @@
 										ele: args.element,
 										dataTextField: "name",
 										dataValueField: "name",
-										filter: memberDefaultAutoCompleteFilter,
+										filter: defaultAutoCompleteFilter,
 										action: "queryMemberAutocomplete",
 										autocompleteFieldsToFilter: ["name"]
 									});
 								}
 							}
 						},
-						locked: true
+						locked: lockedFlag
 					},
 					memberEditor = context.getAutoCompleteCellEditor({
 						textField: "name",
@@ -143,7 +146,7 @@
 					modelIdEditor = context.getAutoCompleteCellEditor({
 						textField: "modelId",
 						action: "queryProductAutocomplete", 
-						filter: memberDefaultAutoCompleteFilter, 
+						filter: defaultAutoCompleteFilter, 
 						autocompleteFieldsToFilter: ["modelId", "nameEng"],
 						selectAction: function(model, dataItem){
 							model.set("productName", dataItem.nameEng);
@@ -162,23 +165,25 @@
 							}
 						}
 					},
+					saleStatusColumn = $.extend(locked, paramFEditors["銷售狀態"]),
+					salePointColumn = $.extend(locked, paramFEditors["銷售點"]),
 					fields = [
-		       			//0fieldName		1column title		2column width	3field type	4column filter operator	5field custom		6column custom		7column editor
-						["saleStatus",		"狀態",				100,			"string",	"eq",					null,				locked,				paramEditors["銷售狀態"]],
+		       			//0fieldName		1column title		2column width	3field type	4column filter operator	5field custom		6column custom			7column editor
+						["saleStatus",		"狀態",				100,			"string",	"eq",					null,				saleStatusColumn,		paramEditors["銷售狀態"]],
 						["fbName",			"姓名",				150,			"string",	"contains",				null,				locked],
-						[memberFieldName,	"會員資料",			150,			"string",	"contains",				memberField,		memberColumn,		memberEditor],
-						["salePoint",		"銷售點",				100,			"string",	"eq",					null,				locked,				paramEditors["銷售點"]],
-						[modelIdFieldName,	"型號",				150,			"string",	"startswith",			null,				locked,				modelIdEditor],
+						[memberFieldName,	"會員資料",			150,			"string",	"contains",				memberField,		memberColumn,			memberEditor],
+						["salePoint",		"銷售點",				100,			"string",	"eq",					null,				salePointColumn,		paramEditors["銷售點"]],
+						[modelIdFieldName,	"型號",				150,			"string",	"startswith",			null,				locked,					modelIdEditor],
 						["productName",		"明細",				150,			"string",	"contains",				null,				locked],
 						["price",			"定價",				100,			"number",	"gte"],
 						["memberPrice",		"實收",				100,			"number",	"gte"],
-						["discountType",	"折扣別",				150,			"string",	"contains",				null,				null,				paramEditors["折扣別"]],						
+						["discountType",	"折扣別",				150,			"string",	"contains",				null,				paramFEditors["折扣別"],	paramEditors["折扣別"]],						
 						["orderDate",		"銷售日",				150,			"date",		"gte"],
 						["payDate",			"付款日",				150,			"date",		"gte"],
-						["payType",			"付款別",				150,			"string",	"contains",				null,				null,				paramEditors["付款別"]],
-						["payStatus",		"付款狀態",			150,			"string",	"contains",				null,				null,				paramEditors["付款狀態"]],
+						["payType",			"付款別",				150,			"string",	"contains",				null,				paramFEditors["付款別"],	paramEditors["付款別"]],
+						["payStatus",		"付款狀態",			150,			"string",	"contains",				null,				paramFEditors["付款狀態"],paramEditors["付款狀態"]],
 						["shippingDate",	"出貨日",				150,			"date",		"gte"],
-						["sendMethod",		"郵寄方式",			150,			"string",	"eq",					null,				null,				paramEditors["郵寄方式"]],
+						["sendMethod",		"郵寄方式",			150,			"string",	"eq",					null,				paramFEditors["郵寄方式"],paramEditors["郵寄方式"]],
 						["registrant",		"登單者",				150,			"string",	"contains"],
 						["note",			"備註",				150,			"string",	"contains"],
 						[mobileFieldName,	"手機",				150,			"string",	"contains",				mobileField],
@@ -192,7 +197,7 @@
 						[opts.pk,			"SalesDetail ID",	150,			"string",	"eq",					null,				hidden],
 						["rowId",			"Excel序號",			150,			"string",	"contains",				uneditable,			hidden]
 					];
-				
+				console.log("paramFEditors: " + (typeof paramFEditors["付款別"]["filterable"]["cell"]["template"]));
 				return fields;
 			}
 			
