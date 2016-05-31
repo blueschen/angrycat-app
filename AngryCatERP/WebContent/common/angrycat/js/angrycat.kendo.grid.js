@@ -34,7 +34,8 @@
 			defaultDropdownItems3 = null,
 			defaultDropdownOptionId = "select",
 			selectedVal = null,
-			addRowInit = opts.addRowInit;
+			addRowInit = opts.addRowInit,
+			lockedFlag = opts.lockedFlag ? opts.lockedFlag : false;
 			
 		function minusFilterDateTimezoneOffset(filter, modelFields){
 			if(!filter){
@@ -248,7 +249,7 @@
 			};
 		}
 		
-		function getLocalDropDownEditor(settings){
+		function getParameterDropDownEditor(settings){
 			var dataTextField = settings.dataTextField,
 				dataValueField = settings.dataValueField,
 				data = settings.data,
@@ -283,10 +284,53 @@
 					if(settings[prop]){
 						base = $.extend(base, settings[prop]);
 					}
-					results[prop] = getLocalDropDownEditor(base);
+					results[prop] = getParameterDropDownEditor(base);
 				}
 			}
 			return results;
+		}
+
+		function getParameterAutoCompleteFilterEditor(settings){
+			var ele = settings.ele,
+				filter = settings.filter,
+				dataTextField = settings.dataTextField,
+				dataValueField = settings.dataValueField,
+				data = settings.data;			
+			ele.kendoAutoComplete({
+				valuePrimitive: true,
+				dataSource: data,
+				dataTextField: dataTextField,
+				dataValueField: dataValueField,
+				filter: filter
+			});
+		}
+		
+		function getParameterFilterEditorColumns(params, settings){
+			var results = {},
+				filter = settings.filter;
+			for(var prop in params){
+				if(params.hasOwnProperty(prop)){
+					results[prop] = {
+						filterable: {
+							cell: {
+								inputWidth: "100%",
+								template: (function(data){
+									return function(args){
+										getParameterAutoCompleteFilterEditor({
+											ele: args.element,
+											dataTextField: "nameDefault",
+											dataValueField: "nameDefault",
+											filter: filter,
+											data: data
+										});
+									}
+								})(params[prop])
+							}
+						}	
+					};
+				}
+			}
+			return results;			
 		}
 		
 		function getDefaultAutoCompleteFilterEditor(settings){
@@ -474,7 +518,7 @@
 						.addClass("k-input") // 讓kendo ui元件認出這是輸入欄位
 						.attr("type", "text") // 讓版型更為一致
 						.wrap(parent); // 跟原來預設的版型一樣，有圓角，而且與相鄰元件(按鈕)對齊
-				};
+				};			
 			if("incell" !== DEFAULT_EDIT_MODE){
 				var idx = columns.length - 1;
 				columns[idx].command.push("edit");
@@ -518,9 +562,9 @@
 				columns.push(column);
 			}
 			columns.push({
-				command: [{name: "destroy", text: ""}],
+				command: [{name: "destroy", text: "刪除"}],
 				width: "75px"
-			});
+			});				
 			return columns;
 		}
 
@@ -680,7 +724,16 @@
 					text: " 下載Excel",
 					name: "downloadExcel",
 					iconClass: "k-font-icon k-i-xls"
-				});				
+				});
+				
+				// ref. http://stackoverflow.com/questions/21112330/how-can-i-have-row-number-in-kendo-ui-grid
+				var rowNumClass = "row-number";
+				columns.splice(0, 1, {
+					title: "&nbsp;",
+					template: "<span class='"+rowNumClass+"' style='text-align: center'></span>",
+					width: 50,
+					locked: lockedFlag
+				});
 				
 				var mainGrid = $(gridId).kendoGrid({
 					columns: columns,
@@ -703,15 +756,39 @@
 						mode: "single",
 						allowUnsort: false
 					},
-					resizable: true,
 					navigatable: true,
 					filterable: {
 						mode: "menu, row",
 						extra: true
 					},
 					selectable: "multiple, cell",
-					columnMenu: true
-				}).data("kendoGrid");				
+					columnMenu: true,
+					resizable: true,
+					dataBound: function(){
+						var rows = mainGrid.items(),
+							$rows = $(rows),
+							ds = mainGrid.dataSource,
+							ps = ds.pageSize(),
+							p = ds.page(),
+							count = ps * (p-1),
+							highlightClass = "k-state-hover";
+						// ref. http://stackoverflow.com/questions/35902267/jquery-need-help-selecting-tr-elements-inside-a-div-element-with-a-specific-clas/35917952#35917952
+						$rows.hover(
+							function(){
+								var i = $(this).index()+1;
+								$rows.filter(":nth-child(" + i + ")").addClass(highlightClass);
+							},
+							function(){
+								var i = $(this).index()+1;
+								$rows.filter(":nth-child(" + i + ")").removeClass(highlightClass);
+							}
+						).each(function(){
+							var $row = $(this),
+								index = $row.index() + 1 + count;
+							$row.find("."+rowNumClass+"").html(index);
+						});
+					}
+				}).data("kendoGrid");
 				
 				$(".k-grid-new").click(function(e){
 					mainGrid.addRow();
@@ -997,8 +1074,8 @@
 			getAutoCompleteDefaultTemplate: getAutoCompleteDefaultTemplate,
 			getAutoCompleteCellEditor: getAutoCompleteCellEditor,
 			getDefaultFieldAutoCompleteDataSource: getDefaultFieldAutoCompleteDataSource,
-			getLocalDropDownEditor: getLocalDropDownEditor,
 			getParameterDropDownEditors: getParameterDropDownEditors,
+			getParameterFilterEditorColumns: getParameterFilterEditorColumns,
 			initDefaultInfoWindow: initDefaultInfoWindow,
 			getDefaultModelFields: getDefaultModelFields,
 			getDefaultColumns: getDefaultColumns,
