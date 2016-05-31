@@ -56,8 +56,8 @@ public class ParameterInsertService {
 			.addParameter("99. 已出貨")
 		
 		,new Parameters("銷售點", s)
-			.addParameter("誠品") // TODO 敦南誠品??
-			.addParameter("社團") // TODO FB社團??
+			.addParameter("敦南誠品")
+			.addParameter("FB社團")
 			.addParameter("粉絲團")
 			.addParameter("商店")
 			.addParameter("私訊")
@@ -164,7 +164,7 @@ public class ParameterInsertService {
 	}
 	
 	public static void main(String[]args){
-//		testInitAfterClearOld();
-		testToJsonStr();
+		testInitAfterClearOld();
+//		testToJsonStr();
 	}
 }
