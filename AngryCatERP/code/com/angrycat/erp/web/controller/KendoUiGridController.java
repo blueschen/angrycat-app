@@ -16,7 +16,6 @@ import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
 
 import org.apache.commons.io.FileUtils;
-import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.annotation.AnnotationUtils;
 import org.springframework.ui.Model;
@@ -80,8 +79,11 @@ public abstract class KendoUiGridController<T, R> implements Serializable{
 			produces={"application/xml", "application/json"},
 			headers="Accept=*/*")
 	public @ResponseBody String queryConditional(@RequestBody ConditionConfig<T> conditionConfig){
+		long start = System.currentTimeMillis();
 		ConditionConfig<T> cc = kendoUiGridService.executeQueryPageable(conditionConfig);
 		String result = conditionConfigToJsonStr(cc);
+		long end = System.currentTimeMillis();
+		System.out.println(moduleName+ ".queryConditional() takes time: " + (end-start) + " ms");
 		return result;
 	}	
 	@RequestMapping(value="/batchSaveOrMerge",
@@ -159,7 +161,11 @@ public abstract class KendoUiGridController<T, R> implements Serializable{
 			produces={"application/xml", "application/json"},
 			headers="Accept=*/*")
 	public @ResponseBody List<Map<String, Object>> listConditionConfigs(){
-		return kendoUiGridService.listModuleConfigs(moduleName);
+		long start = System.currentTimeMillis();
+		List<Map<String, Object>> configs = kendoUiGridService.listModuleConfigs(moduleName);
+		long end = System.currentTimeMillis();
+		System.out.println(moduleName+ ".listConditionConfigs() takes time: " + (end-start) + " ms");		
+		return configs;
 	}
 	
 	@RequestMapping(value="/deleteConditionConfig",
