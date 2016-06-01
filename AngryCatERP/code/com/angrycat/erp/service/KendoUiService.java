@@ -267,14 +267,15 @@ public class KendoUiService<T, R> implements Serializable{
 		s.clear();
 	}
 	
-	@Transactional
 	public List<Map<String, Object>> listModuleConfigs(String moduleName){
-		String queryHql = "SELECT DISTINCT p FROM " + ModuleConfig.class.getName() + " p WHERE p.moduleName = :moduleName";
-		Session s = sfw.currentSession();
-		List<ModuleConfig> moduleConfigs = s.createQuery(queryHql).setString("moduleName", moduleName).list();
+		List<ModuleConfig> results = sfw.executeFindResults(s->{
+			String queryHql = "SELECT DISTINCT p FROM " + ModuleConfig.class.getName() + " p WHERE p.moduleName = :moduleName";
+			List<ModuleConfig> moduleConfigs = s.createQuery(queryHql).setString("moduleName", moduleName).list();
+			return moduleConfigs;
+		});
 		
 		List<Map<String, Object>> transformed = 
-			moduleConfigs.stream().map(config->{
+				results.stream().map(config->{
 				Map<String, Object> result = moduleConfigToMap(config);
 				return result;
 			}).collect(Collectors.toList());
@@ -282,13 +283,15 @@ public class KendoUiService<T, R> implements Serializable{
 		return transformed;
 	}
 	
-	@Transactional
 	public Map<String, List<Parameter>> listParameters(List<String> catNames){
-		String queryHql = "SELECT DISTINCT p FROM " + Parameter.class.getName() + " p WHERE p.parameterCategory.name IN (:catNames)";
-		Session s = sfw.currentSession();
-		List<Parameter> params = s.createQuery(queryHql).setParameterList("catNames", catNames).list();
+		List<Parameter> founds = sfw.executeFindResults(s->{
+			String queryHql = "SELECT DISTINCT p FROM " + Parameter.class.getName() + " p WHERE p.parameterCategory.name IN (:catNames)";
+			List<Parameter> params = s.createQuery(queryHql).setParameterList("catNames", catNames).list();
+			return params;
+		});
+		
 		Map<String, List<Parameter>> results = new LinkedHashMap<>();
-		params.forEach(p->{
+		founds.forEach(p->{
 			List<Parameter> subset = results.get(p.getParameterCategory().getName());
 			if(subset == null){
 				subset = new ArrayList<>();
