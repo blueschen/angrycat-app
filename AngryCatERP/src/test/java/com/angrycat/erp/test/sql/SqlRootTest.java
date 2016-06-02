@@ -9,6 +9,7 @@ import org.junit.Before;
 import org.junit.Test;
 
 import com.angrycat.erp.model.SalesDetail;
+import com.angrycat.erp.sql.ISqlRoot;
 import com.angrycat.erp.sql.SqlRoot;
 import com.angrycat.erp.sql.condition.SimpleCondition;
 import com.angrycat.erp.sql.condition.StrCondition.MatchMode;
@@ -48,11 +49,14 @@ public class SqlRootTest {
 		
 		SimpleCondition sc = (SimpleCondition)q.findNodeById("pSalePoint").getFounds().get(0);
 		sc.value("敦南誠品");
-		Map<String, Object> params = q.getCondIdValuePairs();
-		Map<String, Object> expected = new LinkedHashMap<>();
-		expected.put("pSalePoint", "敦南誠品");
+		Map<String, Object> expected1 = new LinkedHashMap<>();
+		expected1.put("pSalePoint", "敦南誠品");
+		assertEquals(expected1, q.getCondIdValuePairs());
 		
-		assertEquals(expected, params);
+		ISqlRoot transformed = q.transformCopy();
+		Map<String, Object> expected2 = new LinkedHashMap<>();
+		expected2.put("pSalePoint", "%敦南誠品%");
+		assertEquals(expected2, transformed.getCondIdValuePairs());
 	}
 	
 	
