@@ -77,7 +77,14 @@ public class SqlRoot extends SqlNode implements ISqlRoot{
 		String result = getChildren()
 			.stream()
 			.map(ISqlNode::genSql)
-			.reduce("", (a, b)->a + (StringUtils.isNotBlank(b) ? ("\n" + b) : ""));
+			.reduce("", (a, b)->{
+				String newline = "\n";
+				if(StringUtils.isBlank(a)){
+					newline = "";
+				}
+				String r = a + (StringUtils.isNotBlank(b) ? (newline + b) : "");
+				return r;
+			});
 		return result;
 	}
 	@Override
