@@ -165,8 +165,8 @@
 							}
 						}
 					},
-					saleStatusColumn = $.extend(locked, paramFEditors["銷售狀態"]),
-					salePointColumn = $.extend(locked, paramFEditors["銷售點"]),
+					saleStatusColumn = $.extend({}, locked, paramFEditors["銷售狀態"]),
+					salePointColumn = $.extend({}, locked, paramFEditors["銷售點"]),
 					fields = [
 		       			//0fieldName		1column title		2column width	3field type	4column filter operator	5field custom		6column custom			7column editor
 						["saleStatus",		"狀態",				100,			"string",	"eq",					null,				saleStatusColumn,		paramEditors["銷售狀態"]],
@@ -197,7 +197,7 @@
 						[opts.pk,			"SalesDetail ID",	150,			"string",	"eq",					null,				hidden],
 						["rowId",			"Excel序號",			150,			"string",	"contains",				uneditable,			hidden]
 					];
-				console.log("paramFEditors: " + (typeof paramFEditors["付款別"]["filterable"]["cell"]["template"]));
+				//console.log("paramFEditors: " + (paramFEditors["銷售狀態"]["filterable"]["cell"]["template"]));
 				return fields;
 			}
 			
