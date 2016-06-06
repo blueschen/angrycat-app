@@ -151,7 +151,10 @@
 						selectAction: function(model, dataItem){
 							model.set("productName", dataItem.nameEng);
 							model.set("price", dataItem.suggestedRetailPrice);
-						}
+							model.set("memberPrice", dataItem.suggestedRetailPrice);
+							model.set("discountType", null);
+						},
+						valuePrimitive: true
 					}),
 					mobileFieldName = "mobile",
 					mobileField = {
