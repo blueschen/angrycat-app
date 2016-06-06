@@ -211,7 +211,8 @@
 				autocompleteFieldsToFilter = settings.autocompleteFieldsToFilter,
 				template = settings.template ? settings.template : getAutoCompleteDefaultTemplate(autocompleteFieldsToFilter),
 				errorMsgFieldName = settings.errorMsgFieldName,
-				selectAction = settings.selectAction;
+				selectAction = settings.selectAction,
+				valuePrimitive = settings.valuePrimitive ? settings.valuePrimitive : false;
 			return function(container, options){
 				var model = options.model,
 					field = options.field;
@@ -222,7 +223,7 @@
 						filter: filter,
 						template: template,
 						// autoBind: false, // 如果加上這行，會出現e._preselect is not a function錯誤訊息，根據官方說法，這是因為autocomplete沒有支援deferred binding
-						valuePrimitive: false, // 如果選定的值，要對應物件，valuePrimitive應設為false，否則選了值之後，他會顯示[object Object]
+						valuePrimitive: valuePrimitive, // 如果選定的值，要對應物件，valuePrimitive應設為false，否則選了值之後，他會顯示[object Object]
 						/*
 						height: 520,
 						virtual: {
@@ -957,6 +958,7 @@
 								},0);
 							});
 							 */
+							/*
 							mainGrid.options["afterClose"] = once(function(e){ // 不得已直接從kendo ui widget的options加入事件處理器
 								var $td = e.container,
 									tdIdx = $td.index(),
@@ -964,6 +966,7 @@
 								if(!tdTotal){
 									tdTotal = $tr.find("td").length;
 								}
+								
 								do{
 									if(tdIdx+1 >= tdTotal){// 如果已經是該行最後一欄，從下一行前面開始
 										$tr = $tr.next("tr");
@@ -971,7 +974,6 @@
 									}
 									var nextCell = $tr.find("td:eq("+ (++tdIdx) +")");
 								}while(nextCell.css("display") === "none"); // 如果是隱藏欄位就跳下一筆
-						
 								if(nextCell.length === 0){
 									return;
 								}
@@ -981,8 +983,13 @@
 									grid.editCell(nextCell);
 								},0);
 							});
+							*/
 						}
 					});
+				}
+				
+				function isLocked($ele){
+					return $ele.closest("div").is("div.k-grid-content-locked");
 				}
 				
 				$(document.body).keydown(function(e){
@@ -1022,21 +1029,37 @@
 						if(!selection){
 							return;
 						};
-					    var startColIdx = selection.index(), // 如果多選column，只會顯示最左邊的欄位index；如果單選column，就是該欄位的index；0 based, 隱藏欄位會被計算
+						//console.log("selection.length: " + selection.length);
+					    var lockCount = $("div.k-grid-content-locked > table > tbody > tr:nth-child(1) > td").length,
+					    	startColIdx = selection.index(), // 如果多選column，只會顯示最左邊的欄位index；如果單選column，就是該欄位的index；0 based, 隱藏欄位會被計算
 					    	lastColIdx = selection.last().index(), // td的index, ref. http://stackoverflow.com/questions/788225/table-row-and-column-number-in-jquery
-					    	columnCount = (lastColIdx - startColIdx + 1), // 橫跨的column數量
 					    	selectedCount = selection.size(), // 有幾個cell被選擇
 					    	rowCount = (selectedCount / columnCount), // 包含的row數量
 					    	columnOpts = grid.options.columns,
-					    	colFieldName = grid.options.columns[startColIdx].field, // get column field name
 							firstRow = selection.closest("tr"), // 如果多選的時候，只會拿到第一個row
 							firstDataItem = grid.dataItem(firstRow), // 如果多選的時候，只會拿到第一個dataItem
 							fields = [];
 						
-					    for(var i = startColIdx; i < (lastColIdx+1); i++){
-					    	var field = columnOpts[i].field;
-					    	fields.push(field);
-					    }
+						if(lockCount > 0){
+							selection.each(function(idx, ele){
+								var $ele = $(ele),
+									i = $ele.index();
+								if(!isLocked($ele)){
+									i += lockCount;
+								}
+								var field = columnOpts[i].field;
+								if(fields.indexOf(field) < 0){
+									fields.push(field);
+								}
+							});
+						}else{
+						    for(var i = startColIdx; i < (lastColIdx+1); i++){
+						    	var field = columnOpts[i].field;
+						    	fields.push(field);
+						    }
+						}
+						var columnCount = fields.length;
+						console.log("columnCount: " + columnCount);
 						// 如果多選的時候，要取得所有row的dataItem，要跑迴圈
 						// 如果透過jQuery的each函式更新dataItem，會使selection的elements產生變化，以致於接下來的更新動作全部失敗。解決方式是:先取得所有dataItem，然後一次修改他們。
 						var dataItems = selection.map(function(idx, cell){
@@ -1051,7 +1074,9 @@
 							var dataItem = dataItems[i];
 							for(var j = 0; j < fields.length; j++){
 								var field = fields[j];
-								dataItem.set(field, firstDataItem.get(field));
+								if(field){
+									dataItem.set(field, firstDataItem.get(field));
+								}
 							}
 						};
 					}
