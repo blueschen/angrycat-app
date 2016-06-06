@@ -200,6 +200,10 @@
 						var results = response.results; // read
 						return results;
 					}
+				},
+				error: function(e){
+					var status = (e && e.xhr && e.xhr.status) ? e.xhr.status : null;
+					defaultResponseHandler(status);
 				}
 			}
 			return ds;
@@ -414,6 +418,10 @@
 						if("destroy" === type){
 							$(notiId).data("kendoNotification").show(response.name + "刪除成功");
 						}
+					},
+					error: function(e){
+						var status = (e && e.xhr && e.xhr.status) ? e.xhr.status : null;
+						defaultResponseHandler(status);
 					}
 				});
 			
@@ -508,7 +516,12 @@
 			}
 			return modelFields;
 		}
-		
+		function defaultResponseHandler(status){
+			if(status == 401){
+				window.location.href = rootPath + "/login.jsp";
+				return;
+			}
+		}
 		function getDefaultColumns(fields){
 			var columns = [],
 				defaultTemplate = "<span title='#=({field} ? {field} : '')#'>#=({field} ? {field} : '')#</span>",
@@ -652,10 +665,7 @@
 				},
 				error: function(e){
 					var status = (e && e.xhr && e.xhr.status) ? e.xhr.status : null;
-					if(status == 401){
-						window.location.href = rootPath + "/login.jsp";
-						return;
-					}
+					defaultResponseHandler(status);
 					if(status != 200){
 						$(updateInfoWindowId).data("kendoWindow")
 							.content("<h3 style='color:red;'>主機發生錯誤</h3><br><h4><xmp>"+ JSON.stringify(e) +"</xmp></h4>")
@@ -913,8 +923,7 @@
 						},
 						statusCode: {
 							401: function(){
-								window.location.href = rootPath + "/login.jsp";
-								return;
+								defaultResponseHandler(401);
 							}
 						},
 						success: function(ret, textStatus, jqxhr){
