@@ -728,7 +728,7 @@
 				
 				// ref. http://stackoverflow.com/questions/21112330/how-can-i-have-row-number-in-kendo-ui-grid
 				var rowNumClass = "row-number";
-				columns.splice(0, 1, {
+				columns.splice(0, 0, {
 					title: "&nbsp;",
 					template: "<span class='"+rowNumClass+"' style='text-align: center'></span>",
 					width: 50,
@@ -1033,8 +1033,6 @@
 							firstDataItem = grid.dataItem(firstRow), // 如果多選的時候，只會拿到第一個dataItem
 							fields = [];
 						
-					    console.log("firstDataItem: " + JSON.stringify(firstDataItem));
-					    
 					    for(var i = startColIdx; i < (lastColIdx+1); i++){
 					    	var field = columnOpts[i].field;
 					    	fields.push(field);
