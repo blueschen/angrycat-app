@@ -13,6 +13,7 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.UnknownFormatConversionException;
+import java.util.function.BiFunction;
 import java.util.stream.Collectors;
 
 import javax.annotation.PostConstruct;
@@ -189,7 +190,7 @@ public class KendoUiService<T, R> implements Serializable{
 	}
 	
 	@Transactional
-	public List<T> batchSaveOrMerge(List<T> targets){
+	public List<T> batchSaveOrMerge(List<T> targets, BiFunction<T, Session, T> before){
 		Session s = sfw.currentSession();
 		int batchSize = sfw.getBatchSize();
 		int count = 0;
@@ -205,6 +206,9 @@ public class KendoUiService<T, R> implements Serializable{
 				}
 			}catch(Throwable e){
 				throw new RuntimeException(e);
+			}
+			if(before != null){
+				target = before.apply(target, s);
 			}
 			if(StringUtils.isBlank(pk)){
 				s.save(target);
