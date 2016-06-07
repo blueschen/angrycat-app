@@ -115,10 +115,7 @@ public class SalesDetailExcelImporter extends ExcelImporter {
 			Long count = (Long)s.createQuery("SELECT COUNT(m.id) FROM " + Member.class.getName() + " m WHERE upper(m.email) = :idNo").setString("idNo", idNo.toUpperCase()).uniqueResult();
 			System.out.println("idNo seems email: " + idNo + " count: " + count);
 		}
-		
-		mobile = adjustMobile(mobile);
-		idNo = adjustIdNo(idNo);
-		
+				
 		SalesDetail salesDetail = new SalesDetail();
 		salesDetail.setSalePoint(salePoint);
 		salesDetail.setSaleStatus(saleStatus);
@@ -143,22 +140,7 @@ public class SalesDetailExcelImporter extends ExcelImporter {
 		salesDetail.setContactInfo(contactInfo);
 		salesDetail.setRegistrant(registrant);
 		
-		if(StringUtils.isNotBlank(idNo)){
-			String idNoToUpper = idNo.toUpperCase();
-			Object obj = s.createQuery("SELECT m FROM " + Member.class.getName() + " m WHERE upper(m.idNo) = :idNo").setString("idNo", idNoToUpper).uniqueResult();
-			if(obj != null){
-				salesDetail.setMember((Member)obj);
-			}
-		}
-		
-		if(salesDetail.getMember() != null
-		&& StringUtils.isBlank(salesDetail.getMember().getId())
-		&& StringUtils.isNotBlank(mobile)){
-			Object obj = s.createQuery("SELECT m FROM " + Member.class.getName() + " m WHERE m.mobile = :mobile").setString("mobile", mobile).uniqueResult();
-			if(obj != null){
-				salesDetail.setMember((Member)obj);
-			}
-		}
+		findMember(salesDetail, s);
 		
 		String sheetName = getWorkbook().getSheetAt(sheetIdx).getSheetName();
 		sheetName = sheetName.trim();
@@ -174,6 +156,31 @@ public class SalesDetailExcelImporter extends ExcelImporter {
 	protected List<Integer> sheetRange(){
 		return DEFAULT_SHEET_RANGE;
 	}
+	public static void findMember(SalesDetail sd, Session s){
+		String mobile = adjustMobile(sd.getMobile());
+		String idNo = adjustIdNo(sd.getIdNo());
+		
+		sd.setMobile(mobile);
+		sd.setIdNo(idNo);
+		
+		if(StringUtils.isNotBlank(idNo)){
+			String idNoToUpper = idNo.toUpperCase();
+			Object obj = s.createQuery("SELECT m FROM " + Member.class.getName() + " m WHERE upper(m.idNo) = :idNo").setString("idNo", idNoToUpper).uniqueResult();
+			if(obj != null){
+				sd.setMember((Member)obj);
+			}
+		}
+		
+		if((sd.getMember() == null
+		|| StringUtils.isBlank(sd.getMember().getId()))
+		&& StringUtils.isNotBlank(mobile)){
+			Object obj = s.createQuery("SELECT m FROM " + Member.class.getName() + " m WHERE m.mobile = :mobile").setString("mobile", mobile).uniqueResult();
+			if(obj != null){
+				sd.setMember((Member)obj);
+			}
+		}
+	}
+	
 	/**
 	 * 因為Excel的手機號前面的0常常被自動省略，所以盡量幫他加回來
 	 * @param mobile
