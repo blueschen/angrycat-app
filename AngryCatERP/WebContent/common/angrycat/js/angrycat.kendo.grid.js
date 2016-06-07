@@ -798,6 +798,11 @@
 								index = $row.index() + 1 + count;
 							$row.find("."+rowNumClass+"").html(index);
 						});
+						// 啟用鎖定欄位後，會產生左右兩側table。在頁面初始化過程中，兩者的高度會不同，導致被鎖定table的最後一筆資料看來好像被部分切掉。
+						// 所以透過沒被鎖定的table高度校正，兩者看來才會一致
+						setTimeout(function(){
+							$("div.k-grid-content-locked").height($("div.k-grid-content").height());
+						},1000);
 					}
 				}).data("kendoGrid");
 				
