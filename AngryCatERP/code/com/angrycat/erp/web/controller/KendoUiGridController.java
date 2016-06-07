@@ -9,6 +9,7 @@ import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.function.BiFunction;
 
 import javax.annotation.PostConstruct;
 import javax.servlet.http.HttpServletRequest;
@@ -16,6 +17,7 @@ import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
 
 import org.apache.commons.io.FileUtils;
+import org.hibernate.Session;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.annotation.AnnotationUtils;
 import org.springframework.ui.Model;
@@ -90,8 +92,14 @@ public abstract class KendoUiGridController<T, R> implements Serializable{
 			method=RequestMethod.POST,
 			produces={"application/xml", "application/json"},
 			headers="Accept=*/*")
-	public @ResponseBody List<T> batchSaveOrMerge(@RequestBody List<T> salesDetails){
-		return kendoUiGridService.batchSaveOrMerge(salesDetails);
+	public @ResponseBody String batchSaveOrMerge(@RequestBody List<T> salesDetails){
+		List<T> results = kendoUiGridService.batchSaveOrMerge(salesDetails, beforeSaveOrMerge());
+		String json = conditionConfigToJsonStr(results);
+		return json;
+	}
+	
+	BiFunction<T, Session, T> beforeSaveOrMerge(){
+		return null;
 	}
 	
 	@RequestMapping(value="/deleteByIds",
