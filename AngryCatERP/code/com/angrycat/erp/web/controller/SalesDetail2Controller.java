@@ -4,7 +4,10 @@ import java.util.Arrays;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.function.BiFunction;
 
+import org.apache.commons.lang3.StringUtils;
+import org.hibernate.Session;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Controller;
@@ -15,6 +18,7 @@ import org.springframework.web.bind.annotation.ResponseBody;
 
 import com.angrycat.erp.common.CommonUtil;
 import com.angrycat.erp.excel.SalesDetailExcelExporter;
+import com.angrycat.erp.excel.SalesDetailExcelImporter;
 import com.angrycat.erp.jackson.mixin.MemberIgnoreDetail;
 import com.angrycat.erp.model.Member;
 import com.angrycat.erp.model.Product;
@@ -91,5 +95,20 @@ public class SalesDetail2Controller extends
 	@Override
 	List<String> getParameterCatNames(){
 		return parameterCatNames;
+	}
+	
+	@Override
+	BiFunction<SalesDetail, Session, SalesDetail> beforeSaveOrMerge(){
+		return new BiFunction<SalesDetail, Session, SalesDetail>(){
+			@Override
+			public SalesDetail apply(SalesDetail sd, Session s) {
+				if(StringUtils.isNotBlank(sd.getId())){
+					return sd;
+				}
+				SalesDetailExcelImporter.findMember(sd, s);
+				return sd;
+			}
+			
+		};
 	}
 }
