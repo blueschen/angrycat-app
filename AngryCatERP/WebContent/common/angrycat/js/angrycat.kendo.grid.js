@@ -890,7 +890,18 @@
 						var ds = mainGrid.dataSource;
 						ds.query(DEFAULT_QUERY_OPTIONS);
 					}
-				});
+				})
+				.attr("data-toggle", "tooltip")
+				.attr("data-placement", "top")
+				.attr("title", "初始條件查詢")
+				.tooltip();
+				
+				$(".k-grid-cancel-changes")
+				.attr("data-toggle", "tooltip")
+				.attr("data-placement", "top")
+				.attr("title", "取消頁面資料異動")
+				.tooltip();
+				
 				$(".k-grid-saveCondition").click(function(e){
 					var name = prompt("請輸入設定名稱");
 					if(!name){
