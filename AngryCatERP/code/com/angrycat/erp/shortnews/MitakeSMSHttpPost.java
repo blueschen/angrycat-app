@@ -150,11 +150,12 @@ public class MitakeSMSHttpPost {
 //		shortMsgNotifyForTesting();
 //		strLen();
 //		shortMsgNotify20160429Activity(); // 4/29活動簡訊
-		shortMsgNotify20160530Activity(); // 5/30活動簡訊
+//		shortMsgNotify20160530Activity(); // 5/30活動簡訊
+		shortMsgNotify20160623Activity(); // 6/23活動簡訊
 	}
 	
 	private static void strLen(){
-		String content = "OHM絕版品特價出清7折起，敦南誠品專櫃及FB網路社團同步優惠，詳情請洽02-27716304";
+		String content = "6/9-6/26 OHM在永和比漾廣場，單筆滿萬當筆9折再升VIP，還可參加滿5000送500年中慶活動，詳情洽02-27761505";
 		System.out.println(content.length());
 	}
 	
@@ -286,7 +287,7 @@ public class MitakeSMSHttpPost {
 			System.out.println(testMsg);
 			System.out.println("共查到" + members.size() + "筆");
 			members.forEach(m->{
-				System.out.println(m.getName() + "|" + m.getMobile() + m.getToVipDate() + "|" + m.getToVipEndDate());
+				System.out.println(m.getName() + "|" + m.getMobile() + "|" + m.getToVipDate() + "|" + m.getToVipEndDate());
 //				System.out.println(ReflectionToStringBuilder.toString(m, ToStringStyle.MULTI_LINE_STYLE)); // enable this statement, must take consideration in lazy loading issue
 				System.out.println(genContent.apply(m));
 			});
@@ -627,6 +628,42 @@ public class MitakeSMSHttpPost {
 			simpleMailMessage.setCc(cc);
 			mailSender.send(simpleMailMessage);
 		}
+	}
+	/**
+	 * 發送簡訊給非VIP會員
+	 * @param subject
+	 * @param content
+	 */
+	private void shortMsgNotifyNotVIPMembers(String subject, String content){
+		String queryHql = "SELECT DISTINCT(p) FROM " + Member.class.getName() + " p WHERE p.mobile IS NOT NULL AND p.important = :important";
+		Map<String, Object> params = new HashMap<>();
+		params.put("important", false);
+		StringBuffer sb = sendShortMsgToMembers(queryHql, params, content);
+		
+		String sendMsg = sb.toString();
+		if(sendMsg.contains(NO_DATA_FOUND_STOP_SEND_SHORT_MSG)){
+			subject += "沒有找到符合資格的會員";
+		}else{
+			subject += "簡訊發送後訊息";
+		}
+		if(!testMode){
+			SimpleMailMessage simpleMailMessage = new SimpleMailMessage(templateMessage);
+			simpleMailMessage.setTo(IFLY);
+			simpleMailMessage.setText(sendMsg);
+			simpleMailMessage.setSubject(subject);
+			String[] cc = new String[]{MIKO,BLUES,JERRY};
+			simpleMailMessage.setCc(cc);
+			mailSender.send(simpleMailMessage);
+		}
+	}
+	
+	private static void shortMsgNotify20160623Activity(){
+		BaseTest.executeApplicationContext(acac->{
+			MitakeSMSHttpPost service = acac.getBean(MitakeSMSHttpPost.class);
+			service.setTestMode(true);
+			
+			service.shortMsgNotifyNotVIPMembers("OHM比漾促銷活動", "6/9-6/26 OHM在永和比漾廣場，單筆滿萬當筆9折再升VIP，還可參加滿5000送500年中慶活動，詳情洽02-27761505");
+		});
 	}
 	
 	private static void shortMsgNotify20160530Activity(){
