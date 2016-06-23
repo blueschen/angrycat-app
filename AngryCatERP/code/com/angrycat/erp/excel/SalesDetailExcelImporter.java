@@ -261,8 +261,8 @@ public class SalesDetailExcelImporter extends ExcelImporter {
 	}
 	
 	private static void testReadAndPersist(){
-		String fileName = "201604_OHM銷售明細";
-		String src = "E:\\angrycat_workitem\\銷售明細\\2016_05_13_from_miko\\"+fileName+".xlsx";
+		String fileName = "201605_OHM銷售明細 -";
+		String src = "E:\\angrycat_workitem\\銷售明細\\2016_06_20_from_miko\\"+fileName+".xlsx";
 		Map<String, String> msg = null;
 		try(AnnotationConfigApplicationContext acac = new AnnotationConfigApplicationContext(RootConfig.class);){
 			SalesDetailExcelImporter i = acac.getBean(SalesDetailExcelImporter.class);
@@ -291,6 +291,7 @@ public class SalesDetailExcelImporter extends ExcelImporter {
 	}
 	
 	public static void main(String[]args){
+		// TODO 轉檔完畢後，產出該月報表，並且輸出Excel，當成附件寄給相關人員
 		testReadAndPersist();
 //		testAdjustMobile();
 //		testAdjustIdNo();
