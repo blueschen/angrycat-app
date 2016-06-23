@@ -30,57 +30,12 @@
 	
 </head>
 <body ng-controller="MainCtrl as mainCtrl">
-<div>
-	<nav role="navigation" class="navbar navbar-default navbar-fixed-top">
-		<div class="container">
-			<div class="navbar-header">
-				<button type="button" data-target="#navbarCollapse" data-toggle="collapse" class="navbar-toggle">
-					<span class="sr-only">Toggle navigation</span>
-					<span class="icon-bar"></span>
-					<span class="icon-bar"></span>
-					<span class="icon-bar"></span>
-				</button>
-				<a href="#" class="navbar-brand">Angrycat</a>
-			</div>
-			<div id="navbarCollapse" class="collapse navbar-collapse">
-				<ul class="nav navbar-nav">
-					<li ng-class="{'active': mainCtrl.moduleName == 'member'}">
-						<a href="${pageContext.request.contextPath}/member/list">會員查詢</a>
-					</li>
-					<li>
-						<a href="${pageContext.request.contextPath}/member/add">會員新增</a>
-					</li>
-					<li ng-class="{'active': mainCtrl.moduleName == 'datachangelog'}">
-						<a href="${pageContext.request.contextPath}/datachangelog/list">異動紀錄查詢</a>
-					</li>
-					<li ng-class="{'active': mainCtrl.moduleName == 'datadeletelog'}">
-						<a href="${pageContext.request.contextPath}/datadeletelog/list">已刪除資料異動紀錄查詢</a>
-					</li>
-					<li ng-class="{'active': mainCtrl.moduleName == 'salesdetail'}">
-						<a href="${pageContext.request.contextPath}/salesdetail/list">銷售明細查詢</a>
-					</li>
-					<li ng-class="{'active': mainCtrl.moduleName == 'salesdetail2'}">
-						<a href="${pageContext.request.contextPath}/salesdetail2/list">銷售明細新介面</a>
-					</li>															
-				</ul>
-				<ul class="nav navbar-nav navbar-right">
-					<li>
-						<a href="${pageContext.request.contextPath}/logout"><span class="glyphicon glyphicon-user"></span>登出</a>
-					</li>
-				</ul>
-			</div>		
-		</div>
-	</nav>
-</div>
+<jsp:include page="/WEB-INF/views/navigation.jsp"></jsp:include>
 
 
 
 <div class="container">
-
-<div class="jumbotron">
-<h4>Hello <s:message code="model.name.${modelName}"/>!</h4>
-</div>
-
+<hr>
 <form class="form-horizontal" name="memberListForm">
  	<div class="form-group">
 		<label class="col-sm-2 control-label" for="pName" >
