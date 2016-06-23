@@ -3,7 +3,7 @@
 <%@ taglib uri="http://java.sun.com/jsp/jstl/core" prefix="c"%>
 <%@ taglib uri="http://www.springframework.org/tags/form" prefix="sf"%>
 <%@ taglib uri="http://www.springframework.org/tags" prefix="s"%>    
-<div>
+<div style="margin-bottom: 15px;">
 	<nav role="navigation" class="navbar navbar-default navbar-fixed-top">
 		<div class="container">
 			<div class="navbar-header">
@@ -34,7 +34,13 @@
 					</li>
 					<li ${moduleName == "salesdetail2" ? "class='active'" : ""}>
 						<a href="${pageContext.request.contextPath}/salesdetail2/list">銷售明細新介面</a>
-					</li>																				
+					</li>
+					<li ${moduleName == "exam" ? "class='active'" : ""}>
+						<a href="${pageContext.request.contextPath}/exam/list">題庫查詢</a>
+					</li>
+					<li>
+						<a href="${pageContext.request.contextPath}/exam/add">題庫新增</a>
+					</li>					
 				</ul>
 				<ul class="nav navbar-nav navbar-right">
 					<li>
