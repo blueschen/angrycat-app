@@ -40,7 +40,7 @@
 <jsp:include page="/WEB-INF/views/navigation.jsp"></jsp:include>
 
 <div class="container-fluid">
-<div class="well">
+<hr>
 </div>
 	<span id="updateInfoWindow" style="display:none;"></span>
 	<div id="mainGrid"></div>
