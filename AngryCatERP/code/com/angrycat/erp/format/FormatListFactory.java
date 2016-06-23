@@ -2,6 +2,8 @@ package com.angrycat.erp.format;
 
 import java.util.List;
 
+import com.angrycat.erp.model.Exam;
+import com.angrycat.erp.model.ExamItem;
 import com.angrycat.erp.model.Member;
 import com.angrycat.erp.model.Product;
 import com.angrycat.erp.model.SalesDetail;
@@ -70,6 +72,20 @@ public class FormatListFactory {
 		return f;
 	}
 	
+	private static FormatList ofExamBase(String dateFormat){
+		FormatList f = new FormatList();
+		f.setDocTitle("description");
+		
+		f.add(new PropertyFormat("題目", "description"));
+		f.add(new PropertyFormat("類別", "category"));
+		f.add(new PropertyFormat("提示", "hint"));
+		PropertyFormat createDate = new PropertyFormat("新增題庫日", "createDate");
+		createDate.setDateFormat(dateFormat);
+		f.add(createDate);
+		
+		return f;
+	}
+	
 	public static FormatList ofSalesDetailForExcelExport(){
 		FormatList f = ofSalesBase("yyyy-MM-dd");
 		return f;
@@ -131,7 +147,19 @@ public class FormatListFactory {
 			list.add(new DetailPropertyFormat(subject + "有效起始日", field+"effectiveStart"));
 			list.add(new DetailPropertyFormat(subject + "有效結束日", field+"effectiveEnd"));
 			list.add(new DetailPropertyFormat(subject + "折扣使用日期", field+"discountUseDate"));
-			list.add(new DetailPropertyFormat(subject + "轉VIP日", field+"toVipDate"));
+			list.add(new DetailPropertyFormat(subject + "轉VIP日", field+"toVipDate"){});
+		}
+		return list;
+	}
+	
+	private static FormatList ofExamItems(int count){
+		FormatList list = ofExamBase("yyyy-MM-dd");
+		for(int i = 0; i < count; i++){
+			String subject = "題項"+(i+1)+"_";
+			String field = "items["+i+"].";
+			list.add(new DetailPropertyFormat(subject + "順序", field+"sequence"));
+			list.add(new DetailPropertyFormat(subject + "描述", field+"description"));
+			list.add(new DetailPropertyFormat(subject + "正確答案", field+"correct"));
 		}
 		return list;
 	}
@@ -151,6 +179,8 @@ public class FormatListFactory {
 			formats = ofSalesDetailForExcelExport();
 		}else if(clz == Product.class){
 			formats = ofProducForExcelExport();
+		}else if(clz == Exam.class){
+			formats = ofExamBase("yyyy-MM-dd");
 		}else{
 			throw new IllegalArgumentException("FormatListFactory.forLog: 沒有定義"+clz.getName()+"異動記錄所需的轉換格式");
 		}
@@ -182,6 +212,15 @@ public class FormatListFactory {
 			formats = ofSalesDetailForExcelExport();
 		}else if(clz == Product.class){
 			formats = ofProducForExcelExport();
+		}else if(clz == Exam.class){
+			Exam oldOne = (Exam)oldObj;
+			List<ExamItem> oldItems = oldOne.getItems();
+			int oldSize = oldItems.size();
+			Exam newOne = (Exam)newObj;
+			List<ExamItem> newItems = newOne.getItems();
+			int newSize = newItems.size();
+			int maxSize = Math.max(oldSize, newSize);
+			formats = ofExamItems(maxSize);
 		}else{
 			throw new IllegalArgumentException("FormatListFactory.forUpdateLog: 沒有定義"+clz.getName()+"異動記錄所需的轉換格式");
 		}
