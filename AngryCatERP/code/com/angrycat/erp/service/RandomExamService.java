@@ -192,19 +192,15 @@ public class RandomExamService {
 				Product p = products.get(i);
 				ExamItem ei = new ExamItem();
 				ei.setCorrect(p.getId().equals(correct.getId()));
-				if(questionField!=null){
-					Object val = CommonUtil.getProperty(p, questionField);
-					ei.setDescription(val.toString()); // 如果題項是圖片，就把它當作型號
-				}
+				Object val = CommonUtil.getProperty(p, questionField);
+				ei.setDescription(val.toString()); // 如果題項是圖片，就把它當作型號
 				ei.setSequence(i);
 				return ei;
 			}).collect(Collectors.toList());
 		
 		// 如果topic是圖片，就把它當作型號
-		if(topicField!=null){
-			Object val = CommonUtil.getProperty(correct, topicField);
-			topic+=val;
-		}	
+		Object val = CommonUtil.getProperty(correct, topicField);
+		topic+=val;	
 			
 		String desc = RANDON_QUESTION_TEMPLATE
 				.replaceFirst("\\(\\\\S\\+\\)", topic)
