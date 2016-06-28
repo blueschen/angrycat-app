@@ -23,7 +23,7 @@ public class Product {
 	private String nameEng;
 	private String seriesName;
 	private String barcode;
-	
+	private String imgDir;
 	@Id
 	@Column(name="id")
 	@GenericGenerator(name="angrycat_product_id", strategy="com.angrycat.erp.ds.TimeUID")
@@ -106,5 +106,12 @@ public class Product {
 			}
 		}
 		return modelIdAdjusted;
+	}
+	@Column(name="imgDir")
+	public String getImgDir() {
+		return imgDir;
+	}
+	public void setImgDir(String imgDir) {
+		this.imgDir = imgDir;
 	}
 }
