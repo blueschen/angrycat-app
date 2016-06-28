@@ -39,8 +39,8 @@ public class RandomExamService {
 	private static final String PRODUCT_NAME = "品名";
 	private static final String PIC = "圖片";
 	private static final String PRICE = "價格";
-	private static final List<String> PRODUCT_TOPICS = Arrays.asList(MODELID,PRODUCT_NAME,PIC);
-	private static final List<String> PRODUCT_QUESTIONS = Arrays.asList(MODELID,PRODUCT_NAME,PRICE,PIC);
+	private static final List<String> PRODUCT_TOPICS = Arrays.asList(MODELID,PRODUCT_NAME); // TODO 圖片處理比較複雜，待日後有完整配套再加入
+	private static final List<String> PRODUCT_QUESTIONS = Arrays.asList(MODELID,PRODUCT_NAME,PRICE); // TODO  圖片處理比較複雜，待日後有完整配套再加入
 	private static final List<int[]> PRODUCT_COORDINATES = new LinkedList<>();
 	static{
 		int topicSize = PRODUCT_TOPICS.size();
@@ -194,7 +194,7 @@ public class RandomExamService {
 				ei.setCorrect(p.getId().equals(correct.getId()));
 				Object val = CommonUtil.getProperty(p, questionField);
 				ei.setDescription(val.toString()); // 如果題項是圖片，就把它當作型號
-				ei.setSequence(i);
+				ei.setSequence(i+1);
 				return ei;
 			}).collect(Collectors.toList());
 		
