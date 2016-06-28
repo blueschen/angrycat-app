@@ -5,6 +5,7 @@ import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
 import javax.persistence.Id;
 import javax.persistence.Table;
+import javax.persistence.Transient;
 
 import org.hibernate.annotations.GenericGenerator;
 
@@ -16,6 +17,7 @@ public class ExamItem {
 	private String description;
 	private boolean correct;
 	private String examId;
+	private boolean selected;
 	@Id
 	@Column(name="id", columnDefinition="ID")
 	@GenericGenerator(name="angrycat_exam_item_id",strategy="com.angrycat.erp.ds.TimeUID")
@@ -53,5 +55,12 @@ public class ExamItem {
 	}
 	public void setExamId(String examId){
 		this.examId = examId;
+	}
+	@Transient
+	public boolean isSelected() {
+		return selected;
+	}
+	public void setSelected(boolean selected) {
+		this.selected = selected;
 	}
 }
