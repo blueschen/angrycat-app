@@ -12,8 +12,7 @@ import com.angrycat.erp.initialize.config.RootConfig;
 import com.angrycat.erp.initialize.config.WebConfig;
 
 public class StartupWebAppInitializer extends
-		AbstractAnnotationConfigDispatcherServletInitializer {
-
+		AbstractAnnotationConfigDispatcherServletInitializer {	
 	@Override
 	protected Class<?>[] getRootConfigClasses() {
 		return new Class[]{RootConfig.class};
@@ -31,8 +30,7 @@ public class StartupWebAppInitializer extends
 
 	@Override
 	protected void customizeRegistration(Dynamic registration){
-		String serverRoot = System.getProperty("catalina.home");
-		String uploadTemp = serverRoot + "/uploads/tmp";
+		String uploadTemp = getUploadsTempPath();
 		File dir = new File(uploadTemp);
 		if(!dir.exists()){
 			try{
@@ -42,5 +40,26 @@ public class StartupWebAppInitializer extends
 			}
 		}
 		registration.setMultipartConfig(new MultipartConfigElement(uploadTemp, 2097152, 4194304, 0));
+	}
+	public static String getUploadRoot(){
+		String serverRoot = System.getProperty("catalina.home");
+		return serverRoot;
+	}
+	/**
+	 * 不管根路徑，取得子目錄位置
+	 * @return
+	 */
+	public static String getUploadsTempSubPath(){
+		String SEP = File.separator;
+		return "/uploads/tmp".replace("/", SEP);
+	}
+	/**
+	 * 取得上傳的暫存路徑
+	 * @return
+	 */
+	public static String getUploadsTempPath(){
+		String serverRoot = getUploadRoot();
+		String uploadTemp = serverRoot + getUploadsTempSubPath();
+		return uploadTemp;
 	}
 }
