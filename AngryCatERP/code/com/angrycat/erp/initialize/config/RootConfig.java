@@ -1,5 +1,6 @@
 package com.angrycat.erp.initialize.config;
 
+import java.io.File;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -38,12 +39,13 @@ import com.mchange.v2.c3p0.ComboPooledDataSource;
 public class RootConfig {
 	public static final String DEFAULT_BATCH_SIZE = "100";
 	
-	private static final String LOCAL_TOMCAT_PATH = "C:/dts/apache-tomcat-8.0.23";
-	private static final String NAS_TOMCAT_PRODUCTION_PATH = "/usr/local/apache-tomcat-8.0.23";
-	private static final String NAS_TOMCAT_TEST1_PATH = "/usr/local/apache-tomcat-8.0.23_test1";
-	private static final String NAS_TOMCAT_TEST2_PATH = "/usr/local/apache-tomcat-8.0.23_test2";
-	private static final String NAS_TOMCAT_TEST3_PATH = "/usr/local/apache-tomcat-8.0.23_test3";
-	private static final String NAS_TOMCAT_TEST4_PATH = "/usr/local/apache-tomcat-8.0.23_test4";
+	private static final String SEP = File.separator;
+	private static final String LOCAL_TOMCAT_PATH = "C:/dts/apache-tomcat-8.0.23".replace("/", SEP);
+	private static final String NAS_TOMCAT_PRODUCTION_PATH = "/usr/local/apache-tomcat-8.0.23".replace("/", SEP);
+	private static final String NAS_TOMCAT_TEST1_PATH = "/usr/local/apache-tomcat-8.0.23_test1".replace("/", SEP);
+	private static final String NAS_TOMCAT_TEST2_PATH = "/usr/local/apache-tomcat-8.0.23_test2".replace("/", SEP);
+	private static final String NAS_TOMCAT_TEST3_PATH = "/usr/local/apache-tomcat-8.0.23_test3".replace("/", SEP);
+	private static final String NAS_TOMCAT_TEST4_PATH = "/usr/local/apache-tomcat-8.0.23_test4".replace("/", SEP);
 	
 	private static final String CATALINA_HOME = "catalina.home";
 	@Autowired
