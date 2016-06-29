@@ -219,7 +219,7 @@ public class RandomExamService {
 	 * @return
 	 */
 	public List<Exam> setExamGroup(){
-		int examCount = itemCount - productCount;
+		int examCount = itemCount - productCount; // TODO 要可以手動調整題數
 		List<Exam> products = setRandomProductExams(productCount);
 		List<Exam> exams = setRandomExams(examCount);
 		List<Exam> all = new LinkedList<>();
