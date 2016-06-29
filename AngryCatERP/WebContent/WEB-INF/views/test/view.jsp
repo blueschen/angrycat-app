@@ -44,6 +44,30 @@
 		<div ng-repeat="exam in mainCtrl.showExams">
 			<div class="panel panel-primary">
   				<div class="panel-heading">第{{$index+1}}題 <strong>:</strong> {{exam.description}}</div>
+  				
+  				<div class="panel-body">
+  					<div class="row">
+  						<div class="col-sm-3" ng-repeat="item in exam.items">
+  							<div class="form-group">
+  								<div class="btn-group" data-toggle="buttons">
+  									<label class="btn btn-default">
+  										<input type="checkbox" autocomplete="off" ng-model="item.selected">
+  										<span class="glyphicon glyphicon-unchecked" ng-if="!item.selected"></span>
+  										<span class="glyphicon glyphicon-check" ng-if="item.selected"></span>
+  									</label>
+  									<label class="btn btn-default">
+  										<span class="label label-default">{{item.sequence}}</span>
+  										{{item.description}}
+  									</label>
+  									<label class="btn btn-success" ng-if="item.correct">
+  										R
+  									</label>
+  								</div>
+  							</div>
+  						</div>
+  					</div>
+  				</div>
+  				<!-- 
   				<ul class="list-group" ng-repeat="item in exam.items">
     				<li class="list-group-item" ng-class="{'list-group-item-success': mainCtrl.corrected && item.selected && item.correct, 'list-group-item-danger': mainCtrl.corrected && item.selected && !item.correct}"><input type="checkbox" ng-model="item.selected"/>
     					<span>
@@ -53,7 +77,7 @@
     					</span>
     					<span class="label label-info" ng-if="mainCtrl.corrected && item.correct && exam.hint">{{exam.hint}}</span>
     				</li>
-  				</ul>
+  				</ul> -->
 			</div>
 		</div>
 		<div ng-if="mainCtrl.score >= 0" class="alert alert-info" role="alert">
