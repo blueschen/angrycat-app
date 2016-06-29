@@ -114,9 +114,9 @@ public class RenewVip {
 				discount.applyRule(m); // 續會logic
 				
 				System.out.println(m.getName() + "|" + m.getIdNo());
-				m.getVipDiscountDetails().forEach(v->{
-					System.out.println(ReflectionToStringBuilder.toString(v, ToStringStyle.MULTI_LINE_STYLE));
-				});
+//				m.getVipDiscountDetails().forEach(v->{
+//					System.out.println(ReflectionToStringBuilder.toString(v, ToStringStyle.MULTI_LINE_STYLE));
+//				});
 //				System.out.println(ReflectionToStringBuilder.toString(m, ToStringStyle.MULTI_LINE_STYLE));
 				s.update(m);
 				s.flush();
@@ -165,7 +165,14 @@ public class RenewVip {
 	private static void testRenewVipByMemberIds(){
 		BaseTest.executeApplicationContext(acac->{
 			RenewVip vip = acac.getBean(RenewVip.class);
-			vip.renewVipByMemberIds(Arrays.asList("20151026-125509184-iHDDO"));
+			vip.renewVipByMemberIds(Arrays.asList("20151026-125509411-GWBKu"
+					,"20151026-125508985-lUWdK"
+					,"20151026-125511786-olUwa"
+					,"20151026-125509537-Fnayi"
+					,"20151026-125513290-EFkWq"
+					,"20151026-125511651-bEYGp"
+					,"20151026-125510478-ynJsi"
+					,"20151026-125510886-mkLNU"));
 		});
 	}
 	
