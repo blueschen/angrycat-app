@@ -36,64 +36,65 @@
 <body ng-controller="MainCtrl as mainCtrl">
 
 <div class="container">
-	<div class="col-sm-offset-5">
-		<h2>OHM測試</h2>
+	<div class="panel-group">
+
+	<div class="panel panel-default">
+		<label class="btn btn-default" ng-click="mainCtrl.startTest()">
+			OHM測試
+      		<span ng-if="mainCtrl.exam">重來</span>
+			<span ng-if="!mainCtrl.exam">開始</span>
+		</label>
+		<label ng-click="mainCtrl.nextExam()" class="btn btn-default" ng-if="mainCtrl.exam && mainCtrl.examCount != mainCtrl.examNum">
+ 			下一題
+ 		</label>
+ 		<label ng-click="mainCtrl.scoring()" class="btn btn-default" ng-if="mainCtrl.exam && mainCtrl.examCount == mainCtrl.examNum">
+ 			計分
+ 		</label>
 	</div>
-	
-	<div name="testForm">
-		<div ng-repeat="exam in mainCtrl.showExams">
-			<div class="panel panel-primary">
-  				<div class="panel-heading">第{{$index+1}}題 <strong>:</strong> {{exam.description}}</div>
+	<div name="testForm" ng-if="mainCtrl.exam">
+		<div class="panel panel-primary">
+  			<div class="panel-heading">第{{mainCtrl.examCount}}題 <strong>:</strong> {{mainCtrl.exam.description}}</div>
   				
-  				<div class="panel-body">
-  					<div class="row">
-  						<div class="col-sm-3" ng-repeat="item in exam.items">
-  							<div class="form-group">
-  								<div class="btn-group" data-toggle="buttons">
-  									<label class="btn btn-default">
-  										<input type="checkbox" autocomplete="off" ng-model="item.selected">
-  										<span class="glyphicon glyphicon-unchecked" ng-if="!item.selected"></span>
-  										<span class="glyphicon glyphicon-check" ng-if="item.selected"></span>
-  									</label>
-  									<label class="btn btn-default">
-  										<span class="label label-default">{{item.sequence}}</span>
-  										{{item.description}}
-  									</label>
-  									<label class="btn btn-success" ng-if="item.correct">
-  										R
-  									</label>
-  								</div>
+  			<div class="panel-body">
+  				<div class="row">
+  					<div class="col-sm-3" ng-repeat="item in mainCtrl.exam.items">
+  						<div class="form-group">
+  							<div class="btn-group" data-toggle="buttons">
+  								<label class="btn btn-default" ng-class="{'btn-default':!item.correct, 'btn-success':item.correct}">
+  									<input type="checkbox" autocomplete="off" ng-model="item.selected" ng-disabled="mainCtrl.stopReply" ng-change="mainCtrl.correctAfterReply()">
+  									<span class="glyphicon glyphicon-unchecked" ng-if="!item.selected"></span>
+  									<span class="glyphicon glyphicon-check" ng-if="item.selected"></span>
+  								</label>
+  								<label class="btn btn-default">
+  									<span class="label label-default">{{item.sequence}}</span>
+  									{{item.description}}
+  								</label>
   							</div>
   						</div>
   					</div>
   				</div>
-  				<!-- 
-  				<ul class="list-group" ng-repeat="item in exam.items">
-    				<li class="list-group-item" ng-class="{'list-group-item-success': mainCtrl.corrected && item.selected && item.correct, 'list-group-item-danger': mainCtrl.corrected && item.selected && !item.correct}"><input type="checkbox" ng-model="item.selected"/>
-    					<span>
-    						<span class="label label-pill label-default">{{item.sequence}}</span>
-    						{{item.description}}
-    						<span class="badge alert-success" ng-if="mainCtrl.corrected && item.correct">R</span>
-    					</span>
-    					<span class="label label-info" ng-if="mainCtrl.corrected && item.correct && exam.hint">{{exam.hint}}</span>
-    				</li>
-  				</ul> -->
-			</div>
-		</div>
-		<div ng-if="mainCtrl.score >= 0" class="alert alert-info" role="alert">
-			<div class="col-sm-offset-5">
-				<strong style="font-size: 20px;">{{mainCtrl.score}}</strong>
-			</div>
-		</div>
- 		<div class="form-group">
- 			<div class="col-sm-offset-5">
- 				<input type="submit" value="計分" ng-click="mainCtrl.scoring()" ng-disabled="mainCtrl.corrected" class="btn btn-default"/>
- 				<input type="button" value="重測" ng-click="mainCtrl.retest()" class="btn btn-default"/>
- 			</div>
- 		</div>		
+  			</div>
+  			
+  			<div class="panel-footer" ng-if="mainCtrl.corrected && mainCtrl.exam.hint">
+  				<span class="label label-default">
+  					{{mainCtrl.exam.hint}}
+  				</span>
+  			</div>
+  			<!-- 
+  			<ul class="list-group" ng-repeat="item in exam.items">
+    			<li class="list-group-item" ng-class="{'list-group-item-success': mainCtrl.corrected && item.selected && item.correct, 'list-group-item-danger': mainCtrl.corrected && item.selected && !item.correct}"><input type="checkbox" ng-model="item.selected"/>
+    				<span>
+    					<span class="label label-pill label-default">{{item.sequence}}</span>
+    					{{item.description}}
+    					<span class="badge alert-success" ng-if="mainCtrl.corrected && item.correct">R</span>
+    				</span>
+    				<span class="label label-info" ng-if="mainCtrl.corrected && item.correct && exam.hint">{{exam.hint}}</span>
+    			</li>
+  			</ul> -->
+		</div>		
 	</div>
-	
-	<div ng-if="mainCtrl.scores" class="panel-group" ng-model="mainCtrl.activePanel" role="tablist" aria-multiselectable="true" bs-collapse>
+
+	<div ng-if="mainCtrl.scores" ng-model="mainCtrl.activePanel" role="tablist" aria-multiselectable="true" bs-collapse>	
   		<div class="panel panel-default">
     		<div class="panel-heading" role="tab">
       			<h4 class="panel-title">
@@ -131,52 +132,88 @@
     		</div>
     		<div class="panel-collapse" role="tabpanel" bs-collapse-target>
       			<ul class="list-group" ng-repeat="sc in mainCtrl.scores track by $index">
-    				<li class="list-group-item">{{sc}}</li>
+    				<li class="list-group-item">
+    					<span class="label" ng-class="{'label-default':$index!=0, 'label-success':$index==0}">
+    						{{sc}}
+    					</span>
+    				</li>
   				</ul>
     		</div>  		
   		</div> 		
+	</div>
+	
 	</div>	
 </div>
 <script type="text/javascript">
 	angular.module('angryCatTestViewApp', ['erp.date.service', 'erp.ajax.service', 'mgcrea.ngStrap'])
 		.constant('urlPrefix', '${urlPrefix}')
 		.constant('login', "${sessionScope['sessionUser']}" ? true : false)
-		.constant('targetData', ${showExams == null ? "null" : showExams})
+		.constant('targetData', ${info == null ? "null" : info})
 		.controller('MainCtrl', ['$scope', 'DateService', 'AjaxService', 'urlPrefix', 'login', 'targetData', function($scope, DateService, AjaxService, urlPrefix, login, targetData){
 			var self = this;
-			self.showExams = targetData;
+			self.statistics = targetData.statistics;
+			self.scores = targetData.scores;
 			self.login = login;
-			self.activePanel = -1;
-			self.scoring = function(){
-				AjaxService.post(urlPrefix + "/score.json", self.showExams)
+			self.activePanel = 0,
+			self.examCount = 1; // 第幾題
+			
+			self.startTest = function(){
+				AjaxService.post(urlPrefix + "/startTest.json")
 				.then(function(response){
 					var info = response.data;
-					self.showExams = info.corrected;
-					self.score = info.score;
+					self.exam = info.firstExam;
+					self.examNum = info.examNum;
+					self.scores = null;
+					self.statistics = null;
+					self.examCount = 1;
+					self.stopReply = false;
+					self.corrected = false;
+				},
+				function(errResponse){
+					alert('出題失敗，錯誤訊息: ' + JSON.stringify(errResponse));
+				});
+			}
+			self.correctAfterReply = function(){
+				self.stopReply = true;
+				AjaxService.post(urlPrefix + "/correctAfterReply.json", self.exam)
+				.then(function(response){
+					var answer = response.data;
+					self.exam = answer;
 					self.corrected = true;
+				},
+				function(errResponse){
+					alert('訂正失敗，錯誤訊息: ' + JSON.stringify(errResponse));
+				});
+			}			
+			self.nextExam = function(){
+				AjaxService.post(urlPrefix + "/nextExam.json")
+				.then(function(response){
+					var nextExam = response.data;
+					self.exam = nextExam;
+					self.examCount++;
+					self.stopReply = false;
+					self.corrected = false;
+				},
+				function(errResponse){
+					alert('下一題出題失敗，錯誤訊息: ' + JSON.stringify(errResponse));
+				});
+			}
+			self.scoring = function(){
+				AjaxService.post(urlPrefix + "/score.json")
+				.then(function(response){
+					var info = response.data;
 					self.scores = info.scores;
 					self.statistics = info.statistics;
-					self.activePanel = -1;
+					self.activePanel = 1;
+					self.exam = null;
+					self.examNum = null;
+					self.examCount = 1;
+					self.corrected = false;
 				},
 				function(errResponse){
 					alert('計分失敗，錯誤訊息: ' + JSON.stringify(errResponse));
 				});
 			};
-			self.retest = function(){
-				AjaxService.post(urlPrefix + "/retest.json")
-				.then(function(response){
-					var newExam = response.data;
-					self.showExams = newExam;
-					self.score = undefined;
-					self.corrected = false;
-					self.activePanel = -1;
-				},
-				function(errResponse){
-					alert('重測失敗，錯誤訊息: ' + JSON.stringify(errResponse));
-				});
-				
-			};
-			
 		}])			
 		;
 </script>
