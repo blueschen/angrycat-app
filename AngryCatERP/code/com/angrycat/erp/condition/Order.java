@@ -1,6 +1,8 @@
 package com.angrycat.erp.condition;
 
 import java.io.Serializable;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 /**
  * @author JERRY LIN
  *
@@ -43,11 +45,15 @@ public class Order implements Serializable {
 		if(content==null || content.trim().equals("")){
 			return null;
 		}
-		content = content.trim().toLowerCase();
-		if(content.contains("asc")){
-			return ascending(content.replace("asc", "").trim());
+		content = content.trim();
+		String ascPattern = "(asc)|(ASC)";
+		Pattern asc = Pattern.compile(ascPattern);
+		Matcher ascMatcher = asc.matcher(content);
+		if(ascMatcher.find()){
+			return ascending(content.replaceAll(ascPattern, "").trim());
 		}
-		return descending(content.replace("desc", "").trim());
+		String descPattern = "(desc)|(DESC)";
+		return descending(content.replaceAll(descPattern, "").trim());
 	}
 	public String toString(){
 		return propertyName + (ascending ? " ASC" : " DESC");
