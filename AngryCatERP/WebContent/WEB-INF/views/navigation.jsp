@@ -29,9 +29,10 @@
 					<li ${moduleName == "datadeletelog" ? "class='active'" : ""}>
 						<a href="${pageContext.request.contextPath}/datadeletelog/list">已刪除資料異動紀錄查詢</a>
 					</li>
+					<!-- 
 					<li ${moduleName == "salesdetail" ? "class='active'" : ""}>
 						<a href="${pageContext.request.contextPath}/salesdetail/list">銷售明細查詢</a>
-					</li>
+					</li> -->
 					<li ${moduleName == "salesdetail2" ? "class='active'" : ""}>
 						<a href="${pageContext.request.contextPath}/salesdetail2/list">銷售明細新介面</a>
 					</li>
@@ -40,7 +41,10 @@
 					</li>
 					<li>
 						<a href="${pageContext.request.contextPath}/exam/add">題庫新增</a>
-					</li>					
+					</li>
+					<li ${moduleName == "examstatistics" ? "class='active'" : ""}>
+						<a href="${pageContext.request.contextPath}/examstatistics/list">考試成績查詢</a>
+					</li>
 				</ul>
 				<ul class="nav navbar-nav navbar-right">
 					<li>
