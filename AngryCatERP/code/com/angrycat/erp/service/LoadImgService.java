@@ -44,9 +44,9 @@ public class LoadImgService {
 	
 	@PostConstruct
 	void init(){
-		new Thread(()->{
-			execute();
-		}).start();
+//		new Thread(()->{
+//			execute();
+//		}).start();
 	}
 	public void execute(){
 		AtomicInteger localCount = new AtomicInteger(0);
