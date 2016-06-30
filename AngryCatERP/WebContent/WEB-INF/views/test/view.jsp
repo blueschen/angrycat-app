@@ -31,6 +31,14 @@
       <script src="https://oss.maxcdn.com/html5shiv/3.7.2/html5shiv.min.js"></script>
       <script src="https://oss.maxcdn.com/respond/1.4.2/respond.min.js"></script>
     <![endif]-->
+    
+    <style type="text/css">
+    	/*.check 支援圖片選取之後，改變顯示狀態 */
+    	.check{
+    		color: #996;
+    		opacity: 0.5;
+    	}
+    </style>
 
 </head>
 <body ng-controller="MainCtrl as mainCtrl">
@@ -39,28 +47,63 @@
 	<div class="panel-group">
 
 	<div class="panel panel-default">
-		<label class="btn btn-default" ng-click="mainCtrl.startTest()">
+		<label class="btn btn-lg btn-default" ng-click="mainCtrl.startTest()">
+			<span ng-if="mainCtrl.exam" class="glyphicon glyphicon-repeat"></span>
+			<span ng-if="!mainCtrl.exam" class="glyphicon glyphicon-play"></span>
 			OHM測試
       		<span ng-if="mainCtrl.exam">重來</span>
 			<span ng-if="!mainCtrl.exam">開始</span>
 		</label>
-		<label ng-click="mainCtrl.nextExam()" class="btn btn-default" ng-if="mainCtrl.exam && mainCtrl.examCount != mainCtrl.examNum">
+		<label ng-click="mainCtrl.nextExam()" class="btn btn-lg btn-default" ng-if="mainCtrl.exam && mainCtrl.examCount != mainCtrl.examNum">
+			<span class="glyphicon glyphicon-menu-right"></span>
  			下一題
  		</label>
- 		<label ng-click="mainCtrl.scoring()" class="btn btn-default" ng-if="mainCtrl.exam && mainCtrl.examCount == mainCtrl.examNum">
+ 		<label ng-click="mainCtrl.scoring()" class="btn btn-lg btn-default" ng-if="mainCtrl.exam && mainCtrl.examCount == mainCtrl.examNum">
+ 			<span class="glyphicon glyphicon-fire"></span>
  			計分
  		</label>
 	</div>
 	<div name="testForm" ng-if="mainCtrl.exam">
 		<div class="panel panel-primary">
-  			<div class="panel-heading">第{{mainCtrl.examCount}}題 <strong>:</strong> {{mainCtrl.exam.description}}</div>
+  			<div class="panel-heading">
+  				<div ng-if="mainCtrl.exam.topicImaged">
+  					<div class="row">
+  						<div class="thumbnail col-sm-3">
+  							<img class="media-object" alt="題目" ng-src="{{mainCtrl.examTopicImgPath}}">
+  						</div>
+  						<div class="col-sm-9">
+  							第{{mainCtrl.examCount}}題 <strong>:</strong>{{mainCtrl.examDescription}}
+  						</div>
+  					</div>
+  				</div>
+  				<div ng-if="!mainCtrl.exam.topicImaged">
+  					第{{mainCtrl.examCount}}題 <strong>:</strong> {{mainCtrl.exam.description}}
+  				</div>
+  			</div>
   				
   			<div class="panel-body">
   				<div class="row">
   					<div class="col-sm-3" ng-repeat="item in mainCtrl.exam.items">
+  						 
+  						<span class="button-checkbox" ng-if="!mainCtrl.exam.questionImaged">
+ 							<label class="btn" ng-class="{'btn-default':!item.correct, 'btn-success':item.correct}">
+ 								<span class="state-icon glyphicon glyphicon-check" ng-if="item.selected"></span>
+ 								<span class="state-icon glyphicon glyphicon-unchecked" ng-if="!item.selected"></span>
+ 								<span class="label label-default">{{item.sequence}}</span>
+ 								{{item.description}}
+ 								<input type="checkbox" class="hidden" autocomplete="off" ng-model="item.selected" ng-disabled="mainCtrl.stopReply" ng-change="mainCtrl.correctAfterReply()">
+ 							</label>
+ 						</span>
+ 						<div class="thumbnail" ng-if="mainCtrl.exam.questionImaged">
+ 							<label class="btn" ng-class="{'btn-primary':!item.correct, 'btn-success':item.correct}">
+ 								<img class="img-thumbnail img-check" ng-class="{'check':item.selected}" ng-src="{{item.description ? '${urlPrefix}/downloadImage/' + item.description : ''}}" alt="題項">
+ 								<input type="checkbox" class="hidden" autocomplete="off" ng-model="item.selected" ng-disabled="mainCtrl.stopReply" ng-change="mainCtrl.correctAfterReply()">
+ 							</label>
+ 						</div>
+  						<!--  
   						<div class="form-group">
   							<div class="btn-group" data-toggle="buttons">
-  								<label class="btn btn-default" ng-class="{'btn-default':!item.correct, 'btn-success':item.correct}">
+  								<label class="btn" ng-class="{'btn-default':!item.correct, 'btn-success':item.correct}">
   									<input type="checkbox" autocomplete="off" ng-model="item.selected" ng-disabled="mainCtrl.stopReply" ng-change="mainCtrl.correctAfterReply()">
   									<span class="glyphicon glyphicon-unchecked" ng-if="!item.selected"></span>
   									<span class="glyphicon glyphicon-check" ng-if="item.selected"></span>
@@ -70,7 +113,7 @@
   									{{item.description}}
   								</label>
   							</div>
-  						</div>
+  						</div> -->
   					</div>
   				</div>
   			</div>
@@ -157,11 +200,24 @@
 			self.activePanel = 0,
 			self.examCount = 1; // 第幾題
 			
+			var findTopic = /圖片(\S+)的(\S+)為何/g;
+			function setExam(exam){
+				if(exam.topicImaged){
+					var found = findTopic.exec(exam.description);
+					if(found){
+						var topic = found[1];
+						self.examTopicImgPath = urlPrefix + '/downloadImage/' + topic;
+						self.examDescription = exam.description.replace(topic, '');	
+					}
+				}
+				self.exam = exam;
+			}
+			
 			self.startTest = function(){
 				AjaxService.post(urlPrefix + "/startTest.json")
 				.then(function(response){
 					var info = response.data;
-					self.exam = info.firstExam;
+					setExam(info.firstExam);
 					self.examNum = info.examNum;
 					self.scores = null;
 					self.statistics = null;
@@ -178,7 +234,7 @@
 				AjaxService.post(urlPrefix + "/correctAfterReply.json", self.exam)
 				.then(function(response){
 					var answer = response.data;
-					self.exam = answer;
+					setExam(answer);
 					self.corrected = true;
 				},
 				function(errResponse){
@@ -189,7 +245,7 @@
 				AjaxService.post(urlPrefix + "/nextExam.json")
 				.then(function(response){
 					var nextExam = response.data;
-					self.exam = nextExam;
+					setExam(nextExam);
 					self.examCount++;
 					self.stopReply = false;
 					self.corrected = false;
