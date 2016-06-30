@@ -5,7 +5,7 @@
 <%@ taglib uri="http://www.springframework.org/tags" prefix="s"%>
 <c:set value="login" var="modelName"/>
 <c:set value="${pageContext.request.contextPath}/${modelName}" var="actionUrl"/>
-
+<c:set value="${actionUrl}/test" var="testUrl"/>
 <!DOCTYPE html>   
 <html ng-app="loginApp">
 <head>
@@ -47,7 +47,16 @@
 		</div>
 		<div class="form-group">
 			<div class="col-sm-4 col-sm-offset-4">
-				<button type="submit" class="btn btn-default" ng-disabled="loginForm.$invalid">登入</button>
+				<button type="submit" class="btn btn-default btn-block" ng-disabled="loginForm.$invalid">登入</button>
+			</div>
+		</div>
+	</form>
+	<form name="testForm" action="${testUrl}" method="POST">
+		<div class="form-group">
+			<input type="text" name="examineeId" ng-model="mainCtrl.user.userId" required class="hidden">
+			<input type="password" name="examineePwd" ng-model="mainCtrl.user.password" required class="hidden">
+			<div class="col-sm-4 col-sm-offset-4">
+				<button type="submit" class="btn btn-default btn-block" ng-disabled="testForm.$invalid">考試</button>
 			</div>
 		</div>
 	</form>
