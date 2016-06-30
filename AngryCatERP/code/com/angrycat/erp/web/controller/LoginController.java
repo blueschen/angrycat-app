@@ -32,13 +32,24 @@ public class LoginController {
 		@RequestParam("password")String password,
 		Model model){
 		
+		return loginRedirectTo(userId, password, model, "/member/list");
+	}
+	@RequestMapping(value="/login/test", method={RequestMethod.POST})
+	public String loginTest(
+		@RequestParam("examineeId")String examineeId,
+		@RequestParam("examineePwd")String examineePwd,
+		Model model){
+		
+		return loginRedirectTo(examineeId, examineePwd, model, "/test/execute");
+	}
+	private String loginRedirectTo(String userId, String password, Model model, String redirectTo){
 		if(StringUtils.isBlank(userId)
 		|| StringUtils.isBlank(password)){
 			model.addAttribute("loginErrMsg", "帳號或密碼不正確");
 			model.addAttribute("user", CommonUtil.parseToJson(new User(userId, password)));
 			return "forward:" + LOGIN_PATH;
 		}
-		
+				
 		loginQueryService.setRootAndInitDefault(User.class);		
 		String rootAliasWith = QueryBaseService.DEFAULT_ROOT_ALIAS + ".";
 		loginQueryService
@@ -48,12 +59,11 @@ public class LoginController {
 		List<User> users = loginQueryService.executeQueryList();
 		if(!users.isEmpty()){
 			WebUtils.currentSession().setAttribute(WebUtils.SESSION_USER, users.get(0));
-			return "redirect:/member/list";
+			return "redirect:" + redirectTo;
 		}
 		model.addAttribute("loginErrMsg", "帳號不存在");
 		model.addAttribute("user", CommonUtil.parseToJson(new User(userId, password)));
 		return "forward:" + LOGIN_PATH;
 	}
-	
 	
 }
