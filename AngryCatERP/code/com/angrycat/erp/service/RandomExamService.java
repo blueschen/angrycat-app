@@ -1,5 +1,6 @@
 package com.angrycat.erp.service;
 
+import java.io.File;
 import java.sql.Date;
 import java.util.Arrays;
 import java.util.Collections;
@@ -19,6 +20,8 @@ import org.springframework.stereotype.Service;
 
 import com.angrycat.erp.common.CommonUtil;
 import com.angrycat.erp.component.SessionFactoryWrapper;
+import com.angrycat.erp.ds.TimeUID;
+import com.angrycat.erp.initialize.StartupWebAppInitializer;
 import com.angrycat.erp.model.Exam;
 import com.angrycat.erp.model.ExamItem;
 import com.angrycat.erp.model.Product;
@@ -39,9 +42,11 @@ public class RandomExamService {
 	private static final String PRODUCT_NAME = "品名";
 	private static final String PIC = "圖片";
 	private static final String PRICE = "價格";
-	private static final List<String> PRODUCT_TOPICS = Arrays.asList(MODELID,PRODUCT_NAME); // TODO 圖片處理比較複雜，待日後有完整配套再加入
-	private static final List<String> PRODUCT_QUESTIONS = Arrays.asList(MODELID,PRODUCT_NAME,PRICE); // TODO  圖片處理比較複雜，待日後有完整配套再加入
+	
+	private static final List<String> PRODUCT_TOPICS = Arrays.asList(MODELID,PRODUCT_NAME, PIC);
+	private static final List<String> PRODUCT_QUESTIONS = Arrays.asList(MODELID,PRODUCT_NAME,PRICE, PIC);
 	private static final List<int[]> PRODUCT_COORDINATES = new LinkedList<>();
+	
 	static{
 		int topicSize = PRODUCT_TOPICS.size();
 		int questionSize = PRODUCT_QUESTIONS.size();
@@ -60,35 +65,45 @@ public class RandomExamService {
 		modelFields.put(MODELID, "modelId");
 		modelFields.put(PRODUCT_NAME, "nameEng");
 		modelFields.put(PRICE, "suggestedRetailPrice");
-		modelFields.put(PIC, "modelId");
+		modelFields.put(PIC, "imgDir");
 	}
 	private static final String RANDON_QUESTION_TEMPLATE = "(\\S+)的(\\S+)為何?";
-	private static final Pattern RANDON_QUESTION_PATTERN = Pattern.compile(RANDON_QUESTION_TEMPLATE);
+	public static final Pattern RANDON_QUESTION_PATTERN = Pattern.compile(RANDON_QUESTION_TEMPLATE);
 	
 	@Autowired
 	private SessionFactoryWrapper sfw;
 	private int itemCount = 5;// 出?題
 	private int productCount = 5; // TODO 預估短時間內題庫的題數應該會嚴重不足，所以以產品題目為主
-	
+	private Map<String, File> archives = new LinkedHashMap<>();
+	/**
+	 * 隨機產生題目索引
+	 * @return
+	 */
 	public int randomTopicIdx(){
 		int topicIdx = ThreadLocalRandom.current().nextInt(PRODUCT_TOPICS.size());
 		return topicIdx;
 	}
+	/**
+	 * 以題目索引為基礎，隨機產生問題/題項索引
+	 * @param topicIdx
+	 * @return
+	 */
 	public int randomQuestionIdx(int topicIdx){
 		List<Integer> topicQuestionIdx = PRODUCT_COORDINATES.stream().filter(c->c[0] == topicIdx).map(c->c[1]).collect(Collectors.toList());
 		int questionIdx = ThreadLocalRandom.current().nextInt(topicQuestionIdx.size());
 		return topicQuestionIdx.get(questionIdx);
 	}
-	public String randomProductDesc(){
-		int topicIdx = randomTopicIdx();
-		String topic = PRODUCT_TOPICS.get(topicIdx);
-		String question = PRODUCT_QUESTIONS.get(randomQuestionIdx(topicIdx));
-		String desc = RANDON_QUESTION_TEMPLATE
-						.replaceFirst("\\(\\\\S\\+\\)", topic)
-						.replace("(\\S+)", question);
-		return desc;
-	}
-	public List<Product> randomProduct(int itemCount, String questionField, String question, String topicField){
+	/**
+	 * 隨機產生不重複商品，做為題目和題項的資料源<br>
+	 * 
+	 * @param itemCount
+	 * @param questionField
+	 * @param question
+	 * @param topicField
+	 * @param topic
+	 * @return
+	 */
+	public List<Product> randomProduct(int itemCount, String questionField, String question, String topicField, String topic){
 		List<Product> results = 
 		sfw.executeFindResults(s->{
 			String queryCount = "SELECT COUNT(p.id) FROM " + Product.class.getName() + " p";
@@ -104,15 +119,43 @@ public class RandomExamService {
 			while(products.size() < itemCount){
 				int rand = ThreadLocalRandom.current().nextInt(count.intValue());
 				Product p = (Product)s.createQuery(queryProduct).setFirstResult(rand).setMaxResults(1).uniqueResult();
-				
+				s.evict(p);
 				Object topVal = CommonUtil.getProperty(p, topicField);
+				if(topVal == null){// 如果沒有題目
+					continue;
+				}
 				Long topicCount = (Long)s.createQuery(queryTopCount).setParameter("topic", topVal).uniqueResult();
 				if(topicCount > 1){// 如果題目內容有重複的話，略過。譬如:品名叫Fleur De Lis在庫存表有好幾筆， 所以不能提問:"品名Fleur De Lis的價格為何"這樣的問題
 					continue;
 				}
+				String rootPath = StartupWebAppInitializer.getUploadRoot();
+				if(PIC.equals(topic)){ // 如果題目是圖片，但沒有找到這張圖
+					File f = new File(rootPath+topVal);
+					if(f.exists()){
+						String uid = TimeUID.generateByHand();
+						archives.put(uid, f);
+						CommonUtil.setProperty(p, topicField, uid);
+					}else{
+						continue;
+					}
+				}
 				
 				Object questionVal = CommonUtil.getProperty(p, questionField);
-				if(!questionVals.contains(questionVal) && !randomVals.contains(rand)){ // TODO 如果商品圖片沒找到，後續處理方式??
+				if(questionVal == null){ // 如果沒答案
+					continue;
+				}
+				if(PIC.equals(question)){ // 如果要的答案是圖片，但沒有找到
+					File f = new File(rootPath+questionVal);
+					if(f.exists()){
+						String uid = TimeUID.generateByHand();
+						archives.put(uid, f);
+						CommonUtil.setProperty(p, questionField, uid);
+					}else{
+						continue;
+					}
+				}
+				
+				if(!questionVals.contains(questionVal) && !randomVals.contains(rand)){
 					questionVals.add(questionVal);
 					products.add(p);
 					randomVals.add(rand);
@@ -184,33 +227,36 @@ public class RandomExamService {
 		String questionField = modelFields.get(question);
 				
 		int itemCount = 4; // 有?個選項
-		List<Product> products = randomProduct(itemCount, questionField, question, topicField);
+		List<Product> products = randomProduct(itemCount, questionField, question, topicField, topic);
 		Product correct = products.get(0); // 預設第一項當作主要問題及答案，其餘作為混淆選項
 		Collections.shuffle(products);// 隨機排過一次
 		List<ExamItem> items = 
 			IntStream.range(0, products.size()).boxed().map(i->{
 				Product p = products.get(i);
 				ExamItem ei = new ExamItem();
-				ei.setCorrect(p.getId().equals(correct.getId()));
+				ei.setCorrect(p.getId().equals(correct.getId())); // 設定正確答案
 				Object val = CommonUtil.getProperty(p, questionField);
-				ei.setDescription(val.toString()); // 如果題項是圖片，就把它當作型號
-				ei.setSequence(i+1);
+				ei.setDescription(val.toString());
+				ei.setSequence(i+1); // 題項序號
 				return ei;
 			}).collect(Collectors.toList());
 		
-		// 如果topic是圖片，就把它當作型號
 		Object val = CommonUtil.getProperty(correct, topicField);
-		topic+=val;	
+		String completeTopic = topic+val;	
 			
 		String desc = RANDON_QUESTION_TEMPLATE
-				.replaceFirst("\\(\\\\S\\+\\)", topic)
+				.replaceFirst("\\(\\\\S\\+\\)", completeTopic)
 				.replace("(\\S+)", question);
+		
+		System.out.println("題目:" + desc + ", 答案:" + CommonUtil.getProperty(correct, questionField));
 		
 		Exam exam = new Exam();
 		exam.setDescription(desc);
 		exam.setCategory("商品");
 		exam.setCreateDate(new Date(System.currentTimeMillis()));
 		exam.setItems(items);
+		exam.setTopicImaged(topic.equals(PIC));
+		exam.setQuestionImaged(question.equals(PIC));
 		
 		return exam;
 	}
@@ -219,6 +265,7 @@ public class RandomExamService {
 	 * @return
 	 */
 	public List<Exam> setExamGroup(){
+		archives.clear(); // 清除暫存圖片檔
 		int examCount = itemCount - productCount; // TODO 要可以手動調整題數
 		List<Exam> products = setRandomProductExams(productCount);
 		List<Exam> exams = setRandomExams(examCount);
@@ -238,5 +285,8 @@ public class RandomExamService {
 	}
 	public void setProductCount(int productCount) {
 		this.productCount = productCount;
+	}
+	public Map<String, File> getArchives(){
+		return this.archives;
 	}
 }
