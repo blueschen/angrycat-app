@@ -23,15 +23,9 @@ public class RandomExamServicetTests {
 	private RandomExamService serv;
 
 	@Test
-	public void randomProductDesc(){
-		for(int i=0; i<20; i++){
-			System.out.println(serv.randomProductDesc());
-		}
-	}
-	@Test
 	public void randomProduct(){
 		for(int i=0; i<5; i++){
-			List<Product> products = serv.randomProduct(3, "nameEng", "品名", "modelId");
+			List<Product> products = serv.randomProduct(3, "nameEng", "品名", "modelId", "型號");
 			System.out.println("product id:" + products.get(0).getId());
 		}
 	}
