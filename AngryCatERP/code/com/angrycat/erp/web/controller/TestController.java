@@ -1,5 +1,9 @@
 package com.angrycat.erp.web.controller;
 
+import java.io.BufferedInputStream;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.OutputStream;
 import java.sql.Date;
 import java.util.Arrays;
 import java.util.LinkedHashMap;
@@ -9,14 +13,17 @@ import java.util.Map;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
+import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
 
+import org.apache.poi.util.IOUtils;
 import org.hibernate.Session;
 import org.hibernate.Transaction;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
@@ -200,7 +207,22 @@ public class TestController {
 		String result = CommonUtil.parseToJson(info);
 		return result;
 	}
-
+	@RequestMapping(
+			value="/downloadImage/{imgPath}",
+			method={RequestMethod.GET, RequestMethod.POST})
+	public void downloadImage(@PathVariable("imgPath") String imgPath, HttpServletResponse res){
+		res.setContentType("image/jpeg");
+		File f = randomExamService.getArchives().get(imgPath);
+		if(f == null){
+			return;
+		}
+		try(BufferedInputStream bis = new BufferedInputStream(new FileInputStream(f));
+			OutputStream os = res.getOutputStream();){
+			IOUtils.copy(bis, os);
+		}catch(Throwable e){
+			throw new RuntimeException(e);
+		}
+	}
 	private List<Exam> copy(List<Exam> exams){
 		List<Exam> copyExams = 
 			exams.stream().map(e->{
@@ -212,7 +234,7 @@ public class TestController {
 //						copyItem.setCorrect(ei.isCorrect());// 不複製是否為正確答案，避免將答案提示傳到前端
 						return copyItem;
 					}).collect(Collectors.toList());
-				
+								
 				Exam copyExam = new Exam();
 				copyExam.setId(e.getId());
 				copyExam.setCategory(e.getCategory());
@@ -220,6 +242,8 @@ public class TestController {
 				copyExam.setDescription(e.getDescription());
 				copyExam.setHint(e.getHint());
 				copyExam.setItems(copyItems);
+				copyExam.setTopicImaged(e.isTopicImaged());
+				copyExam.setQuestionImaged(e.isQuestionImaged());
 				return copyExam;
 			}).collect(Collectors.toList());
 		return copyExams;
