@@ -59,7 +59,7 @@ public class LoadImgService {
 			
 			String SEP = File.separator;
 			String root = StartupWebAppInitializer.getUploadRoot();
-			String imgFolder = StartupWebAppInitializer.getUploadsTempPath() + SEP + "img";
+			String imgFolder = getImgFolderPath();
 			try(Stream<Path> paths = Files.walk(Paths.get(imgFolder))){
 				paths.filter(p->Files.isRegularFile(p) && modelIds.contains(modeId(p.toFile().getName()))).forEach(p->{
 					String path = p.toFile().getAbsolutePath();
@@ -114,5 +114,11 @@ public class LoadImgService {
 			return null;
 		}
 		return imgName.substring(0, imgName.indexOf(".jpg"));
+	}
+	public static String getImgFolderPath(){
+		String SEP = File.separator;
+		String root = StartupWebAppInitializer.getUploadRoot();
+		String imgFolder = StartupWebAppInitializer.getUploadsTempPath() + SEP + "img";
+		return imgFolder;
 	}
 }
