@@ -13,6 +13,7 @@ import javax.persistence.Id;
 import javax.persistence.OneToMany;
 import javax.persistence.OrderBy;
 import javax.persistence.Table;
+import javax.persistence.Transient;
 
 import org.hibernate.annotations.GenericGenerator;
 
@@ -25,6 +26,8 @@ public class Exam {
 	private Date createDate;
 	private String hint;
 	private List<ExamItem> items = new ArrayList<>();
+	private boolean topicImaged;
+	private boolean questionImaged;
 	@Id
 	@Column(name="id", columnDefinition="ID")
 	@GenericGenerator(name="angrycat_exam_id", strategy="com.angrycat.erp.ds.TimeUID")
@@ -70,5 +73,27 @@ public class Exam {
 	}
 	public void setItems(List<ExamItem> items) {
 		this.items = items;
+	}
+	/**
+	 * 題目是否為圖片
+	 * @return
+	 */
+	@Transient
+	public boolean isTopicImaged() {
+		return topicImaged;
+	}
+	public void setTopicImaged(boolean topicImaged) {
+		this.topicImaged = topicImaged;
+	}
+	/**
+	 * 題項是否為圖片
+	 * @return
+	 */
+	@Transient
+	public boolean isQuestionImaged() {
+		return questionImaged;
+	}
+	public void setQuestionImaged(boolean questionImaged) {
+		this.questionImaged = questionImaged;
 	}
 }
