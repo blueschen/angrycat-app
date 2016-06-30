@@ -130,6 +130,13 @@ public final class CommonUtil {
 		}
 		return propertyVal;
 	}
+	public static void setProperty(Object bean, String name, Object val){
+		try{
+			PropertyUtils.setProperty(bean, name, val);
+		}catch(Throwable e){
+			throw new RuntimeException(e);
+		}
+	}
 	public static void main(String[]args){
 		testGenDisplayCountry();
 	}
