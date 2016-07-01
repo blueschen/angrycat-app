@@ -66,6 +66,7 @@
 	<div name="testForm" ng-if="mainCtrl.exam">
 		<div class="panel panel-primary">
   			<div class="panel-heading">
+  				<!-- 如果題目是圖片 -->
   				<div ng-if="mainCtrl.exam.topicImaged">
   					<div class="row">
   						<div class="thumbnail col-sm-3">
@@ -76,25 +77,32 @@
   						</div>
   					</div>
   				</div>
+  				<!-- 如果題目不是圖片 -->
   				<div ng-if="!mainCtrl.exam.topicImaged">
   					第{{mainCtrl.examCount}}題 <strong>:</strong> {{mainCtrl.exam.description}}
   				</div>
   			</div>
-  				
-  			<div class="panel-body">
-  				<div class="row">
-  					<div class="col-sm-3" ng-repeat="item in mainCtrl.exam.items">
-  						 
-  						<span class="button-checkbox" ng-if="!mainCtrl.exam.questionImaged">
- 							<label class="btn" ng-class="{'btn-default':!item.correct, 'btn-success':item.correct}">
- 								<span class="state-icon glyphicon glyphicon-check" ng-if="item.selected"></span>
- 								<span class="state-icon glyphicon glyphicon-unchecked" ng-if="!item.selected"></span>
- 								<span class="label label-default">{{item.sequence}}</span>
- 								{{item.description}}
+ 
+   				<!-- 如果題項不是圖片 -->
+  				<ul class="list-group" ng-if="!mainCtrl.exam.questionImaged">
+  					<li class="list-group-item" ng-repeat="item in mainCtrl.exam.items">
+  						<span class="button-checkbox">
+ 							<label class="btn btn-lg btn-block" ng-class="{'btn-default':!item.correct, 'btn-success':item.correct}">
+ 								<span class="state-icon glyphicon glyphicon-check pull-left" ng-if="item.selected"></span>
+ 								<span class="state-icon glyphicon glyphicon-unchecked pull-left" ng-if="!item.selected"></span>
+ 								<span class="label label-default pull-left">{{item.sequence}}</span>
+ 								<span class="pull-left">{{item.description}}</span>
+ 								&nbsp;<!-- 這裡需要至少一個字，否則其他字左靠之後，按鈕高度會不正常縮小 -->
  								<input type="checkbox" class="hidden" autocomplete="off" ng-model="item.selected" ng-disabled="mainCtrl.stopReply" ng-change="mainCtrl.correctAfterReply()">
  							</label>
  						</span>
- 						<div class="thumbnail" ng-if="mainCtrl.exam.questionImaged">
+  					</li>
+  				</ul>
+  			<!-- 如果題項是圖片 -->	
+  			<div class="panel-body" ng-if="mainCtrl.exam.questionImaged">
+  				<div class="row">
+  					<div class="col-sm-3" ng-repeat="item in mainCtrl.exam.items">
+ 						<div class="thumbnail">
  							<label class="btn" ng-class="{'btn-primary':!item.correct, 'btn-success':item.correct}">
  								<img class="img-thumbnail img-check" ng-class="{'check':item.selected}" ng-src="{{item.description ? '${urlPrefix}/downloadImage/' + item.description : ''}}" alt="題項">
  								<input type="checkbox" class="hidden" autocomplete="off" ng-model="item.selected" ng-disabled="mainCtrl.stopReply" ng-change="mainCtrl.correctAfterReply()">
@@ -192,6 +200,21 @@
 		.constant('urlPrefix', '${urlPrefix}')
 		.constant('login', "${sessionScope['sessionUser']}" ? true : false)
 		.constant('targetData', ${info == null ? "null" : info})
+		.factory('AuthInterceptor', ['$q', function($q){
+			return {
+				responseError: function(responseRejection){
+					if(responseRejection.status == 401){
+						document.location.href = '${pageContext.request.contextPath}/login.jsp';
+					}
+					return $q.reject(responseRejection); // make sure to trigger error handler in the next promise
+				}
+			};
+		}])
+		.config(['$httpProvider', '$compileProvider', function($httpProvider, $compileProvider){
+			$httpProvider.defaults.headers.common['X-Requested-With'] = 'XMLHttpRequest'; // to tell server this is a ajax request
+			$httpProvider.interceptors.push('AuthInterceptor');
+			$compileProvider.debugInfoEnabled(false); // after set false, angular.element(htmlEle).scope() will return undefined to improve performance
+		}])		
 		.controller('MainCtrl', ['$scope', 'DateService', 'AjaxService', 'urlPrefix', 'login', 'targetData', function($scope, DateService, AjaxService, urlPrefix, login, targetData){
 			var self = this;
 			self.statistics = targetData.statistics;
@@ -242,6 +265,9 @@
 				});
 			}			
 			self.nextExam = function(){
+				if(self.examCount + 1 > self.examNum){
+					return;
+				}
 				AjaxService.post(urlPrefix + "/nextExam.json")
 				.then(function(response){
 					var nextExam = response.data;
