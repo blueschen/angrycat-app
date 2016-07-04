@@ -11,7 +11,6 @@ import javax.persistence.FetchType;
 import javax.persistence.GeneratedValue;
 import javax.persistence.Id;
 import javax.persistence.OneToMany;
-import javax.persistence.OrderBy;
 import javax.persistence.Table;
 import javax.persistence.Transient;
 
@@ -67,7 +66,6 @@ public class Exam {
 		this.hint = hint;
 	}
 	@OneToMany(fetch=FetchType.LAZY, targetEntity=ExamItem.class, cascade=CascadeType.ALL, mappedBy="examId", orphanRemoval=true)
-	@OrderBy("sequence")
 	public List<ExamItem> getItems() {
 		return items;
 	}
