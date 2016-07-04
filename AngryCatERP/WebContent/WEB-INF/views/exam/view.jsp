@@ -144,9 +144,10 @@
 				items.splice(idx, 1);
 			};
 			self.showRemoveBtn = function(item){
-				var items = self.exam.items, 
+				var items = self.exam.items,
+					lastIdx = items.length-1,
 					idx = items.indexOf(item);
-				return idx == 0;
+				return idx == lastIdx;
 			};
 			self.login = login;
 			self.addItem = function(){
@@ -157,7 +158,7 @@
 				if(self.exam.id){
 					newItem["examId"] = self.exam.id;
 				}
-				self.exam.items.unshift(newItem);
+				self.exam.items.push(newItem);
 			};
 		}])
 		.factory('ValidateService', ['$log', 'AjaxService', 'urlPrefix', '$window', function($log, AjaxService, urlPrefix, $window){
