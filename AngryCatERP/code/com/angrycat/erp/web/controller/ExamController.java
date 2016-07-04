@@ -4,11 +4,13 @@ import static com.angrycat.erp.condition.ConditionFactory.putSqlDate;
 import static com.angrycat.erp.condition.ConditionFactory.putStrCaseInsensitive;
 import static com.angrycat.erp.condition.MatchMode.ANYWHERE;
 
-import java.util.Collections;
+import java.util.Collection;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.stream.Collectors;
 
 import org.apache.commons.beanutils.PropertyUtils;
+import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.collections4.Equator;
 import org.apache.commons.collections4.functors.DefaultEquator;
 import org.apache.commons.lang.StringUtils;
@@ -87,18 +89,19 @@ public class ExamController extends BaseUpdateController<Exam, Exam> {
 					oldSnapshot = exams.get(0);
 					s.evict(oldSnapshot);
 					
-//					Exam sessionExam = findTargetService.executeQueryList(s).get(0);
-//					Collection<String> retaned = 
-//						CollectionUtils.retainAll(
-//							sessionExam.getItems(), 
-//							exam.getItems(), 
-//							idEquator())
-//								.stream()
-//								.map(ei->ei.getId())
-//								.collect(Collectors.toList());
-//					sessionExam.getItems().removeIf(ei->!retaned.contains(ei.getId()));
-//					s.saveOrUpdate(sessionExam);
-//					s.evict(sessionExam);
+					Exam sessionExam = findTargetService.executeQueryList(s).get(0);
+					Collection<String> retaned = 
+						CollectionUtils.retainAll(
+							sessionExam.getItems(), 
+							exam.getItems(), 
+							idEquator())
+								.stream()
+								.map(ei->ei.getId())
+								.collect(Collectors.toList());
+					sessionExam.getItems().removeIf(ei->!retaned.contains(ei.getId()));
+					s.saveOrUpdate(sessionExam);
+					s.flush();
+					s.evict(sessionExam);
 				}
 				
 			}
@@ -107,8 +110,6 @@ public class ExamController extends BaseUpdateController<Exam, Exam> {
 			if(oldSnapshot == null){
 				dataChangeLogger.logAdd(exam, s);
 			}else{
-				Collections.reverse(oldSnapshot.getItems());
-				Collections.reverse(exam.getItems());
 				dataChangeLogger.logUpdate(oldSnapshot, exam, s);
 			}
 			s.flush();
