@@ -180,7 +180,9 @@ public class FormatListFactory {
 		}else if(clz == Product.class){
 			formats = ofProducForExcelExport();
 		}else if(clz == Exam.class){
-			formats = ofExamBase("yyyy-MM-dd");
+			Exam e = (Exam)obj;
+			int size = e.getItems().size();
+			formats = ofExamItems(size);
 		}else{
 			throw new IllegalArgumentException("FormatListFactory.forLog: 沒有定義"+clz.getName()+"異動記錄所需的轉換格式");
 		}
