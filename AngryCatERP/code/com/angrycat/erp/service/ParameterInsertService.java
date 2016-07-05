@@ -7,6 +7,7 @@ import java.util.stream.IntStream;
 
 import org.hibernate.Session;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -22,16 +23,17 @@ import com.angrycat.erp.test.BaseTest;
  *
  */
 @Service
+@Scope("prototype")
 public class ParameterInsertService {
 	@Autowired
 	private SessionFactoryWrapper sfw;
-	
-	/**
-	 * 清除舊資料後，初始化參數類別及參數
-	 * 如果有需保留的舊資料，不適合呼叫這個方法
-	 */
 	@Transactional
-	public void initAfterClearOld(){
+	public void execute(){
+		initSalesDetailParams();
+		initTestParams();
+	}
+	@Transactional
+	public void clearAllParams(){
 		Session s = sfw.currentSession();
 		
 		String delParam = "SELECT DISTINCT p FROM " + Parameter.class.getName() + " p";
@@ -46,6 +48,13 @@ public class ParameterInsertService {
 		});
 		s.flush();
 		s.clear();
+	}
+	/**
+	 * 初始化銷售明細參數類別及參數
+	 */
+	@Transactional
+	public void initSalesDetailParams(){
+		Session s = sfw.currentSession();
 		
 		Arrays.asList(		
 		new Parameters("銷售狀態", s)
@@ -96,6 +105,22 @@ public class ParameterInsertService {
 		).forEach(p->{
 			p.save();
 		});
+		s.flush();
+	}
+	@Transactional
+	public void initTestParams(){
+		Session s = sfw.currentSession();
+		
+		Arrays.asList(
+			new Parameters("出題", s)
+				.addParameter("配題數")
+				.addProperty("total", "5")
+				.addProperty("product", "5")
+				.addProperty("exam", "0")
+		).forEach(p->{
+			p.save();
+		});
+		s.flush();
 	}
 	
 	private static class Parameters{
@@ -129,7 +154,11 @@ public class ParameterInsertService {
 			IntStream.range(0, propertyValues.length).forEach(idx->{
 				p.getLocaleNames().put(propertyNames[idx], propertyValues[idx]);
 			});
-			
+			return this;
+		}
+		public Parameters addProperty(String propertyName, String propertyValue){
+			Parameter p = params.getLast();
+			p.getLocaleNames().put(propertyName, propertyValue);
 			return this;
 		}
 		public void save(){
@@ -143,13 +172,18 @@ public class ParameterInsertService {
 		}
 	}
 	
-	private static void testInitAfterClearOld(){
+	private static void testInitSalesDetailParams(){
 		BaseTest.executeApplicationContext(acac->{
 			ParameterInsertService serv = acac.getBean(ParameterInsertService.class);
-			serv.initAfterClearOld();
+			serv.initSalesDetailParams();
 		});
 	}
-	
+	private static void testInitTestParams(){
+		BaseTest.executeApplicationContext(acac->{
+			ParameterInsertService serv = acac.getBean(ParameterInsertService.class);
+			serv.initTestParams();
+		});
+	} 
 	private static void testToJsonStr(){
 		BaseTest.executeApplicationContext(acac->{
 			SessionFactoryWrapper sfw = acac.getBean(SessionFactoryWrapper.class);
@@ -164,7 +198,8 @@ public class ParameterInsertService {
 	}
 	
 	public static void main(String[]args){
-		testInitAfterClearOld();
+//		testInitSalesDetailParams();
+		testInitTestParams();
 //		testToJsonStr();
 	}
 }
