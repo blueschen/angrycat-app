@@ -6,6 +6,7 @@
 <c:set value="login" var="modelName"/>
 <c:set value="${pageContext.request.contextPath}/${modelName}" var="actionUrl"/>
 <c:set value="${actionUrl}/test" var="testUrl"/>
+<c:set value="${actionUrl}/admin" var="adminUrl"/>
 <!DOCTYPE html>   
 <html ng-app="loginApp">
 <head>
@@ -51,7 +52,7 @@
 			</div>
 		</div>
 	</form>
-	<form name="testForm" action="${testUrl}" method="POST">
+	<form  class="form-horizontal" name="testForm" action="${testUrl}" method="POST">
 		<div class="form-group">
 			<input type="text" name="examineeId" ng-model="mainCtrl.user.userId" required class="hidden">
 			<input type="password" name="examineePwd" ng-model="mainCtrl.user.password" required class="hidden">
@@ -60,6 +61,15 @@
 			</div>
 		</div>
 	</form>
+	<form class="form-horizontal" name="adminForm" action="${adminUrl}" method="POST">
+		<div class="form-group">
+			<input type="text" name="adminId" ng-model="mainCtrl.user.userId" required class="hidden">
+			<input type="password" name="adminPwd" ng-model="mainCtrl.user.password" required class="hidden">
+			<div class="col-sm-4 col-sm-offset-4">
+				<button type="submit" class="btn btn-default btn-block" ng-disabled="adminForm.$invalid">參數設定</button>
+			</div>
+		</div>
+	</form>	
 </div>
 
 <script type="text/javascript">
