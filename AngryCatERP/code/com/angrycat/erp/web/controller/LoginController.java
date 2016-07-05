@@ -22,6 +22,8 @@ import com.angrycat.erp.web.WebUtils;
 @Scope("request")
 public class LoginController {
 	public static final String LOGIN_PATH = "/login.jsp";
+	public static final String MEMBER_LIST_PATH = "/member/list";
+	
 	@Autowired
 	@Qualifier("queryBaseService")
 	private QueryBaseService<User, User> loginQueryService;
@@ -32,7 +34,7 @@ public class LoginController {
 		@RequestParam("password")String password,
 		Model model){
 		
-		return loginRedirectTo(userId, password, model, "/member/list");
+		return loginRedirectTo(userId, password, model, MEMBER_LIST_PATH);
 	}
 	@RequestMapping(value="/login/test", method={RequestMethod.POST})
 	public String loginTest(
@@ -41,6 +43,13 @@ public class LoginController {
 		Model model){
 		
 		return loginRedirectTo(examineeId, examineePwd, model, "/test/execute");
+	}
+	@RequestMapping(value="/login/admin", method={RequestMethod.POST})
+	public String loginAdmin(
+		@RequestParam("adminId")String adminId,
+		@RequestParam("adminPwd")String adminPwd,
+		Model model){
+		return loginRedirectTo(adminId, adminPwd, model, "/admin/index");
 	}
 	private String loginRedirectTo(String userId, String password, Model model, String redirectTo){
 		if(StringUtils.isBlank(userId)
