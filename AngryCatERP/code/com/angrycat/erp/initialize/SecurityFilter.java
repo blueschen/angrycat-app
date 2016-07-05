@@ -59,6 +59,7 @@ public class SecurityFilter implements Filter {
 		allowPathEqual.add("/login.jsp");
 		allowPathEqual.add("/login");
 		allowPathEqual.add("/login/test");
+		allowPathEqual.add("/login/admin");
 		
 		// 為了讓一般人可以自行填入會員資料，將會員新增頁面的操作獨立出來
 		allowPathEqual.add("/member/add");
