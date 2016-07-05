@@ -183,8 +183,6 @@ public class FormatListFactory {
 			Exam e = (Exam)obj;
 			int size = e.getItems().size();
 			formats = ofExamItems(size);
-		}else{
-			throw new IllegalArgumentException("FormatListFactory.forLog: 沒有定義"+clz.getName()+"異動記錄所需的轉換格式");
 		}
 		return formats;
 	}
@@ -223,8 +221,6 @@ public class FormatListFactory {
 			int newSize = newItems.size();
 			int maxSize = Math.max(oldSize, newSize);
 			formats = ofExamItems(maxSize);
-		}else{
-			throw new IllegalArgumentException("FormatListFactory.forUpdateLog: 沒有定義"+clz.getName()+"異動記錄所需的轉換格式");
 		}
 		return formats;
 	}
