@@ -62,6 +62,9 @@
  			<span class="glyphicon glyphicon-fire"></span>
  			計分
  		</label>
+ 		<label class="btn btn-lg btn-default">
+ 			<a href="${pageContext.request.contextPath}/logout"><span class="glyphicon glyphicon-user"></span>登出</a>
+ 		</label>
 	</div>
 	<div name="testForm" ng-if="mainCtrl.exam">
 		<div class="panel panel-primary">
@@ -127,6 +130,7 @@
   			</div>
   			
   			<div class="panel-footer" ng-if="mainCtrl.corrected && mainCtrl.exam.hint">
+  				<i class="glyphicon glyphicon-info-sign"></i>
   				<span class="label label-default">
   					{{mainCtrl.exam.hint}}
   				</span>
