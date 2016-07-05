@@ -4,6 +4,7 @@ import java.io.File;
 import java.sql.Date;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.LinkedList;
@@ -14,9 +15,12 @@ import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
+import org.apache.commons.lang3.StringUtils;
+import org.hibernate.Session;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import com.angrycat.erp.common.CommonUtil;
 import com.angrycat.erp.component.SessionFactoryWrapper;
@@ -24,6 +28,7 @@ import com.angrycat.erp.ds.TimeUID;
 import com.angrycat.erp.initialize.StartupWebAppInitializer;
 import com.angrycat.erp.model.Exam;
 import com.angrycat.erp.model.ExamItem;
+import com.angrycat.erp.model.Parameter;
 import com.angrycat.erp.model.Product;
 
 /**
@@ -72,14 +77,12 @@ public class RandomExamService {
 	
 	@Autowired
 	private SessionFactoryWrapper sfw;
-	private int itemCount = 5;// 出?題
-	private int productCount = 5; // TODO 預估短時間內題庫的題數應該會嚴重不足，所以以產品題目為主
 	private Map<String, File> archives = new LinkedHashMap<>();
 	/**
 	 * 隨機產生題目索引
 	 * @return
 	 */
-	public int randomTopicIdx(){
+	private int randomTopicIdx(){
 		int topicIdx = ThreadLocalRandom.current().nextInt(PRODUCT_TOPICS.size());
 		return topicIdx;
 	}
@@ -88,7 +91,7 @@ public class RandomExamService {
 	 * @param topicIdx
 	 * @return
 	 */
-	public int randomQuestionIdx(int topicIdx){
+	private int randomQuestionIdx(int topicIdx){
 		List<Integer> topicQuestionIdx = PRODUCT_COORDINATES.stream().filter(c->c[0] == topicIdx).map(c->c[1]).collect(Collectors.toList());
 		int questionIdx = ThreadLocalRandom.current().nextInt(topicQuestionIdx.size());
 		return topicQuestionIdx.get(questionIdx);
@@ -104,73 +107,72 @@ public class RandomExamService {
 	 * @return
 	 */
 	public List<Product> randomProduct(int itemCount, String questionField, String question, String topicField, String topic){
-		List<Product> results = 
-		sfw.executeFindResults(s->{
-			String queryCount = "SELECT COUNT(p.id) FROM " + Product.class.getName() + " p";
-			Long count = (Long)s.createQuery(queryCount).uniqueResult();
-			if(count == 0){
-				return Collections.emptyList();
+		Session s = sfw.currentSession();
+
+		String queryCount = "SELECT COUNT(p.id) FROM " + Product.class.getName() + " p";
+		Long count = (Long)s.createQuery(queryCount).uniqueResult();
+		if(count == 0){
+			return Collections.emptyList();
+		}
+		String queryProduct = "SELECT p FROM " + Product.class.getName() + " p ORDER BY p.id DESC";
+		String queryTopCount = "SELECT COUNT(p.id) FROM " + Product.class.getName() + " p WHERE p." + topicField + " = :topic"; 
+		LinkedHashSet<Object> questionVals = new LinkedHashSet<>(); // 題項內容避免重複
+		LinkedHashSet<Object> randomVals = new LinkedHashSet<>(); // 隨機選項避免重複
+		List<Product> products = new LinkedList<>();
+		while(products.size() < itemCount){
+			int rand = ThreadLocalRandom.current().nextInt(count.intValue());
+			Product p = (Product)s.createQuery(queryProduct).setFirstResult(rand).setMaxResults(1).uniqueResult();
+			s.evict(p);
+			Object topVal = CommonUtil.getProperty(p, topicField);
+			if(topVal == null){// 如果沒有題目
+				continue;
 			}
-			String queryProduct = "SELECT p FROM " + Product.class.getName() + " p ORDER BY p.id DESC";
-			String queryTopCount = "SELECT COUNT(p.id) FROM " + Product.class.getName() + " p WHERE p." + topicField + " = :topic"; 
-			LinkedHashSet<Object> questionVals = new LinkedHashSet<>(); // 題項內容避免重複
-			LinkedHashSet<Object> randomVals = new LinkedHashSet<>(); // 隨機選項避免重複
-			List<Product> products = new LinkedList<>();
-			while(products.size() < itemCount){
-				int rand = ThreadLocalRandom.current().nextInt(count.intValue());
-				Product p = (Product)s.createQuery(queryProduct).setFirstResult(rand).setMaxResults(1).uniqueResult();
-				s.evict(p);
-				Object topVal = CommonUtil.getProperty(p, topicField);
-				if(topVal == null){// 如果沒有題目
+			Long topicCount = (Long)s.createQuery(queryTopCount).setParameter("topic", topVal).uniqueResult();
+			if(topicCount > 1){// 如果題目內容有重複的話，略過。譬如:品名叫Fleur De Lis在庫存表有好幾筆， 所以不能提問:"品名Fleur De Lis的價格為何"這樣的問題
+				continue;
+			}
+			String rootPath = StartupWebAppInitializer.getUploadRoot();
+			if(PIC.equals(topic)){ // 如果題目是圖片，但沒有找到這張圖
+				File f = new File(rootPath+topVal);
+				if(f.exists()){
+					String uid = TimeUID.generateByHand();
+					archives.put(uid, f);
+					CommonUtil.setProperty(p, topicField, uid);
+				}else{
 					continue;
-				}
-				Long topicCount = (Long)s.createQuery(queryTopCount).setParameter("topic", topVal).uniqueResult();
-				if(topicCount > 1){// 如果題目內容有重複的話，略過。譬如:品名叫Fleur De Lis在庫存表有好幾筆， 所以不能提問:"品名Fleur De Lis的價格為何"這樣的問題
-					continue;
-				}
-				String rootPath = StartupWebAppInitializer.getUploadRoot();
-				if(PIC.equals(topic)){ // 如果題目是圖片，但沒有找到這張圖
-					File f = new File(rootPath+topVal);
-					if(f.exists()){
-						String uid = TimeUID.generateByHand();
-						archives.put(uid, f);
-						CommonUtil.setProperty(p, topicField, uid);
-					}else{
-						continue;
-					}
-				}
-				
-				Object questionVal = CommonUtil.getProperty(p, questionField);
-				if(questionVal == null){ // 如果沒答案
-					continue;
-				}
-				if(PIC.equals(question)){ // 如果要的答案是圖片，但沒有找到
-					File f = new File(rootPath+questionVal);
-					if(f.exists()){
-						String uid = TimeUID.generateByHand();
-						archives.put(uid, f);
-						CommonUtil.setProperty(p, questionField, uid);
-					}else{
-						continue;
-					}
-				}
-				
-				if(!questionVals.contains(questionVal) && !randomVals.contains(rand)){
-					questionVals.add(questionVal);
-					products.add(p);
-					randomVals.add(rand);
 				}
 			}
-			return products;
-		});
-		return results;
+			
+			Object questionVal = CommonUtil.getProperty(p, questionField);
+			if(questionVal == null){ // 如果沒答案
+				continue;
+			}
+			if(PIC.equals(question)){ // 如果要的答案是圖片，但沒有找到
+				File f = new File(rootPath+questionVal);
+				if(f.exists()){
+					String uid = TimeUID.generateByHand();
+					archives.put(uid, f);
+					CommonUtil.setProperty(p, questionField, uid);
+				}else{
+					continue;
+				}
+			}
+			
+			if(!questionVals.contains(questionVal) && !randomVals.contains(rand)){
+				questionVals.add(questionVal);
+				products.add(p);
+				randomVals.add(rand);
+			}
+		}
+		return products;
+	
 	}
 	/**
 	 * 產生商品題組，題目不能重複
 	 * @param count
 	 * @return
 	 */
-	public List<Exam> setRandomProductExams(int count){
+	private List<Exam> setRandomProductExams(int count){
 		LinkedHashSet<String> descriptions = new LinkedHashSet<>();
 		LinkedList<Exam> exams = new LinkedList<>();
 		int examId = 0;
@@ -190,29 +192,33 @@ public class RandomExamService {
 	 * @param itemCount
 	 * @return
 	 */
-	public List<Exam> setRandomExams(int itemCount){
-		List<Exam> results = 
-		sfw.executeFindResults(s->{
-			String queryCount = "SELECT COUNT(p.id) FROM " + Exam.class.getName() + " p";
-			Long count = (Long)s.createQuery(queryCount).uniqueResult();
-			if(count == 0){
-				return Collections.emptyList();
+	private List<Exam> setRandomExams(int itemCount){
+		Session s = sfw.currentSession();
+		String queryCount = "SELECT COUNT(p.id) FROM " + Exam.class.getName() + " p";
+		Long count = (Long)s.createQuery(queryCount).uniqueResult();
+		if(count == 0){
+			return Collections.emptyList();
+		}
+		String queryProduct = "SELECT p FROM " + Exam.class.getName() + " p left join fetch p.items ORDER BY p.id DESC";
+		LinkedHashSet<Object> randomVals = new LinkedHashSet<>(); // 避免隨機選項重複
+		List<Exam> exams = new LinkedList<>();
+		while(exams.size() < itemCount){
+			int rand = ThreadLocalRandom.current().nextInt(count.intValue());
+			Exam e = (Exam)s.createQuery(queryProduct).setFirstResult(rand).setMaxResults(1).uniqueResult();		
+			if(!randomVals.contains(rand)){
+				s.evict(e);
+				Collections.sort(e.getItems(), new Comparator<ExamItem>(){
+					@Override
+					public int compare(ExamItem o1, ExamItem o2) {
+						return o1.getSequence()-o2.getSequence();
+					}
+				});
+				exams.add(e);
+				randomVals.add(rand);
 			}
-			String queryProduct = "SELECT p FROM " + Exam.class.getName() + " p left join fetch p.items ORDER BY p.id DESC";
-			LinkedHashSet<Object> randomVals = new LinkedHashSet<>(); // 避免隨機選項重複
-			List<Exam> exams = new LinkedList<>();
-			while(exams.size() < itemCount){
-				int rand = ThreadLocalRandom.current().nextInt(count.intValue());
-				Exam e = (Exam)s.createQuery(queryProduct).setFirstResult(rand).setMaxResults(1).uniqueResult();
-				
-				if(!randomVals.contains(rand)){
-					exams.add(e);
-					randomVals.add(rand);
-				}
-			}
-			return exams;
-		});
-		return results;
+		}
+		return exams;
+			
 	}
 	/**
 	 * 商品隨機出題
@@ -264,9 +270,19 @@ public class RandomExamService {
 	 * 開始出題
 	 * @return
 	 */
+	@Transactional
 	public List<Exam> setExamGroup(){
 		archives.clear(); // 清除暫存圖片檔
-		int examCount = itemCount - productCount; // TODO 要可以手動調整題數
+		TestCount testCount = renderTestCount();
+		int productCount = testCount.defaultProductCount(5);
+		int examCount = testCount.defaultExamCount(0);
+		
+		int examTotal = findExamTotalCount();
+		while(examTotal < examCount){
+			--examCount;
+			++productCount;
+		}
+		
 		List<Exam> products = setRandomProductExams(productCount);
 		List<Exam> exams = setRandomExams(examCount);
 		List<Exam> all = new LinkedList<>();
@@ -274,19 +290,55 @@ public class RandomExamService {
 		all.addAll(exams);
 		return all;
 	}
-	public int getItemCount() {
-		return itemCount;
-	}
-	public void setItemCount(int itemCount) {
-		this.itemCount = itemCount;
-	}
-	public int getProductCount() {
-		return productCount;
-	}
-	public void setProductCount(int productCount) {
-		this.productCount = productCount;
-	}
 	public Map<String, File> getArchives(){
 		return this.archives;
+	}
+	private static Parameter findTestCount(Session s){
+		String query = "SELECT p FROM " + Parameter.class.getName() + " p WHERE p.parameterCategory.name = :catName AND p.nameDefault = :name";
+		List<Parameter> list = s.createQuery(query).setString("catName", "出題").setString("name", "配題數").list();
+		return list.get(0);
+	}
+	public static Parameter findTestCount(SessionFactoryWrapper sfw){
+		List<Parameter> p = 
+		sfw.executeFindResults(s->{
+			return Arrays.asList(findTestCount(s));
+		});
+		return p.get(0);
+	}
+	private int findExamTotalCount(){
+		Session s = sfw.currentSession();
+		String q = "SELECT COUNT(p.id) FROM " + Exam.class.getName() + " p";
+		Long count = (Long)s.createQuery(q).uniqueResult();
+		return count.intValue();
+	}
+	private TestCount renderTestCount(){
+		Parameter p = findTestCount(sfw.currentSession());
+		TestCount tc = new TestCount(p);
+		return tc;
+	}
+	private static class TestCount{
+		private Parameter p;
+		public TestCount(Parameter p){
+			this.p = p;
+		}
+		public String getProperty(String key){
+			String prop = p.getLocaleNames().get(key);
+			return prop;
+		}
+		public int defaultCount(String key, int defaultCount){
+			String count = getProperty(key);
+			if(!StringUtils.isNumeric(count)){
+				return defaultCount;
+			}
+			return Integer.parseInt(count);
+		}
+		public int defaultProductCount(int defaultCount){
+			int count = defaultCount("product", defaultCount);
+			return count;
+		}
+		public int defaultExamCount(int defaultCount){
+			int count = defaultCount("exam", defaultCount);
+			return count;
+		}
 	}
 }
