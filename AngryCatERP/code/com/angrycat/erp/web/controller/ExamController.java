@@ -29,7 +29,7 @@ import com.angrycat.erp.model.Exam;
 import com.angrycat.erp.model.ExamItem;
 
 @Controller
-@RequestMapping(value="exam")
+@RequestMapping(value="/exam")
 @Scope("session")
 public class ExamController extends BaseUpdateController<Exam, Exam> {
 	private static final long serialVersionUID = 4151794885343478391L;
