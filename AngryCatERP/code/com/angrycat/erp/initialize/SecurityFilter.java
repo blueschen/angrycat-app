@@ -1,7 +1,9 @@
 package com.angrycat.erp.initialize;
 
 import java.io.IOException;
+import java.util.Arrays;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 
 import javax.servlet.Filter;
@@ -19,6 +21,7 @@ import com.angrycat.erp.web.WebUtils;
 import com.angrycat.erp.web.controller.LoginController;
 
 public class SecurityFilter implements Filter {
+	private static final List<String> ADMINS = Arrays.asList("root", "mikowang", "iflywang", "slowlywu", "admin");
 	private Set<String> allowPathStart = new HashSet<>();
 	private Set<String> allowPathEqual = new HashSet<>();
 
@@ -33,15 +36,28 @@ public class SecurityFilter implements Filter {
 		HttpServletResponse res = (HttpServletResponse)response;
 		HttpServletRequest req = (HttpServletRequest)request;
 		
+		HttpSession session = req.getSession();
+		User user = (User)session.getAttribute(WebUtils.SESSION_USER);
 		if(!allow(req)){
-			HttpSession session = req.getSession();
-			User user = (User)session.getAttribute(WebUtils.SESSION_USER);
 			if(user == null){
 				if(isAjax(req)){
 					res.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
 				}else{
 					res.sendRedirect(req.getContextPath() + LoginController.LOGIN_PATH);
 				}
+				return;
+			}
+		}
+		String uri = req.getRequestURI();
+		String contextPath = req.getContextPath();
+		String contextUri = uri.substring(contextPath.length());
+		if(contextUri.equals("/admin/index")){
+			if(user == null){
+				res.sendRedirect(req.getContextPath() + LoginController.LOGIN_PATH);
+				return;
+			}
+			if(!ADMINS.contains(user.getUserId())){
+				res.sendRedirect(req.getContextPath() + LoginController.MEMBER_LIST_PATH);
 				return;
 			}
 		}
