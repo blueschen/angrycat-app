@@ -2,6 +2,8 @@ package com.angrycat.erp.test;
 
 import static org.junit.Assert.assertEquals;
 
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.List;
 
 import javax.annotation.Resource;
@@ -14,6 +16,8 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
 import com.angrycat.erp.component.SessionFactoryWrapper;
 import com.angrycat.erp.initialize.config.RootConfig;
+import com.angrycat.erp.model.Exam;
+import com.angrycat.erp.model.ExamItem;
 import com.angrycat.erp.model.SalesDetail;
 
 @RunWith(SpringJUnit4ClassRunner.class)
@@ -27,8 +31,7 @@ public class ConfigClassApplicationContextTests extends AbstractTransactionalJUn
 		int count = countRowsInTable("shr_parameter");
 		int expected = 33;
 		assertEquals(expected, count);
-	}
-	
+	}	
 	@Test
 	public void executeFindResults(){
 		List<SalesDetail> details = 
@@ -40,5 +43,26 @@ public class ConfigClassApplicationContextTests extends AbstractTransactionalJUn
 		int count = details.size();
 		int expected = 6901;
 		assertEquals(expected, count);
+	}
+	@Test
+	public void sortCollection(){
+		sfw.executeSession(s->{
+			String q = "SELECT p FROM " + Exam.class.getName() + " p LEFT JOIN FETCH p.items WHERE p.id = :id";
+			Exam exam = (Exam)s.createQuery(q).setString("id", "20160704-102524204-mmzTq").uniqueResult();
+			System.out.println("原題序");
+			exam.getItems().forEach(ei->{
+				System.out.println(ei.getSequence());
+			});
+			Collections.sort(exam.getItems(), new Comparator<ExamItem>(){
+				@Override
+				public int compare(ExamItem o1, ExamItem o2) {
+					return o1.getSequence()-o2.getSequence();
+				}
+			});
+			System.out.println("新題序");
+			exam.getItems().forEach(ei->{
+				System.out.println(ei.getSequence());
+			});
+		});
 	}
 }
