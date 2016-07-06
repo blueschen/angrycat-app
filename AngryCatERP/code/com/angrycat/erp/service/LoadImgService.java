@@ -81,10 +81,13 @@ public class LoadImgService {
 			Set<String>modelIdsFound = productsFound.keySet();
 			
 			modelIdsFound.forEach(modelId->{
-				String storePath = imgFolder + SEP + modelId + ".jsp";
+				String storePath = imgFolder + SEP + modelId + ".jpg";
 				String url = ProductAccessService.URL_TEMPLATE.replace("{no}", modelId);
 				try(FileOutputStream fos = new FileOutputStream(storePath)){
 					httpService.sendPost(url, bis->{
+						if(bis.available() == 0){
+							return;
+						}
 						IOUtils.copy(bis, fos);
 						
 						Product product = productsFound.get(modelId);
@@ -100,7 +103,7 @@ public class LoadImgService {
 			});
 			s.clear();
 		});
-		String sendMsg = "透過主機圖檔更新成功" + localCount.get() + "筆，透過遠端圖檔更新成功" + remoteCount.get() + "筆";
+		String sendMsg = "透過主機" + StartupWebAppInitializer.getUploadRoot() +"圖檔更新成功" + localCount.get() + "筆，透過遠端圖檔更新成功" + remoteCount.get() + "筆";
 		String subject = "產品圖檔更新訊息";
 		
 		SimpleMailMessage simpleMailMessage = new SimpleMailMessage(templateMessage);
