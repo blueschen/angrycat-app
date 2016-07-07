@@ -278,9 +278,9 @@ public class RandomExamService {
 		int examCount = testCount.defaultExamCount(0);
 		
 		int examTotal = findExamTotalCount();
-		while(examTotal < examCount){
-			--examCount;
-			++productCount;
+		if(examTotal < examCount){
+			productCount += (examCount-examTotal);
+			examCount = examTotal;
 		}
 		
 		List<Exam> products = setRandomProductExams(productCount);
