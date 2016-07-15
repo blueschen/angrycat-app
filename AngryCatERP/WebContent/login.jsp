@@ -37,13 +37,13 @@
 		<div class="form-group">
 			<label class="control-label col-sm-2 col-sm-offset-2" for="userId">帳號</label>
 			<div class="col-sm-4">
-				<input type="text" id="userId" ng-model="mainCtrl.user.userId" name="userId" required autofocus class="form-control" placeholder="帳號"/>
+				<input type="text" id="userId" ng-model="mainCtrl.user.userId" name="userId" autofocus class="form-control" placeholder="帳號"/>
 			</div>
 		</div>
 		<div class="form-group">
 			<label class="control-label col-sm-2 col-sm-offset-2" for="password">密碼</label>
 			<div class="col-sm-4">
-				<input type="password" id="password" ng-model="mainCtrl.user.password" name="password" required class="form-control" placeholder="密碼"/>
+				<input type="password" id="password" ng-model="mainCtrl.user.password" name="password" class="form-control" placeholder="密碼"/>
 			</div>
 		</div>
 		<div class="form-group">
@@ -54,8 +54,8 @@
 	</form>
 	<form  class="form-horizontal" name="testForm" action="${testUrl}" method="POST">
 		<div class="form-group">
-			<input type="text" name="examineeId" ng-model="mainCtrl.user.userId" required class="hidden">
-			<input type="password" name="examineePwd" ng-model="mainCtrl.user.password" required class="hidden">
+			<input type="text" name="examineeId" ng-model="mainCtrl.user.userId" class="hidden">
+			<input type="password" name="examineePwd" ng-model="mainCtrl.user.password" class="hidden">
 			<div class="col-sm-4 col-sm-offset-4">
 				<button type="submit" class="btn btn-default btn-block" ng-disabled="testForm.$invalid">考試</button>
 			</div>
@@ -63,8 +63,8 @@
 	</form>
 	<form class="form-horizontal" name="adminForm" action="${adminUrl}" method="POST">
 		<div class="form-group">
-			<input type="text" name="adminId" ng-model="mainCtrl.user.userId" required class="hidden">
-			<input type="password" name="adminPwd" ng-model="mainCtrl.user.password" required class="hidden">
+			<input type="text" name="adminId" ng-model="mainCtrl.user.userId" class="hidden">
+			<input type="password" name="adminPwd" ng-model="mainCtrl.user.password" class="hidden">
 			<div class="col-sm-4 col-sm-offset-4">
 				<button type="submit" class="btn btn-default btn-block" ng-disabled="adminForm.$invalid">參數設定</button>
 			</div>
