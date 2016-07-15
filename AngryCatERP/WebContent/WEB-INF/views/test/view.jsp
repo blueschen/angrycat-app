@@ -38,34 +38,38 @@
     		color: #996;
     		opacity: 0.5;
     	}
+    	@media only screen and (max-width: 400px) {
+        	body { font-size:100%;}
+     	}
     </style>
 
 </head>
 <body ng-controller="MainCtrl as mainCtrl">
 
 <div class="container">
-	<div class="panel-group">
+	
+		<div class="btn-group">
+			<label class="btn btn-sm btn-default" ng-click="mainCtrl.startTest()">
+				<span ng-if="mainCtrl.exam" class="glyphicon glyphicon-repeat"></span>
+				<span ng-if="!mainCtrl.exam" class="glyphicon glyphicon-play"></span>
+				測試
+      			<span ng-if="mainCtrl.exam">重來</span>
+				<span ng-if="!mainCtrl.exam">開始</span>
+			</label>
+			<label ng-click="mainCtrl.nextExam()" class="btn btn-sm btn-default" ng-if="mainCtrl.exam && mainCtrl.examCount != mainCtrl.examNum">
+				<span class="glyphicon glyphicon-menu-right"></span>
+ 				下一題
+ 			</label>
+ 			<label ng-click="mainCtrl.scoring()" class="btn btn-sm btn-default" ng-if="mainCtrl.exam && mainCtrl.examCount == mainCtrl.examNum">
+ 				<span class="glyphicon glyphicon-fire"></span>
+ 				計分
+ 			</label>
+		</div>
+		
 
-	<div class="panel panel-default">
-		<label class="btn btn-lg btn-default" ng-click="mainCtrl.startTest()">
-			<span ng-if="mainCtrl.exam" class="glyphicon glyphicon-repeat"></span>
-			<span ng-if="!mainCtrl.exam" class="glyphicon glyphicon-play"></span>
-			OHM測試
-      		<span ng-if="mainCtrl.exam">重來</span>
-			<span ng-if="!mainCtrl.exam">開始</span>
-		</label>
-		<label ng-click="mainCtrl.nextExam()" class="btn btn-lg btn-default" ng-if="mainCtrl.exam && mainCtrl.examCount != mainCtrl.examNum">
-			<span class="glyphicon glyphicon-menu-right"></span>
- 			下一題
- 		</label>
- 		<label ng-click="mainCtrl.scoring()" class="btn btn-lg btn-default" ng-if="mainCtrl.exam && mainCtrl.examCount == mainCtrl.examNum">
- 			<span class="glyphicon glyphicon-fire"></span>
- 			計分
- 		</label>
- 		<label class="btn btn-lg btn-default">
- 			<a href="${pageContext.request.contextPath}/logout"><span class="glyphicon glyphicon-user"></span>登出</a>
- 		</label>
-	</div>
+
+
+	<div class="panel-group">
 	<div name="testForm" ng-if="mainCtrl.exam">
 		<div class="panel panel-primary">
   			<div class="panel-heading">
@@ -90,11 +94,15 @@
   				<ul class="list-group" ng-if="!mainCtrl.exam.questionImaged">
   					<li class="list-group-item" ng-repeat="item in mainCtrl.exam.items">
   						<span class="button-checkbox">
- 							<label class="btn btn-lg btn-block" ng-class="{'btn-default':!item.correct, 'btn-success':item.correct}">
+ 							<label class="btn btn-sm btn-block" ng-class="{'btn-default':!item.correct, 'btn-success':item.correct}">
  								<span class="state-icon glyphicon glyphicon-check pull-left" ng-if="item.selected"></span>
  								<span class="state-icon glyphicon glyphicon-unchecked pull-left" ng-if="!item.selected"></span>
- 								<span class="label label-default pull-left">{{item.sequence}}</span>
- 								<span class="pull-left">{{item.description}}</span>
+ 								<span class="badge pull-left">
+ 									{{item.sequence}}
+ 								</span>
+ 								<span class="pull-left">
+ 									{{item.description}}
+ 								</span>
  								&nbsp;<!-- 這裡需要至少一個字，否則其他字左靠之後，按鈕高度會不正常縮小 -->
  								<input type="checkbox" class="hidden" autocomplete="off" ng-model="item.selected" ng-disabled="mainCtrl.stopReply" ng-change="mainCtrl.correctAfterReply()">
  							</label>
@@ -197,6 +205,13 @@
   		</div> 		
 	</div>
 	
+	</div>
+	<div class="row">
+		 <div class="col-sm-offset-5 col-sm-2">
+		 	<label class="btn btn-default">
+ 				<a href="${pageContext.request.contextPath}/logout"><span class="glyphicon glyphicon-user"></span>登出</a>
+ 			</label>
+		</div>
 	</div>	
 </div>
 <script type="text/javascript">
