@@ -23,6 +23,7 @@ import com.angrycat.erp.web.WebUtils;
 public class LoginController {
 	public static final String LOGIN_PATH = "/login.jsp";
 	public static final String MEMBER_LIST_PATH = "/member/list";
+	public static final String LOGIN_ERR_MSG = "loginErrMsg";
 	
 	@Autowired
 	@Qualifier("queryBaseService")
@@ -54,7 +55,7 @@ public class LoginController {
 	private String loginRedirectTo(String userId, String password, Model model, String redirectTo){
 		if(StringUtils.isBlank(userId)
 		|| StringUtils.isBlank(password)){
-			model.addAttribute("loginErrMsg", "帳號或密碼不正確");
+			model.addAttribute(LOGIN_ERR_MSG, "帳號或密碼不正確");
 			model.addAttribute("user", CommonUtil.parseToJson(new User(userId, password)));
 			return "forward:" + LOGIN_PATH;
 		}
@@ -70,7 +71,7 @@ public class LoginController {
 			WebUtils.currentSession().setAttribute(WebUtils.SESSION_USER, users.get(0));
 			return "redirect:" + redirectTo;
 		}
-		model.addAttribute("loginErrMsg", "帳號不存在");
+		model.addAttribute(LOGIN_ERR_MSG, "帳號不存在");
 		model.addAttribute("user", CommonUtil.parseToJson(new User(userId, password)));
 		return "forward:" + LOGIN_PATH;
 	}
