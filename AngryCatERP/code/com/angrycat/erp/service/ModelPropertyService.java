@@ -99,6 +99,7 @@ public class ModelPropertyService {
 			Arrays.asList(
 				String.class,
 				Boolean.class,
+				Integer.class,
 				Double.class,
 				Float.class,
 				Boolean.class,
