@@ -16,14 +16,16 @@ import org.hibernate.annotations.GenericGenerator;
 @Table(name="product")
 public class Product {
 	private String id;
-	private ProductCategory productCategory;
-	private String modelId;
-	private double suggestedRetailPrice;
-	private String name;
-	private String nameEng;
-	private String seriesName;
-	private String barcode;
-	private String imgDir;
+	private ProductCategory productCategory;	// 商品類別
+	private String modelId;						// 型號
+	private double suggestedRetailPrice;		// 定價/零售價
+	private String name;						// 商品中文名稱
+	private String nameEng;						// 商品英文名稱
+	private String seriesName;					// 系列名
+	private String barcode;						// 條碼號
+	private String imgDir;						// 圖片位置
+	
+	private int totalStockQty;					// 總庫存(新增資料庫欄位要注意必須給預設值0，)	
 	@Id
 	@Column(name="id")
 	@GenericGenerator(name="angrycat_product_id", strategy="com.angrycat.erp.ds.TimeUID")
@@ -113,5 +115,12 @@ public class Product {
 	}
 	public void setImgDir(String imgDir) {
 		this.imgDir = imgDir;
+	}
+	@Column(name="totalStockQty")
+	public int getTotalStockQty() {
+		return totalStockQty;
+	}
+	public void setTotalStockQty(int totalStockQty) {
+		this.totalStockQty = totalStockQty;
 	}
 }
