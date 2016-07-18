@@ -143,6 +143,7 @@
         		</div>
         		 -->
         		<!-- ref.http://getbootstrap.com/components/#dropdowns -->
+        		<!-- 
         		<div id="other"
 					class="btn-group"
         			ng-click="mainCtrl.open='1'"
@@ -160,18 +161,17 @@
         				<li><a href="#">Other1</a></li>
         				<li><a href="#">Other2</a></li>
         			</ul>	
-        		</div>
+        		</div> -->
         		<div id="logout"
         			class="btn-group">
         			<label id="btnGroupLogout"
         				class="btn btn-default dropdown-toggle" 
         				aria-expanded="false" 
         				aria-haspopup="true" 
-        				data-toggle="dropdown">
-        				<a href="${pageContext.request.contextPath}/logout">
-        					<span class="glyphicon glyphicon-user"></span>
-        					登出
-        				</a>
+        				data-toggle="dropdown"
+        				ng-click="mainCtrl.logout()">
+        				<span class="glyphicon glyphicon-user"></span>
+        				登出
         			</label>
         		</div>			
 			</div>
@@ -243,13 +243,16 @@
 		.constant('urlPrefix', '${urlPrefix}')
 		.constant('login', "${sessionScope['sessionUser']}" ? true : false)
 		.constant('targetData', ${settings == null ? "null" : settings})
-		.controller('MainCtrl', ['$scope', 'DateService', 'AjaxService', 'urlPrefix', 'login', 'targetData', 'rootPath', '$alert', function($scope, DateService, AjaxService, urlPrefix, login, targetData, rootPath, $alert){
+		.controller('MainCtrl', ['$scope', 'DateService', 'AjaxService', 'urlPrefix', 'login', 'targetData', 'rootPath', '$alert', '$window', function($scope, DateService, AjaxService, urlPrefix, login, targetData, rootPath, $alert, $window){
 			var self = this;
 			self.changePos = function(idx){
 				self.open = idx;
 			};
 			self.login = login;
 			self.open = "testCount";
+			self.logout = function(){
+				$window.location.href = rootPath + "/logout";
+			};
 			function getNumOrZero(parent, props){
 				var splits = props.split(".");
 				while(splits.length>0){
