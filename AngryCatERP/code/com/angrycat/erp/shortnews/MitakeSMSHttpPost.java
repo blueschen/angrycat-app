@@ -1,5 +1,10 @@
 package com.angrycat.erp.shortnews;
 
+import static com.angrycat.erp.common.EmailContact.BLUES;
+import static com.angrycat.erp.common.EmailContact.IFLY;
+import static com.angrycat.erp.common.EmailContact.JERRY;
+import static com.angrycat.erp.common.EmailContact.JOYCE;
+import static com.angrycat.erp.common.EmailContact.MIKO;
 import static com.angrycat.erp.condition.ConditionFactory.propertyDesc;
 import static com.angrycat.erp.condition.ConditionFactory.putInt;
 import static com.angrycat.erp.condition.ConditionFactory.putSqlDate;
@@ -7,23 +12,25 @@ import static com.angrycat.erp.condition.ConditionFactory.putSqlDate;
 import java.io.BufferedReader;
 import java.io.DataOutputStream;
 import java.io.InputStreamReader;
+import java.io.UnsupportedEncodingException;
 import java.net.HttpURLConnection;
 import java.net.URL;
+import java.net.URLEncoder;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.UUID;
 import java.util.function.Function;
 
 import javax.annotation.PostConstruct;
 
 import org.apache.commons.lang.exception.ExceptionUtils;
 import org.apache.commons.lang3.StringUtils;
-import org.apache.commons.lang3.builder.ReflectionToStringBuilder;
-import org.apache.commons.lang3.builder.ToStringStyle;
 import org.hibernate.Session;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -40,9 +47,6 @@ import com.angrycat.erp.model.Member;
 import com.angrycat.erp.service.QueryBaseService;
 import com.angrycat.erp.service.TimeService;
 import com.angrycat.erp.test.BaseTest;
-
-import static com.angrycat.erp.common.EmailContact.*;
-import static com.angrycat.erp.shortnews.MitakeSMSHttpPost.NO_DATA_FOUND_STOP_SEND_SHORT_MSG;
 /**
  * 三竹簡訊服務，主要搭配會員查詢功能
  * @author JerryLin
@@ -51,14 +55,14 @@ import static com.angrycat.erp.shortnews.MitakeSMSHttpPost.NO_DATA_FOUND_STOP_SE
 @Service
 @Scope("prototype")
 public class MitakeSMSHttpPost {
-	private static final String sGeneralURL = "http://smexpress.mitake.com.tw/SmSendPost.asp"; // 發送多筆一般簡訊 URL
-	private static final String sLongURL = "http://smexpress.mitake.com.tw:7003/SpLmPost"; // 發送多筆長簡訊 URL
-	private static final String sUserName = "0975009776"; // 使用者帳號
-	private static final String sPassword = "27761505"; // 使用者密碼
+	private static final String multiShortURL = "https://smexpress.mitake.com.tw:8800/SmSendPost"; // 發送多筆短簡訊 URL // TODO 這個網址有誤，先不要用這個
+	private static final String multiLongURL = "https://smexpress.mitake.com.tw:7103/SpLmPost"; // 發送多筆長簡訊 URL
+	private static final String sUserName = ""; // 使用者帳號
+	private static final String sPassword = ""; // 使用者密碼
 	private static final long lTimeout = 30000; // 逾時時間(單位:毫秒)
 	private static String sEncoding = "Big5";
-	public static final String GENERAL_CONNECT_URL = sGeneralURL + "?username=" + sUserName + "&password=" + sPassword + "&encoding=" + sEncoding;
-	public static final String LONG_CONNECT_URL = sLongURL + "?username=" + sUserName + "&password=" + sPassword + "&encoding=" + sEncoding;
+	public static final String SHORT_CONNECT_URL = multiShortURL + "?username=" + sUserName + "&password=" + sPassword + "&encoding=" + sEncoding;
+	public static final String LONG_CONNECT_URL = multiLongURL + "?username=" + sUserName + "&password=" + sPassword + "&encoding=" + sEncoding;
 	
 	private static final String SERIAL_NO = "serialNo"; // 流水號
 	private static final String DEST_NAME = "DestName"; // 收訊人名稱
@@ -74,10 +78,21 @@ public class MitakeSMSHttpPost {
 	private static final String T_DST_ADDR = betweenBraces(DST_ADDR); // 受訊方手機號碼
 	private static final String T_SM_BODY = betweenBraces(SM_BODY); // 簡訊內容
 	private static final String T_DLV_TIME = betweenBraces(DLV_TIME); // 簡訊預約時間
+	private static final String T_VLD_TIME = betweenBraces(VLD_TIME); // 簡訊有效期限
 	
-	private static final String POST_MSG_TEMPLATE = "["+T_SERIAL_NO+"]\r\n"
+	private static final String SHORT_POST_MSG_TEMPLATE = "["+T_SERIAL_NO+"]\r\n"
 													+ "dstaddr="+T_DST_ADDR+"\r\n"
 													+ "smbody="+T_SM_BODY+"\r\n";
+	private static final String LONG_POST_MSG_TEMPLATE = T_SERIAL_NO
+													+ "$$"+T_DST_ADDR
+													+ "$$" // 簡訊預約時間
+													+ "$$" // 簡訊有效時間
+													+ "$$" // 收訊人名稱
+													+ "$$" // 狀態回報網址
+													+ "$$"+T_SM_BODY // 簡訊內容
+													+ "\r\n" // 斷行分隔不同簡訊--這行一定要，否則所有簡訊會視為同一則而發給最後一個人
+													;
+
 	
 	private static final String TIMEOUT_READ_PROP_NAME = "sun.net.client.defaultReadTimeout";
 	private static final String TIMEOUT_CONNECT_PROP_NAME = "sun.net.client.defaultConnectTimeout";
@@ -97,7 +112,7 @@ public class MitakeSMSHttpPost {
 	@Autowired
 	private SimpleMailMessage templateMessage;
 	
-	private String url = GENERAL_CONNECT_URL;
+	private String url = LONG_CONNECT_URL;
 	private boolean testMode;
 	private int memberCount;
 
@@ -147,15 +162,39 @@ public class MitakeSMSHttpPost {
 //		testSendSelf();
 //		testSendShortMsg();
 //		shortMsgNotify20160401Activity();
-//		shortMsgNotifyForTesting();
+		shortMsgNotifyForTesting();
 //		strLen();
 //		shortMsgNotify20160429Activity(); // 4/29活動簡訊
 //		shortMsgNotify20160530Activity(); // 5/30活動簡訊
-		shortMsgNotify20160623Activity(); // 6/23活動簡訊
+//		shortMsgNotify20160623Activity(); // 6/23活動簡訊
+//		shortMsgNotify20160714Activity();
+//		testUrlEncodeToBig5();
+//		uuidLen();
+	}
+	
+	private static void uuidLen(){
+		System.out.println(UUID.randomUUID().toString().length());
+	}
+	
+	private static void testUrlEncodeToBig5(){
+		String content1 = "7/15-7/19 敦南誠品滿千送百，OHM加碼滿8000再折600，最高單筆可折1100，社團同步優惠中，詳情請洽FB粉絲團或02-27761505";
+		String content2 = "7/15-7/19 敦南誠品滿千送百，OHM加碼滿8000再折600，最高單筆可折1100，社團同步優惠中FB粉絲團或洽02-27761505";
+		String encode = urlEncodeToBig5(content2);
+		System.out.println(encode);
+	}
+	
+	private static String urlEncodeToBig5(String content){
+		String encode = "";
+		try {
+			encode = URLEncoder.encode(content, "Big5").replaceAll("\\+", "%20");
+		} catch (UnsupportedEncodingException e) {
+			throw new RuntimeException(e);
+		}
+		return encode;
 	}
 	
 	private static void strLen(){
-		String content = "6/9-6/26 OHM在永和比漾廣場，單筆滿萬當筆9折再升VIP，還可參加滿5000送500年中慶活動，詳情洽02-27761505";
+		String content = "7/15-7/19 敦南誠品滿千送百，OHM加碼滿8000再折600，最高單筆可折1100，社團同步優惠中，詳情請洽FB粉絲團或02-277";
 		System.out.println(content.length());
 	}
 	
@@ -171,12 +210,14 @@ public class MitakeSMSHttpPost {
 	/**
 	 * 設定傳送訊息必填欄位
 	 */
-	private static byte[] getRequiredConfig(int idx, String mobile, String content)throws Throwable{
-		String serialNo = StringUtils.leftPad(""+idx, 3, "0");
-		String sendConfig = POST_MSG_TEMPLATE.replace(T_SERIAL_NO, serialNo)
-											.replace(T_DST_ADDR, mobile)
-											.replace(T_SM_BODY, content);
-		System.out.println(sendConfig);
+	private byte[] getRequiredConfig(int idx, String mobile, String content)throws Throwable{
+		String template = (url == LONG_CONNECT_URL ? LONG_POST_MSG_TEMPLATE : SHORT_POST_MSG_TEMPLATE);
+//		String serialNo = StringUtils.leftPad(""+idx, 3, "0");
+		String serialNo = UUID.randomUUID().toString();
+		String sendConfig = template.replace(T_SERIAL_NO, serialNo)
+									.replace(T_DST_ADDR, mobile)
+									.replace(T_SM_BODY, content);
+		System.out.println("getRequiredConfig\n" + sendConfig);
 		return sendConfig.getBytes(sEncoding);
 	}
 	private static List<Member> getTestMembers(){
@@ -187,8 +228,8 @@ public class MitakeSMSHttpPost {
 		return members;
 	}
 	/**
-	 * 一般簡訊，70個中文字含標點符號為一則扣一點 
-	 * 長簡訊，67個中文字含標點符號為一則扣一點
+	 * 短簡訊，70個中文字含標點符號為一則扣一點 ，超過70字不會自動扣點，只會截斷超過字數的訊息寄出
+	 * 長簡訊，70個中文字含標點符號為一則扣一點，超過70字會自動扣點--只有智慧手機能正確收到長簡訊，舊型手機不支援長簡訊，超過70字會變成亂碼；
 	 * 
 	 */
 	public void sendPostShortMsg(ConsumerThrowable<DataOutputStream> configureSendData, ConsumerThrowable<BufferedReader> returnMsg){
@@ -303,7 +344,6 @@ public class MitakeSMSHttpPost {
 			int runtimeErrCount = 0;
 			
 			sb.append("發送清單:\n");
-			boolean runtimeError = false;
 			for(int i = 0; i < members.size(); i++){
 				Member member = members.get(i);
 				String mobile = member.getMobile();
@@ -317,24 +357,10 @@ public class MitakeSMSHttpPost {
 //						out.write("".getBytes(sEncoding));
 						sb.append(name + "|" + mobile + "\n");
 					}catch(Throwable e){
-						// TODO
-						String trace = ExceptionUtils.getStackTrace(e);
-						sb.append(mobile + "設定必填欄位錯誤:\n" + trace);
-						runtimeError = true;
-						++runtimeErrCount;
+						throw new RuntimeException(e);
 					}
 				}
 				
-			}
-			if(runtimeError){
-				String sendMsg = sb.toString();
-				SimpleMailMessage simpleMailMessage = new SimpleMailMessage(templateMessage);
-				simpleMailMessage.setTo(JERRY);
-				simpleMailMessage.setText(sendMsg);
-				simpleMailMessage.setSubject("MitakeSMSHttpPost.sendShortMsgToMembers設定簡訊執行錯誤");
-				String[] cc = new String[]{BLUES};
-				simpleMailMessage.setCc(cc);
-				mailSender.send(simpleMailMessage);
 			}
 			memberCount = currentCount;
 			sb.append("查詢結果: " + currentCount + " 筆，有效資料: " + effectiveCount + "筆，執行錯誤: " + runtimeErrCount + "筆\n");
@@ -342,10 +368,25 @@ public class MitakeSMSHttpPost {
 		},buReader->{
 			String msg = null;
 			sb.append("發送簡訊後回傳訊息:\n");
+			String STATUS_INSTANT_SUCCESS = "1"; // 即時簡訊發送成功
+			String STATUS_RESERV_SUCCESS = "0"; // 預約簡訊發送成功
+			String statuscode = "";
+			String duplicate = "";
 			while((msg = buReader.readLine()) != null){
 				System.out.println(msg);
 				sb.append(msg + "\n");
-				if(msg.contains("AccountPoint")){
+				if(msg.contains("statuscode")){
+					String[] s = msg.split("=");
+					statuscode = s[1];
+				}
+				if(msg.contains("Duplicate")){
+					String[] s = msg.split("=");
+					duplicate = s[1];
+				}
+				if(msg.contains("AccountPoint")
+				&& !duplicate.equals("Y") // 代表不是重複發送
+				&& (statuscode.equals(STATUS_INSTANT_SUCCESS)
+					|| statuscode.equals(STATUS_RESERV_SUCCESS))){
 					String[] s = msg.split("=");
 					String remainingPoints = s[1];
 					int remaining = Integer.parseInt(remainingPoints);
@@ -360,7 +401,7 @@ public class MitakeSMSHttpPost {
 													BLUES,
 													JERRY};
 						simpleMailMessage.setCc(cc);
-						mailSender.send(simpleMailMessage);
+//						mailSender.send(simpleMailMessage);
 					}
 				}
 			}
@@ -656,7 +697,14 @@ public class MitakeSMSHttpPost {
 			mailSender.send(simpleMailMessage);
 		}
 	}
-	
+	private static void shortMsgNotify20160714Activity(){
+		BaseTest.executeApplicationContext(acac->{
+			MitakeSMSHttpPost service = acac.getBean(MitakeSMSHttpPost.class);
+			service.setTestMode(true);
+			
+			service.shortMsgNotifyAllMembers("敦南誠品滿千送百", "7/15-7/19 敦南誠品滿千送百，OHM加碼滿8000再折600，最高單筆可折1100，社團同步優惠中，詳情請洽FB粉絲團或02-27716304");
+		});
+	}
 	private static void shortMsgNotify20160623Activity(){
 		BaseTest.executeApplicationContext(acac->{
 			MitakeSMSHttpPost service = acac.getBean(MitakeSMSHttpPost.class);
@@ -722,16 +770,20 @@ public class MitakeSMSHttpPost {
 			service.mailSender.send(simpleMailMessage);
 		});
 	}
-	
+	/**
+	 * 主要的測試程式
+	 */
 	private static void shortMsgNotifyForTesting(){
 		BaseTest.executeApplicationContext(acac->{
 			MitakeSMSHttpPost service = acac.getBean(MitakeSMSHttpPost.class);
 //			service.setTestMode(true);
 			
-			String queryHql = "SELECT DISTINCT(p) FROM " + Member.class.getName() + " p WHERE p.name = :pName";
-			String content = "發給自家人的測試簡訊";
+			String greaterThan70Chars = "多筆長簡訊測試請忽略2";
+			
+			String queryHql = "SELECT DISTINCT(p) FROM " + Member.class.getName() + " p WHERE p.name IN (:pName)";
+			String content = greaterThan70Chars;
 			Map<String, Object> params = new HashMap<>();
-			params.put("pName", "t1");
+			params.put("pName", Arrays.asList("t1", "張雅筠"));
 			StringBuffer sb = service.sendShortMsgToMembers(queryHql, params, content);
 			
 			String sendMsg = sb.toString();
