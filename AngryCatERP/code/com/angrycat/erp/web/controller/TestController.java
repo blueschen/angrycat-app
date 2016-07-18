@@ -211,11 +211,14 @@ public class TestController {
 			value="/downloadImage/{imgPath}",
 			method={RequestMethod.GET, RequestMethod.POST})
 	public void downloadImage(@PathVariable("imgPath") String imgPath, HttpServletResponse res){
-		res.setContentType("image/jpeg");
 		File f = randomExamService.getArchives().get(imgPath);
+		downloadImage(f, res);
+	}
+	public static void downloadImage(File f, HttpServletResponse res){
 		if(f == null){
 			return;
 		}
+		res.setContentType("image/jpeg");
 		try(BufferedInputStream bis = new BufferedInputStream(new FileInputStream(f));
 			OutputStream os = res.getOutputStream();){
 			IOUtils.copy(bis, os);
