@@ -16,18 +16,24 @@ import org.hibernate.annotations.GenericGenerator;
 @Table(name="product")
 public class Product {
 	private String id;
-	private ProductCategory productCategory;	// 商品類別
-	private String modelId;						// 型號
-	private double suggestedRetailPrice;		// 定價/零售價
-	private String name;						// 商品中文名稱
-	private String nameEng;						// 商品英文名稱
-	private String seriesName;					// 系列名
-	private String barcode;						// 條碼號
-	private String imgDir;						// 圖片位置
+	private ProductCategory productCategory;
+	private String modelId;
+	private double suggestedRetailPrice;
+	private String name;
+	private String nameEng;
+	private String seriesName;
+	private String barcode;
+	private String imgDir;
 	
-	private int totalStockQty;					// 總庫存(新增資料庫欄位要注意必須給預設值0，)	
+	private int totalStockQty;
+	private int officeStockQty;					
+	private int drawerStockQty;					
+	private int showcaseStockQty;
+	private int notShipStockQty;
+	private int drawerInZhongheStockQty;
+	private int showcaseInZhongheStockQty;
 	@Id
-	@Column(name="id")
+	@Column(name="id", columnDefinition="ID")
 	@GenericGenerator(name="angrycat_product_id", strategy="com.angrycat.erp.ds.TimeUID")
 	@GeneratedValue(generator="angrycat_product_id")
 	public String getId() {
@@ -37,49 +43,49 @@ public class Product {
 		this.id = id;
 	}
 	@ManyToOne(fetch=FetchType.EAGER)
-	@JoinColumn(name="productCategory")
+	@JoinColumn(name="productCategory", columnDefinition="商品類別")
 	public ProductCategory getProductCategory() {
 		return productCategory;
 	}
 	public void setProductCategory(ProductCategory productCategory) {
 		this.productCategory = productCategory;
 	}
-	@Column(name="modelId")
+	@Column(name="modelId", columnDefinition="型號")
 	public String getModelId() {
 		return modelId;
 	}
 	public void setModelId(String modelId) {
 		this.modelId = modelId;
 	}
-	@Column(name="suggestedRetailPrice")
+	@Column(name="suggestedRetailPrice", columnDefinition="定價")
 	public double getSuggestedRetailPrice() {
 		return suggestedRetailPrice;
 	}
 	public void setSuggestedRetailPrice(double suggestedRetailPrice) {
 		this.suggestedRetailPrice = suggestedRetailPrice;
 	}
-	@Column(name="name")
+	@Column(name="name", columnDefinition="中文名字")
 	public String getName() {
 		return name;
 	}
 	public void setName(String name) {
 		this.name = name;
 	}
-	@Column(name="nameEng")
+	@Column(name="nameEng", columnDefinition="英文名字")
 	public String getNameEng() {
 		return nameEng;
 	}
 	public void setNameEng(String nameEng) {
 		this.nameEng = nameEng;
 	}
-	@Column(name="seriesName")
+	@Column(name="seriesName", columnDefinition="系列名")
 	public String getSeriesName() {
 		return seriesName;
 	}
 	public void setSeriesName(String seriesName) {
 		this.seriesName = seriesName;
 	}
-	@Column(name="barcode")
+	@Column(name="barcode", columnDefinition="條碼號")
 	public String getBarcode() {
 		return barcode;
 	}
@@ -109,18 +115,60 @@ public class Product {
 		}
 		return modelIdAdjusted;
 	}
-	@Column(name="imgDir")
+	@Column(name="imgDir", columnDefinition="圖片位置")
 	public String getImgDir() {
 		return imgDir;
 	}
 	public void setImgDir(String imgDir) {
 		this.imgDir = imgDir;
 	}
-	@Column(name="totalStockQty")
+	@Column(name="totalStockQty", columnDefinition="總庫存")
 	public int getTotalStockQty() {
 		return totalStockQty;
 	}
 	public void setTotalStockQty(int totalStockQty) {
 		this.totalStockQty = totalStockQty;
+	}
+	@Column(name="officeStockQty", columnDefinition="辦公室庫存")
+	public int getOfficeStockQty() {
+		return officeStockQty;
+	}
+	public void setOfficeStockQty(int officeStockQty) {
+		this.officeStockQty = officeStockQty;
+	}
+	@Column(name="drawerStockQty", columnDefinition="專櫃抽屜")
+	public int getDrawerStockQty() {
+		return drawerStockQty;
+	}
+	public void setDrawerStockQty(int drawerStockQty) {
+		this.drawerStockQty = drawerStockQty;
+	}
+	@Column(name="showcaseStockQty", columnDefinition="展示櫃")
+	public int getShowcaseStockQty() {
+		return showcaseStockQty;
+	}
+	public void setShowcaseStockQty(int showcaseStockQty) {
+		this.showcaseStockQty = showcaseStockQty;
+	}
+	@Column(name="notShipStockQty", columnDefinition="未出貨")
+	public int getNotShipStockQty() {
+		return notShipStockQty;
+	}
+	public void setNotShipStockQty(int notShipStockQty) {
+		this.notShipStockQty = notShipStockQty;
+	}
+	@Column(name="drawerInZhongheStockQty", columnDefinition="中和庫存")
+	public int getDrawerInZhongheStockQty() {
+		return drawerInZhongheStockQty;
+	}
+	public void setDrawerInZhongheStockQty(int drawerInZhongheStockQty) {
+		this.drawerInZhongheStockQty = drawerInZhongheStockQty;
+	}
+	@Column(name="showcaseInZhongheStockQty", columnDefinition="中和展示")
+	public int getShowcaseInZhongheStockQty() {
+		return showcaseInZhongheStockQty;
+	}
+	public void setShowcaseInZhongheStockQty(int showcaseInZhongheStockQty) {
+		this.showcaseInZhongheStockQty = showcaseInZhongheStockQty;
 	}
 }
