@@ -5,7 +5,8 @@
 <%@ taglib uri="http://www.springframework.org/tags" prefix="s"%>
 
 <c:set value="test" var="moduleName"/>
-<c:set value="${pageContext.request.contextPath}/${moduleName}" var="urlPrefix"/>
+<c:set value="${pageContext.request.contextPath}" var="rootPath"/>
+<c:set value="${rootPath}/${moduleName}" var="urlPrefix"/>
 <!DOCTYPE html>
 <html lang="zh-TW" ng-app="angryCatTestViewApp">
 <head>
@@ -208,14 +209,15 @@
 	</div>
 	<div class="row">
 		 <div class="col-sm-offset-5 col-sm-2">
-		 	<label class="btn btn-default">
- 				<a href="${pageContext.request.contextPath}/logout"><span class="glyphicon glyphicon-user"></span>登出</a>
+		 	<label class="btn btn-default" ng-click="mainCtrl.logout()">
+ 				<span class="glyphicon glyphicon-user"></span>登出
  			</label>
 		</div>
 	</div>	
 </div>
 <script type="text/javascript">
 	angular.module('angryCatTestViewApp', ['erp.date.service', 'erp.ajax.service', 'mgcrea.ngStrap'])
+		.constant('rootPath', '${rootPath}')
 		.constant('urlPrefix', '${urlPrefix}')
 		.constant('login', "${sessionScope['sessionUser']}" ? true : false)
 		.constant('targetData', ${info == null ? "null" : info})
@@ -234,13 +236,17 @@
 			$httpProvider.interceptors.push('AuthInterceptor');
 			$compileProvider.debugInfoEnabled(false); // after set false, angular.element(htmlEle).scope() will return undefined to improve performance
 		}])		
-		.controller('MainCtrl', ['$scope', 'DateService', 'AjaxService', 'urlPrefix', 'login', 'targetData', function($scope, DateService, AjaxService, urlPrefix, login, targetData){
+		.controller('MainCtrl', ['$scope', 'DateService', 'AjaxService', 'urlPrefix', 'login', 'targetData', 'rootPath', '$window', function($scope, DateService, AjaxService, urlPrefix, login, targetData, rootPath, $window){
 			var self = this;
 			self.statistics = targetData.statistics;
 			self.scores = targetData.scores;
 			self.login = login;
 			self.activePanel = 0,
 			self.examCount = 1; // 第幾題
+			
+			self.logout = function(){
+				$window.location.href = rootPath + "/logout";
+			}
 			
 			var findTopic = /圖片(\S+)的(\S+)為何/g;
 			function setExam(exam){
