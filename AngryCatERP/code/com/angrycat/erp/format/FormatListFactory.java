@@ -17,11 +17,19 @@ public class FormatListFactory {
 		f.setDocTitle("modelId");
 		
 		f.add(new PropertyFormat("型號", "modelId"));
-		f.add(new PropertyFormat("建議零售價", "suggestedRetailPrice"));
-		f.add(new PropertyFormat("名稱", "name"));
-		f.add(new PropertyFormat("英文名稱", "nameEng"));
+		f.add(new PropertyFormat("定價", "suggestedRetailPrice"));
+		f.add(new PropertyFormat("中文名字", "name"));
+		f.add(new PropertyFormat("英文名字", "nameEng"));
 		f.add(new PropertyFormat("系列名", "seriesName"));
-		f.add(new PropertyFormat("條碼", "barcode"));
+		f.add(new PropertyFormat("條碼號", "barcode"));
+		f.add(new PropertyFormat("商品類別", "productCategory.code"));
+		f.add(new PropertyFormat("總庫存", "totalStockQty"));
+		f.add(new PropertyFormat("辦公室庫存", "officeStockQty"));
+		f.add(new PropertyFormat("專櫃抽屜", "drawerStockQty"));
+		f.add(new PropertyFormat("展示櫃", "showcaseStockQty"));
+		f.add(new PropertyFormat("未出貨", "notShipStockQty"));
+		f.add(new PropertyFormat("中和庫存", "drawerInZhongheStockQty"));
+		f.add(new PropertyFormat("中和展示", "showcaseInZhongheStockQty"));
 		
 		return f;
 	}
