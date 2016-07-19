@@ -35,7 +35,8 @@
 			defaultDropdownOptionId = "select",
 			selectedVal = null,
 			addRowInit = opts.addRowInit,
-			lockedFlag = opts.lockedFlag ? opts.lockedFlag : false;
+			lockedFlag = opts.lockedFlag ? opts.lockedFlag : false,
+			editAction = opts.editAction;
 			
 		function minusFilterDateTimezoneOffset(filter, modelFields){
 			if(!filter){
@@ -504,7 +505,7 @@
 					type = field[3],
 					customOpt = field[5];
 				modelFields[fieldName] = {
-					defaultValue: null,
+					defaultValue: type === "number" ? 0 :null,
 					type: type
 				};
 				if(fieldName === pk){
@@ -694,7 +695,7 @@
 			};
 		}
 
-		function fieldsReady(callback){
+		function fieldsReady(callback, afterGridInit){
 			var context = this;
 			$(document).ready(function(){
 				var fields = callback.call(context),
@@ -803,7 +804,8 @@
 						setTimeout(function(){
 							$("div.k-grid-content-locked").height($("div.k-grid-content").height());
 						},1000);
-					}
+					},
+					edit: editAction
 				}).data("kendoGrid");
 				
 				$(".k-grid-new").click(function(e){
@@ -1114,6 +1116,10 @@
 					mainGrid.dataSource.query(lastKendoData);
 				}else{
 					mainGrid.dataSource.query(DEFAULT_QUERY_OPTIONS);
+				}
+				
+				if(typeof afterGridInit === "function"){
+					afterGridInit(mainGrid);
 				}
 			});
 		}
