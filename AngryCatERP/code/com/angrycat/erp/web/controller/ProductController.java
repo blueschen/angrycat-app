@@ -6,6 +6,7 @@ import java.util.Map;
 
 import javax.servlet.http.HttpServletResponse;
 
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -14,9 +15,11 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.ResponseBody;
 
-import com.angrycat.erp.excel.ExcelExporter;
+import com.angrycat.erp.excel.ProductExcelExporter;
 import com.angrycat.erp.initialize.StartupWebAppInitializer;
 import com.angrycat.erp.model.Product;
+import com.angrycat.erp.model.ProductCategory;
+import com.angrycat.erp.service.ProductCategoryQueryService;
 import com.angrycat.erp.web.component.ConditionConfig;
 
 @Controller
@@ -31,17 +34,20 @@ public class ProductController extends KendoUiGridController<Product, Product> {
 	}
 
 	private Map<String, File> images = new LinkedHashMap<>();
+	@Autowired
+	private ProductCategoryQueryService productCategoryQueryService;
+	@Autowired
+	private ProductExcelExporter productExcelExporter;
 	
+	@SuppressWarnings("unchecked")
 	@Override
-	<E extends ExcelExporter<Product>> E getExcelExporter() {
-		// TODO Auto-generated method stub
-		return null;
+	ProductExcelExporter getExcelExporter() {
+		return productExcelExporter;
 	}
 	@RequestMapping(
 			value="/downloadImage/{modelId}",
 			method=RequestMethod.GET)
 	public void downloadImage(@PathVariable("modelId")String modelId, HttpServletResponse res){
-		System.out.println("img modelId:" + modelId);
 		File f = images.get(modelId);
 		if(f == null){
 			return;
@@ -73,5 +79,13 @@ public class ProductController extends KendoUiGridController<Product, Product> {
 		long end = System.currentTimeMillis();
 		System.out.println(moduleName+ ".queryConditional() takes time: " + (end-start) + " ms");
 		return result;
-	}	
+	}
+	@RequestMapping(value="/queryProductCategoryAutocomplete",
+			method=RequestMethod.POST,
+			produces={"application/xml", "application/json"},
+			headers="Accept=*/*")
+	public @ResponseBody String queryProductCategoryAutocomplete(@RequestBody ConditionConfig<ProductCategory> conditionConfig){
+		String result = productCategoryQueryService.findTargetPageable(conditionConfig);
+		return result;
+	}
 }
