@@ -159,8 +159,8 @@
 					}),
 					fields = [
 		       			//0fieldName					1column title	2column width	3field type	4column filter operator	5field custom			6column custom			7column editor
-		       			["modelId",						"型號",			150,			"string",	"eq"],
-		       			["nameEng",						"英文名字",		200,			"string",	"eq"],
+		       			["modelId",						"型號",			150,			"string",	"contains"],
+		       			["nameEng",						"英文名字",		200,			"string",	"contains"],
 						["name",						"中文名字",		100,			"string",	"contains"],
 						["suggestedRetailPrice",		"定價",			100,			"number",	"eq"],
 						["imgDir",						"圖片",			100,			"string",	"contains",				uneditable,				imgColumn],
@@ -180,29 +180,30 @@
 			}
 			
 			function afterGridInitHandler(mainGrid){
-				var displays = [],
-					foundImg = false;
-				var timer = setInterval(function(){
-					// 因為template初始化很慢，所以設定timer
-					var img = mainGrid.tbody.find("img.productImg");
-					if(img.length > 0){
-						clearInterval(timer);
-						img.click(function(){
-							var src = $(this).attr("src");
-							if(!src){
-								return;
-							}
-							var win = 
-								$("#productImgWindow").kendoWindow({
-									width: "650px",
-									content: {
-										template: "<img src='"+src+"'/>"
-									}
-								}).data("kendoWindow");
-							win.center().open();
-						});
-					}
-				},500);
+				var clkDisplayImg = function(){
+					var timer = setInterval(function(){
+						// 因為template初始化很慢，所以設定timer
+						var img = mainGrid.tbody.find("img.productImg");
+						if(img.length > 0){
+							clearInterval(timer);
+							img.click(function(){
+								var src = $(this).attr("src");
+								if(!src){
+									return;
+								}
+								var win = 
+									$("#productImgWindow").kendoWindow({
+										width: "650px",
+										content: {
+											template: "<img src='"+src+"'/>"
+										}
+									}).data("kendoWindow");
+								win.center().open();
+							});
+						}
+					},500);
+				};
+				mainGrid._events["dataBound"].push(clkDisplayImg);
 			}
 			
 			angrycat.kendoGridService
