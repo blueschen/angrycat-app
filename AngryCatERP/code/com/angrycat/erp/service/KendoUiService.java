@@ -39,6 +39,7 @@ import com.angrycat.erp.model.Parameter;
 import com.angrycat.erp.query.QueryScrollable;
 import com.angrycat.erp.sql.ISqlNode;
 import com.angrycat.erp.sql.ISqlRoot;
+import com.angrycat.erp.sql.Join;
 import com.angrycat.erp.sql.OrderBy;
 import com.angrycat.erp.sql.SqlRoot;
 import com.angrycat.erp.sql.SqlTarget;
@@ -172,16 +173,15 @@ public class KendoUiService<T, R> implements Serializable{
 			}
 			orderBy.getChildren().clear();
 			if(null != orderTypes){
-				String alias = getAlias();
 				for(int i = 0; i < orderTypes.size(); i++){
 					Map<String, String> orderType = orderTypes.get(i); // Kendo UI Grid排序回傳的資料結構 
 					String field = orderType.get("field");
-					field = convertFilterField(field);
 					String dir = orderType.get("dir");
+					String aliasField = convertFilterFieldStartsWithAlias(field);
 					if("asc".equals(dir)){
-						orderBy.asc(alias + "." + field);
+						orderBy.asc(aliasField);
 					}else if("desc".equals(dir)){
-						orderBy.desc(alias + "." + field);
+						orderBy.desc(aliasField);
 					}
 				}
 			}
@@ -371,7 +371,7 @@ public class KendoUiService<T, R> implements Serializable{
 		filterCount++;
 		
 		String alias = getAlias();
-		String expression = alias + "." + field + " ";
+		String expression = convertFilterFieldStartsWithAlias(field) + " ";
 		String nameParam = " :" + alias + firstLetterToUpperCase(field) + "_FILTER_" + filterCount;
 		MatchMode matchMode = null;
 		Object convertedVal = convertValueByType(field, value);
@@ -476,7 +476,23 @@ public class KendoUiService<T, R> implements Serializable{
 		}
 		return fieldName;
 	}
-	
+	/**
+	 * 如果需要加上alias就加，如果本身已經含alias(譬如屬於join的條件)，就略過
+	 * @param fieldName
+	 * @return
+	 */
+	private String convertFilterFieldStartsWithAlias(String fieldName){
+		String field = convertFilterField(fieldName);
+		
+		SqlRoot root = getSqlRootImpl();
+		List<Join> joins = root.findMultiple(Join.class);
+		boolean isStartsWithJoin = joins.stream().anyMatch(j->field.startsWith(j.getAlias()+"."));
+		
+		String alias = getAlias();
+		String expression = isStartsWithJoin ? field : (alias + "." + field);
+		
+		return expression;
+	}
 	private Integer getInteger(Object val){
 		if(val == null){
 			return null;
@@ -490,16 +506,9 @@ public class KendoUiService<T, R> implements Serializable{
 		return null;
 	}
 	
-	
-	public String conditionConfigToJsonStr(Object cc){
-		String json = CommonUtil.parseToJson(cc);
-		return json;
-	}
-	
-	public String findTargetPageable(ConditionConfig<T> conditionConfig){
+	public ConditionConfig<T> findTargetPageable(ConditionConfig<T> conditionConfig){
 		ConditionConfig<T> cc = executeQueryPageable(conditionConfig);
-		String result = conditionConfigToJsonStr(cc);
-		return result;
+		return cc;
 	}
 	
 	public ConditionConfig<T> executeQueryPageable(ConditionConfig<T> conditionConfig){
@@ -516,10 +525,9 @@ public class KendoUiService<T, R> implements Serializable{
 		return cc;
 	}
 	
-	public String findTargetList(ConditionConfig<T> conditionConfig){
+	public ConditionConfig<T> findTargetList(ConditionConfig<T> conditionConfig){
 		ConditionConfig<T> cc = executeQueryList(conditionConfig);
-		String result = conditionConfigToJsonStr(cc);
-		return result;
+		return cc;
 	}
 	
 	public ConditionConfig<T> executeQueryList(ConditionConfig<T> conditionConfig){
