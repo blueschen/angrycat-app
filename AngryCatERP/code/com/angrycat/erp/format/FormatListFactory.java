@@ -24,10 +24,10 @@ public class FormatListFactory {
 		f.add(new PropertyFormat("條碼號", "barcode"));
 		f.add(new PropertyFormat("商品類別", "productCategory.code"));
 		f.add(new PropertyFormat("總庫存", "totalStockQty"));
+		f.add(new PropertyFormat("未出貨", "notShipStockQty"));
 		f.add(new PropertyFormat("辦公室庫存", "officeStockQty"));
 		f.add(new PropertyFormat("專櫃抽屜", "drawerStockQty"));
 		f.add(new PropertyFormat("展示櫃", "showcaseStockQty"));
-		f.add(new PropertyFormat("未出貨", "notShipStockQty"));
 		f.add(new PropertyFormat("中和庫存", "drawerInZhongheStockQty"));
 		f.add(new PropertyFormat("中和展示", "showcaseInZhongheStockQty"));
 		
