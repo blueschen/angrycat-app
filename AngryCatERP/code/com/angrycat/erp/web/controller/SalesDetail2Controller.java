@@ -60,20 +60,13 @@ public class SalesDetail2Controller extends
 	void init(){
 		super.init();
 		kendoUiGridService.setFilterFieldConverter(filterFieldConverter);
-	}
-	
-	@Override
-	String conditionConfigToJsonStr(Object cc){
-		String json = CommonUtil.parseToJson(cc, Member.class, MemberIgnoreDetail.class);
-		return json;
-	}
-	
+	}	
 	@RequestMapping(value="/queryMemberAutocomplete",
 			method=RequestMethod.POST,
 			produces={"application/xml", "application/json"},
 			headers="Accept=*/*")
-	public @ResponseBody String queryMemberAutocomplete(@RequestBody ConditionConfig<Member> conditionConfig){
-		String result = memberQueryService.findTargetPageable(conditionConfig);
+	public @ResponseBody ConditionConfig<Member> queryMemberAutocomplete(@RequestBody ConditionConfig<Member> conditionConfig){
+		ConditionConfig<Member> result = memberQueryService.findTargetPageable(conditionConfig);
 		return result;
 	}
 	
@@ -81,8 +74,8 @@ public class SalesDetail2Controller extends
 			method=RequestMethod.POST,
 			produces={"application/xml", "application/json"},
 			headers="Accept=*/*")
-	public @ResponseBody String queryProductAutocomplete(@RequestBody ConditionConfig<Product> conditionConfig){
-		String result = productQueryService.findTargetPageable(conditionConfig);
+	public @ResponseBody ConditionConfig<Product> queryProductAutocomplete(@RequestBody ConditionConfig<Product> conditionConfig){
+		ConditionConfig<Product> result = productQueryService.findTargetPageable(conditionConfig);
 		return result;
 	}
 
