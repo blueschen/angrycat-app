@@ -28,6 +28,9 @@ import org.springframework.web.servlet.config.annotation.WebMvcConfigurerAdapter
 import org.springframework.web.servlet.view.InternalResourceViewResolver;
 import org.springframework.web.servlet.view.JstlView;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.datatype.hibernate4.Hibernate4Module;
+
 @Configuration
 @EnableWebMvc
 @ComponentScan("com.angrycat.erp.web.controller")
@@ -120,15 +123,25 @@ public class WebConfig extends WebMvcConfigurerAdapter {
 		return cnmfb;
 	}
 	
-	@Override
-	public void configureMessageConverters(List<HttpMessageConverter<?>> converters){
+	public MappingJackson2HttpMessageConverter jacksonMessageConverter(){
 		MappingJackson2HttpMessageConverter jsonConverter = new MappingJackson2HttpMessageConverter();
 		List<MediaType> jsonTypes = new ArrayList<>(jsonConverter.getSupportedMediaTypes());
 		jsonTypes.add(MediaType.TEXT_PLAIN);
 		jsonConverter.setSupportedMediaTypes(jsonTypes);
+		
+		ObjectMapper mapper = new ObjectMapper();
+		mapper.registerModule(new Hibernate4Module());
+		jsonConverter.setObjectMapper(mapper);
+		
+		return jsonConverter;
+	}
+	
+	@Override
+	public void configureMessageConverters(List<HttpMessageConverter<?>> converters){
+		
 		converters.add(new StringHttpMessageConverter(UTF8));
 		converters.add(new ByteArrayHttpMessageConverter());
-		converters.add(jsonConverter);
+		converters.add(jacksonMessageConverter());
 		super.configureMessageConverters(converters);
 	}
 }
