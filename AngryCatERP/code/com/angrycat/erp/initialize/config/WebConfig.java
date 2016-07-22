@@ -122,7 +122,14 @@ public class WebConfig extends WebMvcConfigurerAdapter {
 		
 		return cnmfb;
 	}
-	
+	/**
+	 * 在此產生jackson converter一來是要擴充支援的媒體類型(如純文字)<br>
+	 * 二來註冊Hibernate4Module，避免在透過jackson轉換字串時，遇到lazy initialize的錯誤<br>
+	 * 雖然在處理少量、簡單資料結構，可以透過annotation或者mixin的方式避開lazy initialize的問題，<br>
+	 * 但隨著系統愈趨複雜，這些工作變得很瑣細而沒必要。<br>
+	 * 透過Hibernate4Module，Spring MVC的responseBody可以正常回傳不在Hibernate Session範圍內的data model。
+	 * @return
+	 */
 	public MappingJackson2HttpMessageConverter jacksonMessageConverter(){
 		MappingJackson2HttpMessageConverter jsonConverter = new MappingJackson2HttpMessageConverter();
 		List<MediaType> jsonTypes = new ArrayList<>(jsonConverter.getSupportedMediaTypes());
