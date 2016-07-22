@@ -70,32 +70,24 @@ public abstract class KendoUiGridController<T, R> implements Serializable{
 		String listPath = moduleName + "/list";
 		return listPath;
 	}
-	
-	String conditionConfigToJsonStr(Object cc){
-		String json = kendoUiGridService.conditionConfigToJsonStr(cc);
-		return json;
-	}
-
 	@RequestMapping(value="/queryConditional",
 			method=RequestMethod.POST,
 			produces={"application/xml", "application/json"},
 			headers="Accept=*/*")
-	public @ResponseBody String queryConditional(@RequestBody ConditionConfig<T> conditionConfig){
+	public @ResponseBody ConditionConfig<T> queryConditional(@RequestBody ConditionConfig<T> conditionConfig){
 		long start = System.currentTimeMillis();
 		ConditionConfig<T> cc = kendoUiGridService.executeQueryPageable(conditionConfig);
-		String result = conditionConfigToJsonStr(cc);
 		long end = System.currentTimeMillis();
 		System.out.println(moduleName+ ".queryConditional() takes time: " + (end-start) + " ms");
-		return result;
+		return cc;
 	}	
 	@RequestMapping(value="/batchSaveOrMerge",
 			method=RequestMethod.POST,
 			produces={"application/xml", "application/json"},
 			headers="Accept=*/*")
-	public @ResponseBody String batchSaveOrMerge(@RequestBody List<T> salesDetails){
+	public @ResponseBody List<T> batchSaveOrMerge(@RequestBody List<T> salesDetails){
 		List<T> results = kendoUiGridService.batchSaveOrMerge(salesDetails, beforeSaveOrMerge());
-		String json = conditionConfigToJsonStr(results);
-		return json;
+		return results;
 	}
 	
 	BiFunction<T, Session, T> beforeSaveOrMerge(){
@@ -106,9 +98,9 @@ public abstract class KendoUiGridController<T, R> implements Serializable{
 			method=RequestMethod.POST,
 			produces={"application/xml", "application/json"},
 			headers="Accept=*/*")
-	public @ResponseBody String deleteByIds(@RequestBody List<String> ids){
+	public @ResponseBody List<?> deleteByIds(@RequestBody List<String> ids){
 		List<?> deletedItems = kendoUiGridService.deleteByIds(ids);
-		return conditionConfigToJsonStr(deletedItems);
+		return deletedItems;
 	}
 	
 	abstract <E extends ExcelExporter<T>>E getExcelExporter();
