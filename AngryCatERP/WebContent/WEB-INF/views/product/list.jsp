@@ -100,9 +100,6 @@
 					pk: "id",
 					lastKendoData: lastKendoData,
 					lastSelectedCondition: lastSelectedCondition,
-					addRowInit: function(dataItem, editRow){
-						dataItem.set("orderDate", new Date());
-					},
 					lockedFlag: lockedFlag,
 					editAction: calcTotalStockQty
 				};
@@ -114,7 +111,7 @@
 					locked = {locked: lockedFlag},
 					uneditable = {editable: false},
 					imgColumn = {
-						template: "<img alt='#=(modelId ? modelId : '沒有型號')#' class='productImg' style='height:50px; width:50px;' src='#=(modelId ? (\'"+loadImgUrl+"\' + modelId) : '')#'></span>"
+						template: "<img alt='#=(imgDir ? modelId : '暫無圖片')#' class='productImg' style='height:50px; width:50px;' src='#=(imgDir ? (\'"+loadImgUrl+"\' + modelId) : '')#'></span>"
 					},
 					productCategoryFieldName = "productCategory",
 					productCategoryField = {
@@ -204,6 +201,11 @@
 					},500);
 				};
 				mainGrid._events["dataBound"].push(clkDisplayImg);
+				mainGrid.thead.kendoTooltip({
+					filter: "th[data-title='總庫存']",
+					content: "<span class='tooltip-inner'>總庫存=辦公室庫存+專櫃抽屜+展示櫃-未出貨-中和庫存-中和展示</span>",
+					position: "top"
+				});
 			}
 			
 			angrycat.kendoGridService
