@@ -122,7 +122,22 @@ public class ParameterInsertService {
 		});
 		s.flush();
 	}
-	
+	@Transactional
+	public void initMockParams(){
+		Session s = sfw.currentSession();
+		
+		Arrays.asList(
+			new Parameters("測試用", s)
+				.addParameter("測試一")
+				.addParameter("測試二")
+				.addParameter("測試三")
+				.addParameter("測試四")
+				.addParameter("測試五")
+		).forEach(p->{
+			p.save();
+		});
+		s.flush();
+	}
 	private static class Parameters{
 		private ParameterCategory cat;
 		private Session s;
@@ -183,6 +198,12 @@ public class ParameterInsertService {
 			ParameterInsertService serv = acac.getBean(ParameterInsertService.class);
 			serv.initTestParams();
 		});
+	}
+	private static void testInitMockParams(){
+		BaseTest.executeApplicationContext(acac->{
+			ParameterInsertService serv = acac.getBean(ParameterInsertService.class);
+			serv.initMockParams();
+		});
 	} 
 	private static void testToJsonStr(){
 		BaseTest.executeApplicationContext(acac->{
@@ -199,7 +220,8 @@ public class ParameterInsertService {
 	
 	public static void main(String[]args){
 //		testInitSalesDetailParams();
-		testInitTestParams();
+//		testInitTestParams();
 //		testToJsonStr();
+		testInitMockParams();
 	}
 }
