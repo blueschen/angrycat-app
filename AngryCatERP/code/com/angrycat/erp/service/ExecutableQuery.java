@@ -132,7 +132,7 @@ public class ExecutableQuery<T> implements Serializable, QueryScrollable{
 		
 		String selectAlias = "SELECT DISTINCT " + alias;
 		String whereInIds = "WHERE " + identifier + " IN (:ids)";
-		String whereInIdsHql = addLineBreakIfNotBlank(selectAlias, fromSql, whereInIds, orderSql);
+		String whereInIdsHql = addLineBreakIfNotBlank(selectAlias, fromSql, joinSql, whereInIds, orderSql);
 //		logger.log(Level.INFO, "whereInIdsHql: " + whereInIdsHql + "\n");
 		System.out.println("whereInIdsHql: " + whereInIdsHql + "\n");
 		
