@@ -39,6 +39,11 @@ public class ProductController extends KendoUiGridController<Product, Product> {
 	@Autowired
 	private ProductExcelExporter productExcelExporter;
 	
+	@Override
+	void init(){
+		super.init();
+		kendoUiGridService.setFilterFieldConverter(filterFieldConverter);
+	}
 	@SuppressWarnings("unchecked")
 	@Override
 	ProductExcelExporter getExcelExporter() {
@@ -59,7 +64,7 @@ public class ProductController extends KendoUiGridController<Product, Product> {
 			method=RequestMethod.POST,
 			produces={"application/xml", "application/json"},
 			headers="Accept=*/*")
-	public @ResponseBody String queryConditional(@RequestBody ConditionConfig<Product> conditionConfig){
+	public @ResponseBody ConditionConfig<Product> queryConditional(@RequestBody ConditionConfig<Product> conditionConfig){
 		long start = System.currentTimeMillis();
 		ConditionConfig<Product> cc = kendoUiGridService.executeQueryPageable(conditionConfig);
 		
@@ -74,18 +79,16 @@ public class ProductController extends KendoUiGridController<Product, Product> {
 				images.put(modelId, f);
 			}
 		});
-		
-		String result = conditionConfigToJsonStr(cc);
 		long end = System.currentTimeMillis();
 		System.out.println(moduleName+ ".queryConditional() takes time: " + (end-start) + " ms");
-		return result;
+		return cc;
 	}
 	@RequestMapping(value="/queryProductCategoryAutocomplete",
 			method=RequestMethod.POST,
 			produces={"application/xml", "application/json"},
 			headers="Accept=*/*")
-	public @ResponseBody String queryProductCategoryAutocomplete(@RequestBody ConditionConfig<ProductCategory> conditionConfig){
-		String result = productCategoryQueryService.findTargetPageable(conditionConfig);
+	public @ResponseBody ConditionConfig<ProductCategory> queryProductCategoryAutocomplete(@RequestBody ConditionConfig<ProductCategory> conditionConfig){
+		ConditionConfig<ProductCategory> result = productCategoryQueryService.findTargetPageable(conditionConfig);
 		return result;
 	}
 }
