@@ -30,8 +30,6 @@ public class Product {
 	private int drawerStockQty;					
 	private int showcaseStockQty;
 	private int notShipStockQty;
-	private int drawerInZhongheStockQty;
-	private int showcaseInZhongheStockQty;
 	@Id
 	@Column(name="id", columnDefinition="ID")
 	@GenericGenerator(name="angrycat_product_id", strategy="com.angrycat.erp.ds.TimeUID")
@@ -156,19 +154,5 @@ public class Product {
 	}
 	public void setNotShipStockQty(int notShipStockQty) {
 		this.notShipStockQty = notShipStockQty;
-	}
-	@Column(name="drawerInZhongheStockQty", columnDefinition="中和庫存")
-	public int getDrawerInZhongheStockQty() {
-		return drawerInZhongheStockQty;
-	}
-	public void setDrawerInZhongheStockQty(int drawerInZhongheStockQty) {
-		this.drawerInZhongheStockQty = drawerInZhongheStockQty;
-	}
-	@Column(name="showcaseInZhongheStockQty", columnDefinition="中和展示")
-	public int getShowcaseInZhongheStockQty() {
-		return showcaseInZhongheStockQty;
-	}
-	public void setShowcaseInZhongheStockQty(int showcaseInZhongheStockQty) {
-		this.showcaseInZhongheStockQty = showcaseInZhongheStockQty;
 	}
 }
