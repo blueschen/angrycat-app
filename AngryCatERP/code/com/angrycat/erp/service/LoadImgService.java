@@ -4,16 +4,12 @@ import static com.angrycat.erp.common.EmailContact.JERRY;
 
 import java.io.File;
 import java.io.FileOutputStream;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Function;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 import javax.annotation.PostConstruct;
 
@@ -54,29 +50,33 @@ public class LoadImgService {
 		sfw.executeTransaction(s->{
 			String queryProducts = "SELECT p FROM " + Product.class.getName() + " p WHERE p.modelId IS NOT NULL AND p.imgDir IS NULL";
 			List<Product> products = s.createQuery(queryProducts).list();
+			if(products.isEmpty()){
+				return;
+			}
 			Map<String, Product> results = products.stream().collect(Collectors.toMap(Product::getModelId, Function.identity()));
 			Set<String> modelIds = results.keySet();
 			
 			String SEP = File.separator;
 			String root = StartupWebAppInitializer.getUploadRoot();
 			String imgFolder = getImgFolderPath();
-			try(Stream<Path> paths = Files.walk(Paths.get(imgFolder))){
-				paths.filter(p->Files.isRegularFile(p) && modelIds.contains(modeId(p.toFile().getName()))).forEach(p->{
-					String path = p.toFile().getAbsolutePath();
-					path = path.replace(root, "");
-					String modelId = modeId(p.toFile().getName());
+			modelIds.forEach(modelId->{
+				String filePath = imgFolder + SEP + modelId + ".jpg";
+				File file = new File(filePath);
+				if(file.exists()){
+					String path = filePath.replace(root, "");
 					Product product = results.get(modelId);
 					product.setImgDir(path);
-					s.save(product);
+					s.update(product);
 					s.flush();
 					localCount.addAndGet(1);
-				});
-				s.clear();
-			}catch(Throwable e){
-				throw new RuntimeException(e);
-			}
+				}
+			});
+			s.clear();
 			
 			List<Product>remainings = s.createQuery(queryProducts).list();
+			if(remainings.isEmpty()){
+				return;
+			}
 			Map<String, Product> productsFound = remainings.stream().collect(Collectors.toMap(Product::getModelId, Function.identity()));
 			Set<String>modelIdsFound = productsFound.keySet();
 			
@@ -93,7 +93,7 @@ public class LoadImgService {
 						Product product = productsFound.get(modelId);
 						String path = storePath.replace(root, "");
 						product.setImgDir(path);
-						s.save(product);
+						s.update(product);
 						s.flush();
 						remoteCount.addAndGet(1);
 					});
