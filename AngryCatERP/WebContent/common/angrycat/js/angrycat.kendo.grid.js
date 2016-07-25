@@ -505,7 +505,7 @@
 					type = field[3],
 					customOpt = field[5];
 				modelFields[fieldName] = {
-					defaultValue: type === "number" ? 0 :null,
+					defaultValue: null,
 					type: type
 				};
 				if(fieldName === pk){
@@ -533,6 +533,17 @@
 						.addClass("k-input") // 讓kendo ui元件認出這是輸入欄位
 						.attr("type", "text") // 讓版型更為一致
 						.wrap(parent); // 跟原來預設的版型一樣，有圓角，而且與相鄰元件(按鈕)對齊
+				},
+				numberFilterTemplate = function(args){// 預設數字篩選會格式會多0，透過這個函式，去掉多餘的0
+					args.element.kendoNumericTextBox({
+						format: "n0",
+						decimal: 0
+					});
+				},
+				dateFilterTemplate = function(args){
+					args.element.kendoDatePicker({
+						format: "yyyy-MM-dd"
+					});
 				};			
 			if("incell" !== DEFAULT_EDIT_MODE){
 				var idx = columns.length - 1;
@@ -542,6 +553,7 @@
 			for(var i = 0; i < fields.length; i++){
 				var field = fields[i],
 					fieldName = field[0],
+					type = field[3],
 					width = field[2],
 					editor = field[7];
 				var column = {
@@ -551,7 +563,7 @@
 						filterable: {
 							cell: {
 								operator: field[4],
-								template: "date" === field[3] ? null : defaultFilterTemplate // 如果是日期欄位，不用改filter cell template，其他要自訂預設template，這是為了防止內建change事件觸發查詢的動作
+								template: type === "string" ? defaultFilterTemplate : (type === "number" ? numberFilterTemplate : (type == "date" ? dateFilterTemplate : null)) // 字串型別欄位，才要更動filter cell template，這是為了防止內建change事件觸發查詢的動作
 							}
 						},
 						template: defaultTemplate.replace(/{field}/g, fieldName)
@@ -559,7 +571,7 @@
 				if(editor){
 					column["editor"] = editor;
 				}
-				if("date" === field[3]){
+				if("date" === type){
 					var format = "yyyy-MM-dd";
 					column["format"] = "{0:"+format+"}";
 					column["parseFormats"] = "{0:"+format+"}";
@@ -900,7 +912,7 @@
 				})
 				.attr("data-toggle", "tooltip")
 				.attr("data-placement", "top")
-				.attr("title", "初始條件查詢")
+				.attr("title", "初始條件查詢(不包含運算子)")
 				.tooltip();
 				
 				$(".k-grid-cancel-changes")
