@@ -12,9 +12,9 @@ public class ProductScheduleTask {
 	private LoadImgService loadImgService;
 	
 	/**
-	 * 每個月15日上午三點
+	 * 每天上午三點執行
 	 */
-	@Scheduled(cron="0 0 3 15 * ?")
+	@Scheduled(cron="0 0 3 * * ?")
 	public void loadImg(){
 		loadImgService.execute();
 	}
