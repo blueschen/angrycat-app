@@ -73,14 +73,10 @@
 							officeStockQty = model.get("officeStockQty"),
 							drawerStockQty = model.get("drawerStockQty"),
 							showcaseStockQty = model.get("showcaseStockQty"),
-							notShipStockQty = model.get("notShipStockQty"),
-							drawerInZhongheStockQty = model.get("drawerInZhongheStockQty"),
-							showcaseInZhongheStockQty = model.get("showcaseInZhongheStockQty")
+							notShipStockQty = model.get("notShipStockQty")
 						;
 						var totalStockQty = officeStockQty + drawerStockQty + showcaseStockQty;
 						totalStockQty -= notShipStockQty;
-						totalStockQty -= drawerInZhongheStockQty;
-						totalStockQty -= showcaseInZhongheStockQty;
 						model.set("totalStockQty", totalStockQty);
 					});
 				},
@@ -166,8 +162,6 @@
 						["officeStockQty",				"辦公室庫存",		150,			"number",	"eq"],
 						["drawerStockQty",				"專櫃抽屜",		150,			"number",	"eq"],
 						["showcaseStockQty",			"展示櫃",			100,			"number",	"eq"],
-						["drawerInZhongheStockQty",		"中和庫存",		150,			"number",	"eq"],
-						["showcaseInZhongheStockQty",	"中和展示",		150,			"number",	"eq"],
 						["barcode",						"條碼號",			150,			"string",	"contains",				null,					hidden],
 						["seriesName",					"系列名",			150,			"string",	"contains",				uneditable,				hidden],
 						[productCategoryFieldName,		"商品類別代號",	150,			"string",	"contains",				productCategoryField,	productCategoryColumn,	productCategoryEditor],
@@ -203,7 +197,7 @@
 				mainGrid._events["dataBound"].push(clkDisplayImg);
 				mainGrid.thead.kendoTooltip({
 					filter: "th[data-title='總庫存']",
-					content: "<span class='tooltip-inner'>總庫存=辦公室庫存+專櫃抽屜+展示櫃-未出貨-中和庫存-中和展示</span>",
+					content: "<span class='tooltip-inner'>總庫存=辦公室庫存+專櫃抽屜+展示櫃-未出貨</span>",
 					position: "top"
 				});
 			}
