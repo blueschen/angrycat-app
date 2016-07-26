@@ -36,14 +36,30 @@
 					<li ${moduleName == "salesdetail2" ? "class='active'" : ""}>
 						<a href="${pageContext.request.contextPath}/salesdetail2/list">銷售明細新介面</a>
 					</li>
-					<li ${moduleName == "exam" ? "class='active'" : ""}>
-						<a href="${pageContext.request.contextPath}/exam/list">題庫查詢</a>
-					</li>
-					<li>
-						<a href="${pageContext.request.contextPath}/exam/add">題庫新增</a>
-					</li>
-					<li ${moduleName == "examstatistics" ? "class='active'" : ""}>
-						<a href="${pageContext.request.contextPath}/examstatistics/list">考試成績查詢</a>
+					<li class="dropdown">
+						<!-- 直接使用angular-strap的指令bs-dropdown -->
+          				<a href="#" 
+          					class="dropdown-toggle" 
+          					data-toggle="dropdown" 
+          					role="button" 
+          					aria-haspopup="true" 
+          					aria-expanded="false"
+          					bs-dropdown>考試 <span class="caret"></span>
+          				</a>
+          				<ul class="dropdown-menu">
+            				<li ${moduleName == "exam" ? "class='active'" : ""}>
+            					<a href="${pageContext.request.contextPath}/exam/list">題庫查詢</a>
+            				</li>
+            				<li role="separator" class="divider"></li>
+            				<li><a href="${pageContext.request.contextPath}/exam/add">題庫新增</a></li>
+            				<li role="separator" class="divider"></li>
+            				<li ${moduleName == "examstatistics" ? "class='active'" : ""}>
+            					<a href="${pageContext.request.contextPath}/examstatistics/list">考試成績查詢</a>
+            				</li>
+          				</ul>
+        			</li>
+        			<li ${moduleName == "product" ? "class='active'" : ""}>
+						<a href="${pageContext.request.contextPath}/product/list">產品及庫存</a>
 					</li>
 				</ul>
 				<ul class="nav navbar-nav navbar-right">
