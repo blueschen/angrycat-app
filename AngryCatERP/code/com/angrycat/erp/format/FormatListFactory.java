@@ -28,8 +28,6 @@ public class FormatListFactory {
 		f.add(new PropertyFormat("辦公室庫存", "officeStockQty"));
 		f.add(new PropertyFormat("專櫃抽屜", "drawerStockQty"));
 		f.add(new PropertyFormat("展示櫃", "showcaseStockQty"));
-		f.add(new PropertyFormat("中和庫存", "drawerInZhongheStockQty"));
-		f.add(new PropertyFormat("中和展示", "showcaseInZhongheStockQty"));
 		
 		return f;
 	}
