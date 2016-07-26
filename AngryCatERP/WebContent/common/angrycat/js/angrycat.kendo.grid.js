@@ -36,7 +36,8 @@
 			selectedVal = null,
 			addRowInit = opts.addRowInit,
 			lockedFlag = opts.lockedFlag ? opts.lockedFlag : false,
-			editAction = opts.editAction;
+			editAction = opts.editAction,
+			docType = opts.docType;
 			
 		function minusFilterDateTimezoneOffset(filter, modelFields){
 			if(!filter){
@@ -589,8 +590,11 @@
 				columns.push(column);
 			}
 			columns.push({
-				command: [{name: "destroy", text: "刪除"}],
-				width: "75px"
+				command: [
+				    {name: "destroy", text: "刪除"},
+				    {name: "datachangelog", text: "異動記錄"}
+				],
+				width: "200px"
 			});				
 			return columns;
 		}
@@ -731,6 +735,10 @@
 					toolbar.push({text: "回復", name: "cancel"});
 				}
 				toolbar.push({
+					text: "|",
+					name: "divider"
+				});
+				toolbar.push({
 					text: " 儲存條件",
 					name: "saveCondition",
 					iconClass: "k-font-icon k-i-lock"
@@ -816,6 +824,14 @@
 						setTimeout(function(){
 							$("div.k-grid-content-locked").height($("div.k-grid-content").height());
 						},1000);
+						$rows.find(".k-grid-datachangelog").click(function(){
+							var dataItem = mainGrid.dataItem($(this).closest("tr"));
+							var id = dataItem[pk];
+							if(id && docType){
+								var url = rootPath + "/datachangelog/list?docId=" + id + "&docType=" + docType;
+								window.location.href = url;
+							}
+						});
 					},
 					edit: editAction
 				}).data("kendoGrid");
@@ -971,7 +987,7 @@
 						}
 					}));
 				});
-				
+								
 				if(DEFAULT_EDIT_MODE === "incell"){
 					var tdTotal = 0;
 					mainGrid.tbody.on("keydown", "td[data-role='editable'] input", function(e){
