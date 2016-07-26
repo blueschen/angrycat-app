@@ -67,6 +67,7 @@ public abstract class KendoUiGridController<T, R> implements Serializable{
 			request.setAttribute(moduleName + "Parameters", CommonUtil.parseToJson(kendoUiGridService.listParameters(getParameterCatNames())));
 		}
 		request.setAttribute("moduleName", moduleName);
+		request.setAttribute("docType", rootType.getName());
 		String listPath = moduleName + "/list";
 		return listPath;
 	}
@@ -85,8 +86,8 @@ public abstract class KendoUiGridController<T, R> implements Serializable{
 			method=RequestMethod.POST,
 			produces={"application/xml", "application/json"},
 			headers="Accept=*/*")
-	public @ResponseBody List<T> batchSaveOrMerge(@RequestBody List<T> salesDetails){
-		List<T> results = kendoUiGridService.batchSaveOrMerge(salesDetails, beforeSaveOrMerge());
+	public @ResponseBody List<T> batchSaveOrMerge(@RequestBody List<T> models){
+		List<T> results = kendoUiGridService.batchSaveOrMerge(models, beforeSaveOrMerge());
 		return results;
 	}
 	
