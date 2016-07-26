@@ -97,7 +97,8 @@
 					lastKendoData: lastKendoData,
 					lastSelectedCondition: lastSelectedCondition,
 					lockedFlag: lockedFlag,
-					editAction: calcTotalStockQty
+					editAction: calcTotalStockQty,
+					docType: "${docType}"
 				};
 			
 			function fieldsReadyHandler(){
@@ -107,7 +108,7 @@
 					locked = {locked: lockedFlag},
 					uneditable = {editable: false},
 					imgColumn = {
-						template: "<img alt='#=(imgDir ? modelId : '暫無圖片')#' class='productImg' style='height:50px; width:50px;' src='#=(imgDir ? (\'"+loadImgUrl+"\' + modelId) : '')#'></span>"
+						template: "<img alt='#=(imgDir ? modelId : '暫無圖片')#' class='productImg' style='height:50px; width:50px;' src='#=(imgDir ? (\'"+loadImgUrl+"\' + modelId) : '')#'>"
 					},
 					productCategoryFieldName = "productCategory",
 					productCategoryField = {
@@ -172,27 +173,20 @@
 			
 			function afterGridInitHandler(mainGrid){
 				var clkDisplayImg = function(){
-					var timer = setInterval(function(){
-						// 因為template初始化很慢，所以設定timer
-						var img = mainGrid.tbody.find("img.productImg");
-						if(img.length > 0){
-							clearInterval(timer);
-							img.click(function(){
-								var src = $(this).attr("src");
-								if(!src){
-									return;
-								}
-								var win = 
-									$("#productImgWindow").kendoWindow({
-										width: "650px",
-										content: {
-											template: "<img src='"+src+"'/>"
-										}
-									}).data("kendoWindow");
-								win.center().open();
-							});
+					var img = mainGrid.tbody.find("img.productImg").click(function(){
+						var src = $(this).attr("src");
+						if(!src){
+							return;
 						}
-					},500);
+						var win = 
+							$("#productImgWindow").kendoWindow({
+								width: "650px",
+								content: {
+									template: "<img src='"+src+"'/>"
+								}
+							}).data("kendoWindow");
+						win.center().open();
+					});
 				};
 				mainGrid._events["dataBound"].push(clkDisplayImg);
 				mainGrid.thead.kendoTooltip({
