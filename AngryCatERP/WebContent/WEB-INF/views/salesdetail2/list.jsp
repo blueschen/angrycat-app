@@ -78,7 +78,8 @@
 					addRowInit: function(dataItem, editRow){
 						dataItem.set("orderDate", new Date());
 					},
-					lockedFlag: lockedFlag
+					lockedFlag: lockedFlag,
+					docType: "${docType}"
 				};
 			
 			function fieldsReadyHandler(){
