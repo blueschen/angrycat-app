@@ -766,7 +766,6 @@
 					width: 50,
 					locked: lockedFlag
 				});
-				
 				var mainGrid = $(gridId).kendoGrid({
 					columns: columns,
 					dataSource: dataSource,
@@ -796,6 +795,7 @@
 					selectable: "multiple, cell",
 					columnMenu: true,
 					resizable: true,
+					height: 500, // 加上固定高度，搭配scrollable = true，就可以啟用Kendo UI管理的垂直捲軸；如果資料內容超過可視範圍，keyboard navigation上下鍵才能正常運作(需先啟用navigatable)
 					dataBound: function(){
 						var rows = mainGrid.items(),
 							$rows = $(rows),
@@ -819,11 +819,27 @@
 								index = $row.index() + 1 + count;
 							$row.find("."+rowNumClass+"").html(index);
 						});
+						
+						// 在Google Chrome，如果啟用keyboard navigate及scrollable(設為true)功能，且當次資料列內容超過可視範圍(已出現垂直捲軸)，focus在特定content cell中，他會自動將focused cell所在資料列切齊在螢幕最上方。
+						// 這會造成一個困擾:就是Kendo Grid位於內容table上方的模組，譬如標頭、篩選列、工具列、全部被擠到上方不可見範圍
+						// 如果使用者接下來要參照或操作這些模組，還得往上捲
+						// ref. https://blog.longle.net/2012/03/21/setting-teleriks-html5-kendoui-grids-height-to-100-when-binding-to-remote-data/
+						var $doc = $(document);
+						var docHeight = $doc.height();
+						var navbarHeight = $("#navbarDiv").height(); // 非Kendo UI模組的(固定)置頂瀏覽列
+						var $toolbar = $doc.find(".k-grid-toolbar");
+						var newGridHeight = $doc.height() - navbarHeight - 10; // Grid的高度還要扣掉水平捲軸的高度才是正確的，這裡假設水平捲軸有10px
+						var theadHeight = mainGrid.thead.height();
+							
+						var newContentHeight = newGridHeight - theadHeight;
+						var $content = $("div.k-grid-content");
+						$toolbar.css("margin-top", navbarHeight + "px"); // 因為置頂的瀏覽列是固定的，所以margin-top要等於瀏覽列的高度，這樣瀏覽器自動調整捲軸位置的時候，才不會切到最上方區塊
+						$(gridId).height(newGridHeight);
+						$content.height(newContentHeight-theadHeight);
 						// 啟用鎖定欄位後，會產生左右兩側table。在頁面初始化過程中，兩者的高度會不同，導致被鎖定table的最後一筆資料看來好像被部分切掉。
 						// 所以透過沒被鎖定的table高度校正，兩者看來才會一致
-						setTimeout(function(){
-							$("div.k-grid-content-locked").height($("div.k-grid-content").height());
-						},1000);
+						$("div.k-grid-content-locked").height($content.height());
+						
 						$rows.find(".k-grid-datachangelog").click(function(){
 							var dataItem = mainGrid.dataItem($(this).closest("tr"));
 							var id = dataItem[pk];
@@ -832,6 +848,7 @@
 								window.location.href = url;
 							}
 						});
+						console.log("dataBound...");
 					},
 					edit: editAction
 				}).data("kendoGrid");
@@ -987,13 +1004,13 @@
 						}
 					}));
 				});
-								
+				/*				
 				if(DEFAULT_EDIT_MODE === "incell"){
 					var tdTotal = 0;
 					mainGrid.tbody.on("keydown", "td[data-role='editable'] input", function(e){
 						var $target = $(e.target);
 						if(e.keyCode == 13){
-							/* not work!!
+							 not work!!
 							$(gridId).data("kendoGrid").one("afterClose", function(e){
 								var $td = e.container,
 									tdIdx = $td.index(),
@@ -1038,15 +1055,14 @@
 									grid.editCell(nextCell);
 								},0);
 							});
-							*/
+							
 						}
 					});
 				}
-				
+				*/
 				function isLocked($ele){
 					return $ele.closest("div").is("div.k-grid-content-locked");
 				}
-				
 				$(document.body).keydown(function(e){
 					var altKey = e.altKey,
 						keyCode = e.keyCode;
