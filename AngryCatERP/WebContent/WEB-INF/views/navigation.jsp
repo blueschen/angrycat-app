@@ -4,7 +4,7 @@
 <%@ taglib uri="http://www.springframework.org/tags/form" prefix="sf"%>
 <%@ taglib uri="http://www.springframework.org/tags" prefix="s"%>    
 <div style="margin-bottom: 15px;">
-	<nav role="navigation" class="navbar navbar-default navbar-fixed-top">
+	<nav role="navigation" class="navbar navbar-default navbar-fixed-top" id="navbarDiv">
 		<div class="container">
 			<div class="navbar-header">
 				<button type="button" data-target="#navbarCollapse" data-toggle="collapse" class="navbar-toggle">
