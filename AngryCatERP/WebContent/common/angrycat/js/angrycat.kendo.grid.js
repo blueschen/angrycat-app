@@ -712,8 +712,8 @@
 		}
 
 		function fieldsReady(callback, afterGridInit){
-			var context = this;
-			var getScrollDimensions = 
+			var context = this,
+				getScrollDimensions = 
 				function(){// ref. http://stackoverflow.com/questions/457262/html-what-is-the-height-of-a-horizontal-scrollbar
 					// 計算水平捲軸的寬高
 					var el = document.createElement("div");
@@ -728,7 +728,8 @@
 				dimensions = getScrollDimensions(),
 				scrollbarHeight = dimensions.height ? dimensions.height : 10;
 			$(document).ready(function(){
-				var fields = callback.call(context),
+				var $doc = $(this),
+					fields = callback.call(context),
 					modelFields = getDefaultModelFields(fields),
 					columns = getDefaultColumns(fields),
 					dataSource = getDefaultGridDataSource({modelFields: modelFields}),
@@ -743,7 +744,8 @@
 						name: "reset",
 						iconClass: "k-font-icon k-i-undo-large"
 					}];
-				
+				// 取消頁面最外圍水平和垂直捲軸
+				$(document.body).css("overflow", "hidden");
 				if("incell" === DEFAULT_EDIT_MODE){// in relation with batch update
 					toolbar.push({text: "存檔", name: "save"});
 					toolbar.push({text: "回復", name: "cancel"});
@@ -839,21 +841,22 @@
 						// 如果使用者接下來要參照或操作這些模組，還得往上捲
 						// ref. https://blog.longle.net/2012/03/21/setting-teleriks-html5-kendoui-grids-height-to-100-when-binding-to-remote-data/
 						// 可再試試 http://jsfiddle.net/dimodi/SDFsz/
-						var $doc = $(document);
-						var docHeight = $doc.height();
+						// 最新官方說明文件:(目前沒有完全按照官方說明實作，只有設定grid高度、呼叫resize方法、設定toolbar的margin-top) 
+						// http://docs.telerik.com/kendo-ui/controls/data-management/grid/appearance#set-a-100-height-and-auto-resize
+						// http://docs.telerik.com/kendo-ui/controls/data-management/grid/how-to/Layout/resize-grid-when-the-window-is-resized
 						var navbarHeight = $("#navbarDiv").height(); // 非Kendo UI模組的(固定)置頂瀏覽列
-						var $toolbar = $doc.find(".k-grid-toolbar");
-						var newGridHeight = $doc.height() - navbarHeight - scrollbarHeight; // Grid的高度還要扣掉水平捲軸的高度才是正確的
-						var theadHeight = mainGrid.thead.height();
-							
-						var newContentHeight = newGridHeight - theadHeight;
-						var $content = $("div.k-grid-content");
-						$toolbar.css("margin-top", navbarHeight + "px"); // 因為置頂的瀏覽列是固定的，所以margin-top要等於瀏覽列的高度，這樣瀏覽器自動調整捲軸位置的時候，才不會切到最上方區塊
-						$(gridId).height(newGridHeight);
-						$content.height(newContentHeight-theadHeight);
+						var docHeight = $doc.height();
+						var newGridHeight = docHeight - navbarHeight - scrollbarHeight * 1.4; // Grid的高度還要扣掉水平捲軸的高度才是正確的
+						console.log("docHeight: " + docHeight + ", newGridHeight: " + newGridHeight);
+						
+						$(gridId).height(newGridHeight); // 設定grid新高度，必須多扣，讓底部多留空間，目前計算方式就是多扣scrollbar高度40%，這讓Google Chrome也可以正常運作；如果沒有，每次重拿document的高度都會多2，導致grid高度逐漸增加，目前原因不明
+						mainGrid.resize(); // 透過這種校對，凍結欄位造成下方部分資料列被切掉，及兩側資料列高度不一致的情況，都可以處理
+						
+						$doc.find(".k-grid-toolbar").css("margin-top", navbarHeight + "px"); // 因為置頂的瀏覽列是固定的，所以margin-top要等於瀏覽列的高度，這樣瀏覽器自動調整捲軸位置的時候，才不會切到最上方區塊
 						// 啟用鎖定欄位後，會產生左右兩側table。在頁面初始化過程中，兩者的高度會不同，導致被鎖定table的最後一筆資料看來好像被部分切掉。
 						// 所以透過沒被鎖定的table高度校正，兩者看來才會一致
-						$("div.k-grid-content-locked").height($content.height()-scrollbarHeight);
+						// 使用resize就能夠處理凍結欄位兩側高度不一致問題，所以將以下處理方式註解起來
+						//$("div.k-grid-content-locked").height($content.height()-scrollbarHeight);
 						
 						$rows.find(".k-grid-datachangelog").click(function(){
 							var dataItem = mainGrid.dataItem($(this).closest("tr"));
