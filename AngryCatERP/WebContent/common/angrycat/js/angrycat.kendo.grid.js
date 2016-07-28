@@ -843,7 +843,7 @@
 						var docHeight = $doc.height();
 						var navbarHeight = $("#navbarDiv").height(); // 非Kendo UI模組的(固定)置頂瀏覽列
 						var $toolbar = $doc.find(".k-grid-toolbar");
-						var newGridHeight = $doc.height() - navbarHeight - scrollbarHeight; // Grid的高度還要扣掉水平捲軸的高度才是正確的，這裡假設水平捲軸有10px
+						var newGridHeight = $doc.height() - navbarHeight - scrollbarHeight; // Grid的高度還要扣掉水平捲軸的高度才是正確的
 						var theadHeight = mainGrid.thead.height();
 							
 						var newContentHeight = newGridHeight - theadHeight;
@@ -863,6 +863,7 @@
 								window.location.href = url;
 							}
 						});
+						console.log("dataBound...");
 					},
 					edit: editAction
 				}).data("kendoGrid");
