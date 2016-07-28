@@ -713,6 +713,20 @@
 
 		function fieldsReady(callback, afterGridInit){
 			var context = this;
+			var getScrollDimensions = 
+				function(){// ref. http://stackoverflow.com/questions/457262/html-what-is-the-height-of-a-horizontal-scrollbar
+					// 計算水平捲軸的寬高
+					var el = document.createElement("div");
+					el.style.visibility = "hidden";
+					el.style.overflow = "scroll";
+					document.body.appendChild(el);
+					var w = el.offsetWidth-el.clientWidth;
+					var h = el.offsetHeight-el.clientHeight;
+					document.body.removeChild(el);
+					return {height: h, width: w};
+				},
+				dimensions = getScrollDimensions(),
+				scrollbarHeight = dimensions.height ? dimensions.height : 10;
 			$(document).ready(function(){
 				var fields = callback.call(context),
 					modelFields = getDefaultModelFields(fields),
@@ -777,7 +791,7 @@
 						destroy: true,
 						mode: DEFAULT_EDIT_MODE
 					},
-					scrollable: true,
+					scrollable: true, // ref. http://docs.telerik.com/kendo-ui/controls/data-management/grid/appearance#make-the-grid-100-high-and-auto-resizable
 					pageable: {
 						refresh: true,
 						pageSizes: ["5","10","15","20","25","30","all"],
@@ -824,11 +838,12 @@
 						// 這會造成一個困擾:就是Kendo Grid位於內容table上方的模組，譬如標頭、篩選列、工具列、全部被擠到上方不可見範圍
 						// 如果使用者接下來要參照或操作這些模組，還得往上捲
 						// ref. https://blog.longle.net/2012/03/21/setting-teleriks-html5-kendoui-grids-height-to-100-when-binding-to-remote-data/
+						// 可再試試 http://jsfiddle.net/dimodi/SDFsz/
 						var $doc = $(document);
 						var docHeight = $doc.height();
 						var navbarHeight = $("#navbarDiv").height(); // 非Kendo UI模組的(固定)置頂瀏覽列
 						var $toolbar = $doc.find(".k-grid-toolbar");
-						var newGridHeight = $doc.height() - navbarHeight - 10; // Grid的高度還要扣掉水平捲軸的高度才是正確的，這裡假設水平捲軸有10px
+						var newGridHeight = $doc.height() - navbarHeight - scrollbarHeight; // Grid的高度還要扣掉水平捲軸的高度才是正確的，這裡假設水平捲軸有10px
 						var theadHeight = mainGrid.thead.height();
 							
 						var newContentHeight = newGridHeight - theadHeight;
@@ -838,7 +853,7 @@
 						$content.height(newContentHeight-theadHeight);
 						// 啟用鎖定欄位後，會產生左右兩側table。在頁面初始化過程中，兩者的高度會不同，導致被鎖定table的最後一筆資料看來好像被部分切掉。
 						// 所以透過沒被鎖定的table高度校正，兩者看來才會一致
-						$("div.k-grid-content-locked").height($content.height());
+						$("div.k-grid-content-locked").height($content.height()-scrollbarHeight);
 						
 						$rows.find(".k-grid-datachangelog").click(function(){
 							var dataItem = mainGrid.dataItem($(this).closest("tr"));
@@ -848,7 +863,6 @@
 								window.location.href = url;
 							}
 						});
-						console.log("dataBound...");
 					},
 					edit: editAction
 				}).data("kendoGrid");
