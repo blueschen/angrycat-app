@@ -964,13 +964,19 @@
 				.attr("data-toggle", "tooltip")
 				.attr("data-placement", "top")
 				.attr("title", "初始條件查詢(不包含運算子)")
-				.tooltip();
+				.tooltip()
+				.click(function(){
+					$(this).blur();//加掛tooltip之後，按下按鈕會產生焦點，這會影響grid某些行為，譬如內容區塊的焦點無法移動的問題。所以此處跳脫焦點。
+				});
 				
 				$(".k-grid-cancel-changes")
 				.attr("data-toggle", "tooltip")
 				.attr("data-placement", "top")
 				.attr("title", "取消頁面資料異動")
-				.tooltip();
+				.tooltip()
+				.click(function(){
+					$(this).blur();//加掛tooltip之後，按下按鈕會產生焦點，這會影響grid某些行為，譬如內容區塊的焦點無法移動的問題。所以此處跳脫焦點。
+				});
 				
 				$(".k-grid-saveCondition").click(function(e){
 					var name = prompt("請輸入設定名稱");
@@ -1022,6 +1028,8 @@
 						}
 					}));
 				});
+				// 在toolbar按鈕間產生垂直分隔線
+				$("a.k-grid-divider").replaceWith("<span class='v-divider'></span>");
 				/*				
 				if(DEFAULT_EDIT_MODE === "incell"){
 					var tdTotal = 0;
@@ -1078,8 +1086,10 @@
 					});
 				}
 				*/
+				var divLocked = "div.k-grid-content-locked",
+					divUnlocked = "div.k-grid-content";
 				function isLocked($ele){
-					return $ele.closest("div").is("div.k-grid-content-locked");
+					return $ele.closest("div").is(divLocked);
 				}
 				$(document.body).keydown(function(e){
 					var altKey = e.altKey,
@@ -1114,60 +1124,130 @@
 					*/				
 					if(e.ctrlKey && altKey && keyCode == 65){// Ctrl + Alt + A 執行批次複製, ref. http://stackoverflow.com/questions/24273432/kendo-ui-grid-select-single-cell-get-back-dataitem-and-prevent-specific-cells
 						var grid = mainGrid,
-						    selection = grid.select(); // 回傳jQuery物件，裡面可能是被選取的cells或rows
+						    selection = grid.select(); // 裡面可能是被選取的cells或rows，這一點要由grid的select設定來判斷。ref.http://docs.telerik.com/kendo-ui/api/javascript/ui/grid#methods-select
 						if(!selection){
 							return;
 						};
 						//console.log("selection.length: " + selection.length);
-					    var lockCount = $("div.k-grid-content-locked > table > tbody > tr:nth-child(1) > td").length,
-					    	startColIdx = selection.index(), // 如果多選column，只會顯示最左邊的欄位index；如果單選column，就是該欄位的index；0 based, 隱藏欄位會被計算
-					    	lastColIdx = selection.last().index(), // td的index, ref. http://stackoverflow.com/questions/788225/table-row-and-column-number-in-jquery
-					    	selectedCount = selection.size(), // 有幾個cell被選擇
-					    	rowCount = (selectedCount / columnCount), // 包含的row數量
+					    var lockCount = $("div.k-grid-content-locked > table > tbody > tr:nth-child(1) > td").length, // 計算有lock欄位數，目前因第一個欄位為固定位置索引號，所以至少會有一個
+					    	startColIdx = selection.index(), // 計算所在table的第一個td(cell)索引位置；0 based, 隱藏欄位會被計算
+					    	lastColIdx = selection.last().index(), // 計算所在table的最後一個td(cell)索引位置, ref. http://stackoverflow.com/questions/788225/table-row-and-column-number-in-jquery
+					    	selectedCount = selection.size(), // 有幾個cell被選擇，因為設定select參數為cell，所以這裡以cell為單位
 					    	columnOpts = grid.options.columns,
 							firstRow = selection.closest("tr"), // 如果多選的時候，只會拿到第一個row
 							firstDataItem = grid.dataItem(firstRow), // 如果多選的時候，只會拿到第一個dataItem
-							fields = [];
-						
-						if(lockCount > 0){
+							firstRowUid = firstDataItem.get("uid"),
+							fields = [],
+							lockIdxes = [],
+							unlockIdxes = [],
+							normalIdxes = [];
+						if(lockCount > 0){// 預設至少都有第一個索引欄位是lock，所以一般都會進到這邊
 							selection.each(function(idx, ele){
 								var $ele = $(ele),
 									i = $ele.index();
 								if(!isLocked($ele)){
-									i += lockCount;
+									unlockIdxes.push(i);
+									i += lockCount;// 在計算欄位索引值的時候，如果不是lock欄位，要把lockCount加回去，才能對應回model的fields
+								}else{
+									lockIdxes.push(i);
 								}
 								var field = columnOpts[i].field;
-								if(fields.indexOf(field) < 0){
+								if(fields.indexOf(field) < 0){// 排除重複
 									fields.push(field);
 								}
 							});
 						}else{
-						    for(var i = startColIdx; i < (lastColIdx+1); i++){
+						    for(var i=startColIdx; i<(lastColIdx+1); i++){
 						    	var field = columnOpts[i].field;
-						    	fields.push(field);
+						    	if(fields.indexOf(field) < 0){
+						    		normalIdxes.push(i);
+									fields.push(field);
+								}
 						    }
 						}
 						var columnCount = fields.length;
-						console.log("columnCount: " + columnCount);
-						// 如果多選的時候，要取得所有row的dataItem，要跑迴圈
-						// 如果透過jQuery的each函式更新dataItem，會使selection的elements產生變化，以致於接下來的更新動作全部失敗。解決方式是:先取得所有dataItem，然後一次修改他們。
-						var dataItems = selection.map(function(idx, cell){
-							//alert($(cell).eq(0).text()); // 可直接取得cell值
-							if(idx > (columnCount-1)){
-								var row = $(cell).closest("tr"),
-									dataItem = grid.dataItem(row);
-								return dataItem;
+						var uids = [];
+						console.log("startColIdx:" + startColIdx + ", lastColIdx:" + lastColIdx + ", lockCount:" + lockCount);
+						// console.log("columnOpts[0]:"+JSON.stringify(columnOpts[0])); // 第0項為頁面索引的template物件參數設定 
+						console.log("columnSpanCount: " + columnCount + ", selectedCellCount: " + selectedCount);
+						console.log("selected fields:"+JSON.stringify(fields));
+						selection.each(function(idx, cell){
+							// $(cell).eq(0).text()可直接取得cell值--debug用
+							// idx以0起始依序標示每個選到的cell，如果被選到12個cell，最後一個idx為11
+							// 標號的順序，隨著是否有橫跨兩個table而不同:如果沒有跨table，標號的順序是由先由左而右，到底之後再由上而下。如果有跨，按照前述同樣的順序，先跑完第一個(lock)table，再跑第二個。
+							// 即便因為lock導致分成兩個table，但兩個table對應的同一列的dataItem還是一樣，這可以由dataItem上的uid去確認，ref. http://docs.telerik.com/kendo-ui/api/javascript/ui/grid#methods-select
+							var $cell = $(cell),
+								row = $cell.closest("tr"),
+								dataItem = grid.dataItem(row),
+								uid = dataItem.get("uid");
+							if(uid != firstRowUid // 去除第一列
+							&& uids.indexOf(uid)<0){// 去除重複的uid
+								for(var j=0; j<fields.length; j++){
+									var field = fields[j];
+									if(field){
+										dataItem[field] = firstDataItem.get(field);
+									}
+								}
+								//$.extend(dataItem, val); // 一次將所有值寫進去
+								//dataItem.set("uid", kendo.guid()); // 使用set function會觸發dataBound事件，這之後才會看到頁面值變動
+								uids.push(uid);
 							}
 						});
-						for(var i = 0; i < dataItems.length; i++){
-							var dataItem = dataItems[i];
-							for(var j = 0; j < fields.length; j++){
-								var field = fields[j];
-								if(field){
-									dataItem.set(field, firstDataItem.get(field));
+						mainGrid.refresh();// 如果每次都呼叫dataItem的set函式，都會觸發一次dataBound事件。我們可以直接修改dataItem的值，等到完畢之後，再呼叫refresh，這樣不管修改幾項dataItem，都只會觸發一次dataBound
+						// 在dataBound之後，修改的flag會被移除，所以這邊手動加回去
+						// 下一次批次修改的flag會覆蓋前次的--因為又再一次觸發dataBound
+						setTimeout(function(){
+							for(var i=0; i<uids.length; i++){
+								var uid = uids[i];
+								if(lockCount > 0){
+									var $main = $(mainGrid.element);
+									if(lockIdxes.length > 0){
+										var row = $main.find(divLocked).find("[data-uid="+uid+"]");
+										var tds = row.find("td");
+										for(var j=0; j<lockIdxes.length; j++){
+											var lockIdx = lockIdxes[j];
+											var cell = tds.eq(lockIdx);
+											if(cell.find("span.k-dirty").length==0){
+												cell.addClass("k-dirty-cell").prepend("<span class='k-dirty'/>");
+											}
+										}
+									}
+									if(unlockIdxes.length > 0){
+										var row = $main.find(divUnlocked).find("[data-uid="+uid+"]");
+										var tds = row.find("td");
+										for(var j=0; j<unlockIdxes.length; j++){
+											var unlockIdx = unlockIdxes[j];
+											var cell = tds.eq(unlockIdx);
+											if(cell.find("span.k-dirty").length==0){
+												cell.addClass("k-dirty-cell").prepend("<span class='k-dirty'/>");
+											}
+										}
+									}
+								}else{
+									var row = mainGrid.table.find("[data-uid="+uid+"]");
+									var tds = row.find("td");
+									for(var j=0; j<normalIdxes.length;j++){
+										var cellIdx = normalIdxes[j];
+										var cell = tds.eq(cellIdx);
+										if(cell.find("span.k-dirty").length==0){
+											cell.addClass("k-dirty-cell").prepend("<span class='k-dirty'/>");
+										}
+									}
 								}
 							}
-						};
+							// 修改content table之後，焦點會回到左上方第一個預設位置，比較合理的狀況是，停留在選取區塊的左上方第一個位置
+							var firstTd;
+							if(lockIdxes.length > 0){
+								var row = $main.find(divLocked).find("[data-uid="+firstRowUid+"]");
+								firstTd = row.find("td:eq("+lockIdxes[0]+")");
+							}
+							if(!firstTd){
+								var row = $main.find(divUnlocked).find("[data-uid="+firstRowUid+"]");
+								firstTd = row.find("td:eq("+unlockIdxes[0]+")");
+							}
+							mainGrid.current(firstTd);
+							firstTd.focus();
+						});
 					}
 				});
 				
