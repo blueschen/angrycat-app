@@ -782,6 +782,15 @@
 					width: 50,
 					locked: lockedFlag
 				});
+				var docHeight;
+				function dataChangeClkHandler(){
+					var dataItem = mainGrid.dataItem($(this).closest("tr"));
+					var id = dataItem[pk];
+					if(id && docType){
+						var url = rootPath + "/datachangelog/list?docId=" + id + "&docType=" + docType;
+						window.location.href = url;
+					}
+				}
 				var mainGrid = $(gridId).kendoGrid({
 					columns: columns,
 					dataSource: dataSource,
@@ -844,28 +853,26 @@
 						// 最新官方說明文件:(目前沒有完全按照官方說明實作，只有設定grid高度、呼叫resize方法、設定toolbar的margin-top) 
 						// http://docs.telerik.com/kendo-ui/controls/data-management/grid/appearance#set-a-100-height-and-auto-resize
 						// http://docs.telerik.com/kendo-ui/controls/data-management/grid/how-to/Layout/resize-grid-when-the-window-is-resized
-						var navbarHeight = $("#navbarDiv").height(); // 非Kendo UI模組的(固定)置頂瀏覽列
-						var docHeight = $doc.height();
-						var newGridHeight = docHeight - navbarHeight - scrollbarHeight * 1.4; // Grid的高度還要扣掉水平捲軸的高度才是正確的
-						console.log("docHeight: " + docHeight + ", newGridHeight: " + newGridHeight);
+						var newDocHeight = $doc.height();
+						if(!docHeight || docHeight!=newDocHeight){
+							docHeight = newDocHeight;
+							var navbarHeight = $("#navbarDiv").height(); // 非Kendo UI模組的(固定)置頂瀏覽列
+							var newGridHeight = docHeight - navbarHeight - scrollbarHeight * 1.4; // Grid的高度還要扣掉水平捲軸的高度才是正確的
+							console.log("docHeight: " + docHeight + ", newGridHeight: " + newGridHeight);
+							
+							$(gridId).height(newGridHeight); // 設定grid新高度，必須多扣，讓底部多留空間，目前計算方式就是多扣scrollbar高度40%，這讓Google Chrome也可以正常運作；如果沒有，每次重拿document的高度都會多2，導致grid高度逐漸增加，目前原因不明
+							mainGrid.resize(); // 透過這種校對，凍結欄位造成下方部分資料列被切掉，及兩側資料列高度不一致的情況，都可以處理
+							
+							$doc.find(".k-grid-toolbar").css("margin-top", navbarHeight + "px"); // 因為置頂的瀏覽列是固定的，所以margin-top要等於瀏覽列的高度，這樣瀏覽器自動調整捲軸位置的時候，才不會切到最上方區塊
+							// 啟用鎖定欄位後，會產生左右兩側table。在頁面初始化過程中，兩者的高度會不同，導致被鎖定table的最後一筆資料看來好像被部分切掉。
+							// 所以透過沒被鎖定的table高度校正，兩者看來才會一致
+							// 使用resize就能夠處理凍結欄位兩側高度不一致問題，所以將以下處理方式註解起來
+							//$("div.k-grid-content-locked").height($content.height()-scrollbarHeight);
+						}
 						
-						$(gridId).height(newGridHeight); // 設定grid新高度，必須多扣，讓底部多留空間，目前計算方式就是多扣scrollbar高度40%，這讓Google Chrome也可以正常運作；如果沒有，每次重拿document的高度都會多2，導致grid高度逐漸增加，目前原因不明
-						mainGrid.resize(); // 透過這種校對，凍結欄位造成下方部分資料列被切掉，及兩側資料列高度不一致的情況，都可以處理
-						
-						$doc.find(".k-grid-toolbar").css("margin-top", navbarHeight + "px"); // 因為置頂的瀏覽列是固定的，所以margin-top要等於瀏覽列的高度，這樣瀏覽器自動調整捲軸位置的時候，才不會切到最上方區塊
-						// 啟用鎖定欄位後，會產生左右兩側table。在頁面初始化過程中，兩者的高度會不同，導致被鎖定table的最後一筆資料看來好像被部分切掉。
-						// 所以透過沒被鎖定的table高度校正，兩者看來才會一致
-						// 使用resize就能夠處理凍結欄位兩側高度不一致問題，所以將以下處理方式註解起來
-						//$("div.k-grid-content-locked").height($content.height()-scrollbarHeight);
-						
-						$rows.find(".k-grid-datachangelog").click(function(){
-							var dataItem = mainGrid.dataItem($(this).closest("tr"));
-							var id = dataItem[pk];
-							if(id && docType){
-								var url = rootPath + "/datachangelog/list?docId=" + id + "&docType=" + docType;
-								window.location.href = url;
-							}
-						});
+						$rows.find(".k-grid-datachangelog")
+							.unbind("click", dataChangeClkHandler)
+							.click(dataChangeClkHandler);
 						console.log("dataBound...");
 					},
 					edit: editAction
@@ -1030,7 +1037,7 @@
 				});
 				// 在toolbar按鈕間產生垂直分隔線
 				$("a.k-grid-divider").replaceWith("<span class='v-divider'></span>");
-				/*				
+				/*	ref. http://stackoverflow.com/questions/28828228/kendo-grid-how-to-set-focus-back-to-a-grid-cell-after-canceling-current-editing			
 				if(DEFAULT_EDIT_MODE === "incell"){
 					var tdTotal = 0;
 					mainGrid.tbody.on("keydown", "td[data-role='editable'] input", function(e){
@@ -1099,13 +1106,16 @@
 						mainGrid.table.focus();
 					}
 					if(altKey && keyCode == 82){// Alt + R 直接觸發 Add new record
-						mainGrid.addRow();
+						//mainGrid.addRow();
+						$(".k-grid-new").click();
 					}
 					if(altKey && keyCode == 67){// Alt + C 直接觸發 Save Changes；
-						mainGrid.dataSource.sync();
+						//mainGrid.dataSource.sync();
+						$(".k-grid-save-changes").click();
 					}
 					if(altKey && keyCode == 81){// Alt + Q 直接觸發 Cancel changes
-						mainGrid.dataSource.cancelChanges();
+						//mainGrid.dataSource.cancelChanges();
+						$(".k-grid-cancel-changes").click();
 					}
 					/*
 					if(altKey && keyCode == 71){// Alt + G 直接觸發 Delete；
@@ -1166,36 +1176,83 @@
 						    }
 						}
 						var columnCount = fields.length;
-						var uids = [];
-						console.log("startColIdx:" + startColIdx + ", lastColIdx:" + lastColIdx + ", lockCount:" + lockCount);
+						//console.log("columnOpts:" + JSON.stringify(columnOpts));
+						//.log("startColIdx:" + startColIdx + ", lastColIdx:" + lastColIdx + ", lockCount:" + lockCount);
 						// console.log("columnOpts[0]:"+JSON.stringify(columnOpts[0])); // 第0項為頁面索引的template物件參數設定 
-						console.log("columnSpanCount: " + columnCount + ", selectedCellCount: " + selectedCount);
-						console.log("selected fields:"+JSON.stringify(fields));
-						selection.each(function(idx, cell){
+						//console.log("columnSpanCount: " + columnCount + ", selectedCellCount: " + selectedCount);
+						//console.log("selected fields:"+JSON.stringify(fields));
+						var oldUids = [],
+							firstRowVals = [],
+							currentIdx = 0;
+						var dataItems = selection.map(function(idx, cell){
 							// $(cell).eq(0).text()可直接取得cell值--debug用
 							// idx以0起始依序標示每個選到的cell，如果被選到12個cell，最後一個idx為11
 							// 標號的順序，隨著是否有橫跨兩個table而不同:如果沒有跨table，標號的順序是由先由左而右，到底之後再由上而下。如果有跨，按照前述同樣的順序，先跑完第一個(lock)table，再跑第二個。
 							// 即便因為lock導致分成兩個table，但兩個table對應的同一列的dataItem還是一樣，這可以由dataItem上的uid去確認，ref. http://docs.telerik.com/kendo-ui/api/javascript/ui/grid#methods-select
 							var $cell = $(cell),
-								row = $cell.closest("tr"),
-								dataItem = grid.dataItem(row),
+								$row = $cell.closest("tr"),
+								rowIdx = $row.index(),
+								dataItem = grid.dataItem($row),
 								uid = dataItem.get("uid");
+														
 							if(uid != firstRowUid // 去除第一列
-							&& uids.indexOf(uid)<0){// 去除重複的uid
-								for(var j=0; j<fields.length; j++){
-									var field = fields[j];
-									if(field){
-										dataItem[field] = firstDataItem.get(field);
-									}
-								}
-								//$.extend(dataItem, val); // 一次將所有值寫進去
-								//dataItem.set("uid", kendo.guid()); // 使用set function會觸發dataBound事件，這之後才會看到頁面值變動
-								uids.push(uid);
+							&& oldUids.indexOf(uid)<0){// 去除重複的uid
+								//mainGrid._modelChange({field: totalFields.join(","), model: dataItem}); // 手動加入異動記錄 ref.http://stackoverflow.com/questions/36142792/kendo-ui-manually-set-cell-dirty-indicator
+								oldUids.push(uid);
+								return dataItem;
 							}
 						});
-						mainGrid.refresh();// 如果每次都呼叫dataItem的set函式，都會觸發一次dataBound事件。我們可以直接修改dataItem的值，等到完畢之後，再呼叫refresh，這樣不管修改幾項dataItem，都只會觸發一次dataBound
+						//console.log("firstRowVals:"+JSON.stringify(firstRowVals));
+						//mainGrid.refresh();// 如果每次都呼叫dataItem的set函式，都會觸發一次dataBound事件。我們可以直接修改dataItem的值，等到完畢之後，再呼叫refresh，這樣不管修改幾項dataItem，都只會觸發一次dataBound
+						// 修改content table之後，焦點會回到左上方第一個預設位置，比較合理的狀況是，停留在選取區塊的左上方第一個位置
+						
+						var uids = [];
+						for(var i=0; i<dataItems.length; i++){
+							var dataItem = dataItems[i];
+							var val = {},
+								anyValWrited = false;
+							for(var j=0; j<fields.length; j++){
+								var field = fields[j];
+								if(field && modelFields[field].editable !== false){
+									var oldVal = dataItem[field],
+										newVal = firstDataItem.get(field);
+									//console.log("oldVal:"+oldVal+",newVal:"+newVal);
+									if(JSON.stringify(oldVal)!=JSON.stringify(newVal)){//ref. http://stackoverflow.com/questions/1068834/object-comparison-in-javascript
+										dataItem.set(field, newVal);
+										anyValWrited = true;
+									}
+								}
+							}
+							if(anyValWrited){
+								//$.extend(dataItem, val); // 一次將所有值寫進去
+								var uid = dataItem.get("uid");
+								//console.log("new uid:"+uid);
+								// dataItem.set("uid", uid); // 使用set function會觸發dataBound事件，這也可以確保後續的儲存動作成功
+								// mainGrid._modelChange({model: dataItem}); // 手動加入異動記錄 ref.http://stackoverflow.com/questions/36142792/kendo-ui-manually-set-cell-dirty-indicator
+								// dataItem.trigger("change");
+								uids.push(uid);
+							}
+						}
+						
+						// 修改content table之後，焦點會回到左上方第一個預設位置，比較合理的狀況是，停留在選取區塊的左上方第一個位置
+						var $main = $(mainGrid.element);
+						var firstTd;
+						if(lockIdxes.length > 0){
+							var row = $main.find(divLocked).find("[data-uid="+firstRowUid+"]");
+							firstTd = row.find("td:eq("+lockIdxes[0]+")");
+						}
+						if(!firstTd){
+							var row = $main.find(divUnlocked).find("[data-uid="+firstRowUid+"]");
+							firstTd = row.find("td:eq("+unlockIdxes[0]+")");
+						}
+						mainGrid.current(firstTd);
+						firstTd.focus();
+						mainGrid.clearSelection();
+						// TODO 要排除不可修改的欄位
+						
 						// 在dataBound之後，修改的flag會被移除，所以這邊手動加回去
 						// 下一次批次修改的flag會覆蓋前次的--因為又再一次觸發dataBound
+						/*
 						setTimeout(function(){
 							for(var i=0; i<uids.length; i++){
 								var uid = uids[i];
@@ -1247,7 +1304,9 @@
 							}
 							mainGrid.current(firstTd);
 							firstTd.focus();
+							mainGrid.clearSelection();
 						});
+						*/
 					}
 				});
 				
@@ -1311,11 +1370,5 @@
 				}
 			}
 		};
-	})(kendo.ui.Grid.fn.closeCell);	
-	
-	
-	
-	
-	
-	
+	})(kendo.ui.Grid.fn.closeCell);
 })(angrycat, jQuery, kendo);
