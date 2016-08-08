@@ -30,6 +30,8 @@ public class Product {
 	private int drawerStockQty;					
 	private int showcaseStockQty;
 	private int notShipStockQty;
+	
+	private String totalStockChangeNote;
 	@Id
 	@Column(name="id", columnDefinition="ID")
 	@GenericGenerator(name="angrycat_product_id", strategy="com.angrycat.erp.ds.TimeUID")
@@ -154,5 +156,12 @@ public class Product {
 	}
 	public void setNotShipStockQty(int notShipStockQty) {
 		this.notShipStockQty = notShipStockQty;
+	}
+	@Column(name="totalStockChangeNote", columnDefinition="總庫存修改備註")
+	public String getTotalStockChangeNote() {
+		return totalStockChangeNote;
+	}
+	public void setTotalStockChangeNote(String totalStockChangeNote) {
+		this.totalStockChangeNote = totalStockChangeNote;
 	}
 }
