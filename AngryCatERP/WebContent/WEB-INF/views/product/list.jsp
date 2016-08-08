@@ -59,26 +59,6 @@
 				lastSelectedCondition = ${sessionScope[selectedCondition] == null ? "null" : sessionScope[selectedCondition]},
 				loadImgUrl = '${loadImgUrl}' + '/',
 				lockedFlag = true,
-				calcTotalStockQty = function(e){
-					var columnIndex = this.cellIndex(e.container),
-		        		fieldName = this.thead.find("th").eq(columnIndex-1).attr("data-field");
-		        	console.log("fieldName:"+ fieldName);
-					if(!fieldName || !fieldName.endsWith("StockQty")){
-						return;
-					}
-					var input = e.container.find(".k-input");
-					input.blur(function(){
-						var model = e.model,
-							officeStockQty = model.get("officeStockQty"),
-							drawerStockQty = model.get("drawerStockQty"),
-							showcaseStockQty = model.get("showcaseStockQty"),
-							notShipStockQty = model.get("notShipStockQty")
-						;
-						var totalStockQty = officeStockQty + drawerStockQty + showcaseStockQty;
-						totalStockQty -= notShipStockQty;
-						model.set("totalStockQty", totalStockQty);
-					});
-				},
 				opts = {
 					moduleName: "${moduleName}",
 					rootPath: "${rootPath}",
@@ -96,7 +76,6 @@
 					lastKendoData: lastKendoData,
 					lastSelectedCondition: lastSelectedCondition,
 					lockedFlag: lockedFlag,
-					editAction: calcTotalStockQty,
 					docType: "${docType}"
 				};
 			
@@ -164,6 +143,7 @@
 						["showcaseStockQty",			"展示櫃",			100,			"number",	"eq"],
 						["barcode",						"條碼號",			150,			"string",	"contains",				null,					hidden],
 						["seriesName",					"系列名",			150,			"string",	"contains",				uneditable,				hidden],
+						["totalStockChangeNote",		"總庫存修改備註",	150,			"string",	"contains",				null,					hidden],
 						[productCategoryFieldName,		"商品類別代號",	150,			"string",	"contains",				productCategoryField,	productCategoryColumn,	productCategoryEditor],
 						[opts.pk,						"Product ID",	150,			"string",	"eq",					uneditable,				hidden]
 					];
@@ -187,12 +167,77 @@
 						win.center().open();
 					});
 				};
-				mainGrid._events["dataBound"].push(clkDisplayImg);
-				mainGrid.thead.kendoTooltip({
-					filter: "th[data-title='總庫存']",
-					content: "<span class='tooltip-inner'>總庫存=辦公室庫存+專櫃抽屜+展示櫃-未出貨</span>",
-					position: "top"
+				mainGrid.bind("dataBound", clkDisplayImg);
+				mainGrid.bind("saveChanges", function(e){
+					var ds = mainGrid.dataSource,
+						undirty = ds._pristineData,
+						dirty = ds._data,
+						undirtyQty = {},
+						dirtyQty = {},
+						ids=[];
+					for(var i=0; i<undirty.length; i++){
+						var und = undirty[i];
+						if(und.id){
+							undirtyQty[und.id]=und.totalStockQty;
+						}
+					}
+					for(var i=0; i<dirty.length; i++){
+						var d = dirty[i];
+						if(d.id){
+							dirtyQty[d.id]=d.totalStockQty;
+						}
+					}
+					for(var id in undirtyQty){
+						if(undirtyQty.hasOwnProperty(id) && undirtyQty[id]!=dirtyQty[id]){
+							ids.push(id);
+							var dataItem = ds.get(id);
+							console.log("dataItem:"+JSON.stringify(dataItem));
+						}
+					}
+					//console.log("undirtyQty:"+JSON.stringify(undirtyQty)+", dirtyQty:"+JSON.stringify(dirtyQty) + ", ids:"+JSON.stringify(ids));
+					if(ids.length>0){
+						var response = prompt("請輸入異動總庫存的原因");
+						if(!response){
+							alert("無法儲存資料!!");
+							e.preventDefault();
+							return;
+						}
+						for(var i=0; i<ids.length; i++){
+							var id = ids[i],
+								dataItem = ds.get(id);
+							dataItem.set("totalStockChangeNote", response);
+						}
+					}
+					
 				});
+				/*
+				function totalStockQtyChangeHandler(e){
+					var field = e.field,
+						dataItem = this;
+					if(field == "totalStockQty"){
+						console.log("dataItem:"+dataItem.get("uid")+"totalStockQty changed!!");
+					}
+					// ref. http://stackoverflow.com/questions/26892228/does-kendo-data-datasource-store-the-old-value-somewhere
+					var ds = mainGrid.dataSource,
+						undirty = ds._pristineData,
+						dirty = ds._data; // 修改後的資料，亦可透過ds.data()取得
+					//console.log("dirty:"+JSON.stringify(dirty));
+					//console.log("_pristineData:" + JSON.stringify(mainGrid.dataSource._pristineData));
+					// TODO 如果不填寫原因，就觸發恢復的按鈕
+					//$(".k-grid-cancel-changes").click();
+					console.log("ds data:" + JSON.stringify(ds.data()));
+				}
+				function dataItemBoundHandler(e){
+					var trs = e.sender.items();
+					var dataItems = $(trs).map(function(idx, ele){
+						var d = mainGrid.dataItem($(ele));
+						d.unbind("change", totalStockQtyChangeHandler)
+						.bind("change", totalStockQtyChangeHandler);
+						return d;
+					});
+				}
+				mainGrid.bind("dataBound", dataItemBoundHandler);
+				*/
 			}
 			
 			angrycat.kendoGridService
