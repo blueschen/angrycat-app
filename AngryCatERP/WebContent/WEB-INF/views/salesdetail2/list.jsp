@@ -197,13 +197,12 @@
 						["activity",		"活動",				150,			"string",	"contains",				null,				hidden],
 						["priority",		"順序",				150,			"string",	"eq",					null,				hidden],
 						["otherNote",		"其他備註",			150,			"string",	"contains",				null,				hidden],
-						[opts.pk,			"SalesDetail ID",	150,			"string",	"eq",					null,				hidden],
+						[opts.pk,			"SalesDetail ID",	150,			"string",	"eq",					uneditable,			hidden],
 						["rowId",			"Excel序號",			150,			"string",	"contains",				uneditable,			hidden]
 					];
 				//console.log("paramFEditors: " + (paramFEditors["銷售狀態"]["filterable"]["cell"]["template"]));
 				return fields;
 			}
-			
 			angrycat.kendoGridService
 				.init(opts)
 				.fieldsReady(fieldsReadyHandler);
