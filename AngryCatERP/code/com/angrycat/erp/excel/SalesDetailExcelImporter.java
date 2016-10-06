@@ -72,8 +72,8 @@ public class SalesDetailExcelImporter extends ExcelImporter {
 			modelId			= parseStrVal(row, 			getColumnIdxFromTitle("型號"));
 			productName		= parseStrVal(row, 			getColumnIdxFromTitle("明細"));
 			price			= parseNumericOrEmpty(row, 	getColumnIdxFromTitle("含運金額"));
-			memberPrice		= parseNumericOrEmpty(row, 	getColumnIdxFromTitle("會員價(實收價格)"));
-			priority		= parseNumericOrStr(row,	getColumnIdxFromTitle("順序"));
+			memberPrice		= parseNumericOrEmpty(row, 	getColumnIdxFromTitle("實收"));
+//			priority		= parseNumericOrStr(row,	getColumnIdxFromTitle("順序"));
 			orderDate		= parseSqlDateVal(row, 		getColumnIdxFromTitle("接單日"));
 			otherNote		= parseStrVal(row, 			getColumnIdxFromTitle("其他備註"));
 			checkBillStatus = parseStrVal(row, 			getColumnIdxFromTitle("對帳狀態"));
@@ -84,7 +84,7 @@ public class SalesDetailExcelImporter extends ExcelImporter {
 			shippingDate  	= parseSqlDateVal(row, 		getColumnIdxFromTitle("出貨日"));
 			sendMethod 		= parseStrOrDate(row, 		getColumnIdxFromTitle("郵寄方式"));
 			note 			= parseStrVal(row, 			getColumnIdxFromTitle("備註"));
-		}else{
+		}else if(sheetIdx == 0){
 			salePoint		= SalesDetail.SALE_POINT_ESLITE_DUNNAN;
 			saleStatus		= parseStrVal(row, 			getColumnIdxFromTitle("狀態"));
 			fbName			= parseStrVal(row, 			getColumnIdxFromTitle("FB名稱/客人姓名"));
@@ -92,7 +92,7 @@ public class SalesDetailExcelImporter extends ExcelImporter {
 			modelId			= parseStrVal(row, 			getColumnIdxFromTitle("型號"));
 			productName		= parseStrVal(row, 			getColumnIdxFromTitle("明細"));
 			price			= parseNumericOrEmpty(row, 	getColumnIdxFromTitle("定價"));
-			memberPrice		= parseNumericOrEmpty(row, 	getColumnIdxFromTitle("會員價(實收價格)"));
+			memberPrice		= parseNumericOrEmpty(row, 	getColumnIdxFromTitle("實收"));
 			payDate			= parseSqlDateVal(row, 		getColumnIdxFromTitle("付款日期"));
 			mobile			= parseCellNumericOrStr(row,getColumnIdxFromTitle("手機號"));
 			idNo			= parseStrVal(row, 		getColumnIdxFromTitle("身份證字號"));
@@ -102,6 +102,24 @@ public class SalesDetailExcelImporter extends ExcelImporter {
 			//contactInfo 	= parseStrVal(row, 		getColumnIdxFromTitle("郵寄地址電話"));
 			registrant		= parseStrVal(row, 		getColumnIdxFromTitle("登單者"));
 		}
+//		else if(sheetIdx == 2){
+//			salePoint		= "比漾臨時櫃";
+//			saleStatus		= parseStrVal(row, 			getColumnIdxFromTitle("狀態"));
+//			fbName			= parseStrVal(row, 			getColumnIdxFromTitle("FB名稱/客人姓名"));
+//			orderDate		= parseSqlDateVal(row, 		getColumnIdxFromTitle("銷售日期"));
+//			modelId			= parseStrVal(row, 			getColumnIdxFromTitle("型號"));
+//			productName		= parseStrVal(row, 			getColumnIdxFromTitle("明細"));
+//			price			= parseNumericOrEmpty(row, 	getColumnIdxFromTitle("定價"));
+//			memberPrice		= parseNumericOrEmpty(row, 	getColumnIdxFromTitle("實收"));
+//			payDate			= parseSqlDateVal(row, 		getColumnIdxFromTitle("付款日期"));
+//			mobile			= parseCellNumericOrStr(row,getColumnIdxFromTitle("手機號"));
+//			idNo			= parseStrVal(row, 		getColumnIdxFromTitle("身份證字號"));
+//			discountType 	= parseStrVal(row, 		getColumnIdxFromTitle("折扣説明"));
+//			note 			= parseStrVal(row, 		getColumnIdxFromTitle("備註"));
+//			shippingDate  	= parseSqlDateVal(row, 	getColumnIdxFromTitle("出貨日"));
+//			//contactInfo 	= parseStrVal(row, 		getColumnIdxFromTitle("郵寄地址電話"));
+//			registrant		= parseStrVal(row, 		getColumnIdxFromTitle("登單者"));
+//		}
 		
 		if(!"99. 已出貨".equals(saleStatus)){// 代表該銷售明細可能跑單、退貨...總之就是交易失敗
 			return false;
@@ -261,8 +279,8 @@ public class SalesDetailExcelImporter extends ExcelImporter {
 	}
 	
 	private static void testReadAndPersist(){
-		String fileName = "201605_OHM銷售明細 -";
-		String src = "E:\\angrycat_workitem\\銷售明細\\2016_06_20_from_miko\\"+fileName+".xlsx";
+		String fileName = "201608_OHM銷售明細";
+		String src = "E:\\angrycat_workitem\\銷售明細\\2016_09_21_from_miko\\"+fileName+".xlsx";
 		Map<String, String> msg = null;
 		try(AnnotationConfigApplicationContext acac = new AnnotationConfigApplicationContext(RootConfig.class);){
 			SalesDetailExcelImporter i = acac.getBean(SalesDetailExcelImporter.class);
