@@ -5,6 +5,7 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.function.BiFunction;
+import java.util.stream.Collectors;
 
 import org.apache.commons.lang3.StringUtils;
 import org.hibernate.Session;
@@ -16,15 +17,14 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.ResponseBody;
 
-import com.angrycat.erp.common.CommonUtil;
 import com.angrycat.erp.excel.SalesDetailExcelExporter;
 import com.angrycat.erp.excel.SalesDetailExcelImporter;
-import com.angrycat.erp.jackson.mixin.MemberIgnoreDetail;
 import com.angrycat.erp.model.Member;
 import com.angrycat.erp.model.Product;
 import com.angrycat.erp.model.SalesDetail;
 import com.angrycat.erp.service.MemberQueryService;
 import com.angrycat.erp.service.ProductQueryService;
+import com.angrycat.erp.service.SalesDetailKendoUiService;
 import com.angrycat.erp.web.component.ConditionConfig;
 
 @Controller
@@ -55,6 +55,8 @@ public class SalesDetail2Controller extends
 	private MemberQueryService memberQueryService;
 	@Autowired
 	private ProductQueryService productQueryService;
+	@Autowired
+	private SalesDetailKendoUiService salesDetailKendoUiService;
 	
 	@Override
 	void init(){
@@ -89,19 +91,39 @@ public class SalesDetail2Controller extends
 	List<String> getParameterCatNames(){
 		return parameterCatNames;
 	}
-	
-	@Override
-	BiFunction<SalesDetail, Session, SalesDetail> beforeSaveOrMerge(){
-		return new BiFunction<SalesDetail, Session, SalesDetail>(){
-			@Override
-			public SalesDetail apply(SalesDetail sd, Session s) {
-				if(StringUtils.isNotBlank(sd.getId())){
-					return sd;
-				}
-				SalesDetailExcelImporter.findMember(sd, s);
-				return sd;
-			}
-			
-		};
-	}
+	// 因規格不符使用者預期，故暫且擱置新增功能:銷售明細-產品庫存同步--等待使用者確認規格
+//	@Override
+//	BiFunction<SalesDetail, Session, SalesDetail> beforeSaveOrMerge(){
+//		return new BiFunction<SalesDetail, Session, SalesDetail>(){
+//			@Override
+//			public SalesDetail apply(SalesDetail sd, Session s) {
+//				if(StringUtils.isNotBlank(sd.getId())){
+//					return sd;
+//				}
+//				SalesDetailExcelImporter.findMember(sd, s);
+//				return sd;
+//			}
+//		};
+//	}
+//	@Override
+//	@RequestMapping(value="/batchSaveOrMerge",
+//			method=RequestMethod.POST,
+//			produces={"application/xml", "application/json"},
+//			headers="Accept=*/*")
+//	public @ResponseBody List<SalesDetail> batchSaveOrMerge(@RequestBody List<SalesDetail> models){
+//		List<SalesDetail> results = models.stream().map(m->{
+//			salesDetailKendoUiService.batchSaveOrMerge(Arrays.asList(m), beforeSaveOrMerge());
+//			return m;
+//		}).collect(Collectors.toList());
+//		return results;
+//	}
+//	@Override
+//	@RequestMapping(value="/deleteByIds",
+//			method=RequestMethod.POST,
+//			produces={"application/xml", "application/json"},
+//			headers="Accept=*/*")
+//	public @ResponseBody List<?> deleteByIds(@RequestBody List<String> ids){
+//		List<?> deletedItems = salesDetailKendoUiService.deleteByIds(ids);
+//		return deletedItems;
+//	}
 }
