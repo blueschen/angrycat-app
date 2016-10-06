@@ -55,8 +55,8 @@ import com.angrycat.erp.test.BaseTest;
 @Service
 @Scope("prototype")
 public class MitakeSMSHttpPost {
-	private static final String multiShortURL = "https://smexpress.mitake.com.tw:8800/SmSendPost"; // 發送多筆短簡訊 URL // TODO 這個網址有誤，先不要用這個
-	private static final String multiLongURL = "https://smexpress.mitake.com.tw:7103/SpLmPost"; // 發送多筆長簡訊 URL
+	private static final String multiShortURL = ""; // 發送多筆短簡訊 URL // TODO 這個網址有誤，先不要用這個
+	private static final String multiLongURL = ""; // 發送多筆長簡訊 URL
 	private static final String sUserName = ""; // 使用者帳號
 	private static final String sPassword = ""; // 使用者密碼
 	private static final long lTimeout = 30000; // 逾時時間(單位:毫秒)
@@ -168,6 +168,8 @@ public class MitakeSMSHttpPost {
 //		shortMsgNotify20160530Activity(); // 5/30活動簡訊
 //		shortMsgNotify20160623Activity(); // 6/23活動簡訊
 //		shortMsgNotify20160714Activity();
+//		shortMsgNotify20160805Activity();
+//		shortMsgNotify20160826Activity();
 //		testUrlEncodeToBig5();
 //		uuidLen();
 	}
@@ -194,7 +196,7 @@ public class MitakeSMSHttpPost {
 	}
 	
 	private static void strLen(){
-		String content = "7/15-7/19 敦南誠品滿千送百，OHM加碼滿8000再折600，最高單筆可折1100，社團同步優惠中，詳情請洽FB粉絲團或02-277";
+		String content = "OHM周年慶倒數6天，所有墜子88折/ VIP 8折只到8/31，誠品專櫃及社團優惠同步中，詳情請洽02-27761505";
 		System.out.println(content.length());
 	}
 	
@@ -217,7 +219,6 @@ public class MitakeSMSHttpPost {
 		String sendConfig = template.replace(T_SERIAL_NO, serialNo)
 									.replace(T_DST_ADDR, mobile)
 									.replace(T_SM_BODY, content);
-		System.out.println("getRequiredConfig\n" + sendConfig);
 		return sendConfig.getBytes(sEncoding);
 	}
 	private static List<Member> getTestMembers(){
@@ -401,7 +402,7 @@ public class MitakeSMSHttpPost {
 													BLUES,
 													JERRY};
 						simpleMailMessage.setCc(cc);
-//						mailSender.send(simpleMailMessage);
+						mailSender.send(simpleMailMessage);
 					}
 				}
 			}
@@ -697,6 +698,20 @@ public class MitakeSMSHttpPost {
 			mailSender.send(simpleMailMessage);
 		}
 	}
+	private static void shortMsgNotify20160826Activity(){
+		BaseTest.executeApplicationContext(acac->{
+			MitakeSMSHttpPost service = acac.getBean(MitakeSMSHttpPost.class);
+			service.setTestMode(true);
+			service.shortMsgNotifyAllMembers("8月OHM周年慶倒數6天活動簡訊發送", "OHM周年慶倒數6天，所有墜子88折/ VIP 8折只到8/31，誠品專櫃及社團優惠同步中，詳情請洽02-27761505");
+		});
+	}
+	private static void shortMsgNotify20160805Activity(){
+		BaseTest.executeApplicationContext(acac->{
+			MitakeSMSHttpPost service = acac.getBean(MitakeSMSHttpPost.class);
+			service.setTestMode(true);
+			service.shortMsgNotifyAllMembers("8月活動簡訊發送", "8/5-8/29 OHM Beads墜子88折，VIP 8折（不含手鏈/手環/項鏈/耳環）消費金額滿15000再贈限量珠寶盤及OHM圖鑒一本，敦南專櫃及FB社團同步優惠詳情請洽02-27716304");
+		});
+	}
 	private static void shortMsgNotify20160714Activity(){
 		BaseTest.executeApplicationContext(acac->{
 			MitakeSMSHttpPost service = acac.getBean(MitakeSMSHttpPost.class);
@@ -778,12 +793,12 @@ public class MitakeSMSHttpPost {
 			MitakeSMSHttpPost service = acac.getBean(MitakeSMSHttpPost.class);
 //			service.setTestMode(true);
 			
-			String greaterThan70Chars = "多筆長簡訊測試請忽略2";
+			String greaterThan70Chars = "7/15-7/19 敦南誠品滿千送百，OHM加碼滿8000再折600，最高單筆可折1100";
 			
 			String queryHql = "SELECT DISTINCT(p) FROM " + Member.class.getName() + " p WHERE p.name IN (:pName)";
 			String content = greaterThan70Chars;
 			Map<String, Object> params = new HashMap<>();
-			params.put("pName", Arrays.asList("t1", "張雅筠"));
+			params.put("pName", Arrays.asList("t1"));
 			StringBuffer sb = service.sendShortMsgToMembers(queryHql, params, content);
 			
 			String sendMsg = sb.toString();
@@ -792,13 +807,14 @@ public class MitakeSMSHttpPost {
 				subject = "發給自家人的測試簡訊沒有找到符合資格的會員";
 			}
 			System.out.println("sendMsg: " + sendMsg);
-//			SimpleMailMessage simpleMailMessage = new SimpleMailMessage(service.templateMessage);
+			SimpleMailMessage simpleMailMessage = new SimpleMailMessage(service.templateMessage);
+			simpleMailMessage.setText(sendMsg);
+			simpleMailMessage.setSubject(subject);
+			simpleMailMessage.setTo(JERRY);
 //			simpleMailMessage.setTo(IFLY);
-//			simpleMailMessage.setText(sendMsg);
-//			simpleMailMessage.setSubject(subject);
 //			String[] cc = new String[]{MIKO,BLUES,JERRY};
 //			simpleMailMessage.setCc(cc);
-//			service.mailSender.send(simpleMailMessage);
+			service.mailSender.send(simpleMailMessage);
 		});
 	}	
 	
