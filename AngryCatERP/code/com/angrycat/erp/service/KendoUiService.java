@@ -665,7 +665,8 @@ public class KendoUiService<T, R> implements Serializable{
 			String firstToUpper = first.toUpperCase();
 			String firstRemoved = StringUtils.removeStart(split, first);
 			result += (firstToUpper + firstRemoved);
-		}		
+		}
+		result = result.replace("[", "_").replace("]", "_");
 		return result;
 	}
 	
