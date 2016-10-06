@@ -55,6 +55,10 @@ public class Parameter {
 	public void setNameDefault(String nameDefault) {
 		this.nameDefault = nameDefault;
 	}
+	/**
+	 * ref. http://stackoverflow.com/questions/25439813/difference-between-mapkey-mapkeycolumn-and-mapkeyjoincolumn-in-hibernate
+	 * @return
+	 */
 	@ElementCollection(fetch=FetchType.EAGER)
 	@MapKeyColumn(name="localString")
 	@Column(name="name")
