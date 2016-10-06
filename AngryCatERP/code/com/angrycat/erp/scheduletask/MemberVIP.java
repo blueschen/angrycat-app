@@ -4,7 +4,7 @@ import static com.angrycat.erp.common.EmailContact.BLUES;
 import static com.angrycat.erp.common.EmailContact.IFLY;
 import static com.angrycat.erp.common.EmailContact.JERRY;
 import static com.angrycat.erp.common.EmailContact.MIKO;
-import static com.angrycat.erp.shortnews.MitakeSMSHttpPost.*;
+import static com.angrycat.erp.shortnews.MitakeSMSHttpPost.NO_DATA_FOUND_STOP_SEND_SHORT_MSG;
 
 import java.text.SimpleDateFormat;
 import java.time.Instant;
@@ -56,7 +56,7 @@ public class MemberVIP {
 	// */5 * * * * ?代表每五秒
 	/**
 	 * 1 0 0 1 * ?每月1號凌晨0點1秒啟動排程
-	 * 簡訊通知:本月生日，且VIP尚未使用及過期的會員
+	 * 簡訊通知:本月生日，且VIP尚未使用及過期的會員=>改為通知本月生日且為VIP的會員
 	 */
 	@Scheduled(cron="1 0 0 1 * ?")
 	public void shortMsgNotifyBirthVIPAvailable(){
@@ -64,19 +64,23 @@ public class MemberVIP {
 		int date = now.getDayOfMonth();
 		if(date == 1){// 如果為某月1號
 			int month = now.getMonthValue();
-			String BIRTH_VIP_MSG = "OHM Beads祝您生日快樂，{month}月壽星可享單筆訂單8折優惠，誠品敦南專櫃與網路通路皆可使用，詳情請洽02-27716304";
+			String BIRTH_VIP_MSG = "OHM Beads祝您生日快樂，{month}月壽星可享單筆訂單8折優惠，詳情請洽02-27761505";
 			String content = BIRTH_VIP_MSG.replace("{month}", String.valueOf(month));
-			
+			// 原來用最後一年續會記錄(時效)判斷是否為VIP，因為改為終身制，所以拿掉這部分
+//			String hql = "SELECT DISTINCT(p) "
+//					+ "FROM com.angrycat.erp.model.Member p "
+//					+ "join p.vipDiscountDetails detail "
+//					+ "WHERE month(p.birthday) = (:pBirthMonth) "
+//					+ "AND detail.effectiveEnd >= (:pEffectiveEnd) "
+//					+ "AND detail.discountUseDate IS NULL";
+			// 用important判斷是否為VIP
 			String hql = "SELECT DISTINCT(p) "
-					+ "FROM com.angrycat.erp.model.Member p "
-					+ "join p.vipDiscountDetails detail "
-					+ "WHERE month(p.birthday) = (:pBirthMonth) "
-					+ "AND detail.effectiveEnd >= (:pEffectiveEnd) "
-					+ "AND detail.discountUseDate IS NULL";
+			+ "FROM com.angrycat.erp.model.Member p "
+			+ "WHERE month(p.birthday) = (:pBirthMonth) "
+			+ "AND p.important = 1";
 			
 			Map<String, Object> params = new HashMap<>();
 			params.put("pBirthMonth", month);
-			params.put("pEffectiveEnd", timeService.atStartOfToday());
 			
 			StringBuffer sb = mitakeSMSHttpPost.sendShortMsgToMembers(hql, params, content);
 			String sendMsg = sb.toString();
@@ -98,7 +102,8 @@ public class MemberVIP {
 	 * 0 30 1 1 * ?每月1號凌晨一點半起動排程
 	 * 簡訊通知:下月VIP到期的會員
 	 */
-	@Scheduled(cron="0 30 1 1 * ?")
+	@Deprecated
+//	@Scheduled(cron="0 30 1 1 * ?")
 	public void shortMsgNotifyNextMonthExpired(){
 		String queryHql = "SELECT m FROM " + Member.class.getName() + " m WHERE m.toVipEndDate >= :startDate AND m.toVipEndDate <= :endDate";
 		
@@ -110,7 +115,7 @@ public class MemberVIP {
 		params.put("startDate", startDayOfNextMonth);
 		params.put("endDate", endDayOfNextMonth);
 		
-		String template = "親愛的OHM會員您好，感謝您對OHM的支持，您的VIP資格將於{toVipEndDate}到期，詳情請洽OHM專櫃02-27716304";
+		String template = "親愛的OHM會員您好，感謝您對OHM的支持，您的VIP資格將於{toVipEndDate}到期，詳情請洽02-27761505";
 		StringBuffer sb = mitakeSMSHttpPost.sendShortMsgToMembers(queryHql, params, (m->{
 			Date toVipEndDate = m.getToVipEndDate();
 			String dateStr = DatetimeUtil.DF_yyyyMMdd_DASHED.format(toVipEndDate);
@@ -137,7 +142,8 @@ public class MemberVIP {
 	 * 0 0 1 * * ?每日凌晨一點啟動排程
 	 * 如果是VIP，但已超過有效截止日，就改為非VIP
 	 */
-	@Scheduled(cron="0 0 1 * * ?")
+	@Deprecated
+//	@Scheduled(cron="0 0 1 * * ?")
 	public void cancelVIPIfExpired(){
 		sfw.executeSaveOrUpdate(s->{
 			java.sql.Date todayMidnight = timeService.todayMidnight();
@@ -243,19 +249,28 @@ public class MemberVIP {
 			SessionFactoryWrapper swf = acac.getBean(SessionFactoryWrapper.class);
 			TimeService timeService = acac.getBean(TimeService.class);
 			swf.executeTransaction(s->{
+//				String hql = "SELECT DISTINCT(p) "
+//						+ "FROM com.angrycat.erp.model.Member p "
+//						+ "join p.vipDiscountDetails detail "
+//						+ "WHERE month(p.birthday) = (:pBirthMonth) "
+//						+ "AND detail.effectiveEnd >= (:pEffectiveEnd) "
+//						+ "AND detail.discountUseDate IS NULL";
+//				
+//				LocalDateTime ldt = LocalDateTime.of(2016, 5, 30, 11, 12);
+//				Date d = timeService.toDate(ldt);
+//				
+//				Map<String, Object> params = new HashMap<>();
+//				params.put("pBirthMonth", 12);
+//				params.put("pEffectiveEnd", d);
+				
 				String hql = "SELECT DISTINCT(p) "
-						+ "FROM com.angrycat.erp.model.Member p "
-						+ "join p.vipDiscountDetails detail "
-						+ "WHERE month(p.birthday) = (:pBirthMonth) "
-						+ "AND detail.effectiveEnd >= (:pEffectiveEnd) "
-						+ "AND detail.discountUseDate IS NULL";
+					+ "FROM com.angrycat.erp.model.Member p "
+					+ "WHERE month(p.birthday) = (:pBirthMonth) "
+					+ "AND p.important = 1";
+						
+					Map<String, Object> params = new HashMap<>();
+					params.put("pBirthMonth", 10);
 				
-				LocalDateTime ldt = LocalDateTime.of(2016, 5, 30, 11, 12);
-				Date d = timeService.toDate(ldt);
-				
-				Map<String, Object> params = new HashMap<>();
-				params.put("pBirthMonth", 12);
-				params.put("pEffectiveEnd", d);
 				List<Member> members = s.createQuery(hql).setProperties(params).list();
 				members.forEach(m->{
 					System.out.println(m.getName() +"|"+m.getIdNo());
