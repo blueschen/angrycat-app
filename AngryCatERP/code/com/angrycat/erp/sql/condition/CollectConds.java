@@ -25,10 +25,10 @@ import com.angrycat.erp.sql.condition.StrCondition.MatchMode;
 public class CollectConds extends SqlCondition{
 	private static final long serialVersionUID = 3839880394325350005L;
 	// Pattern is immutable and thread-safe
-	private static final Pattern FIND_PROPERTY_NAME = Pattern.compile("[a-zA-Z0-9\\.\\(]+\\.[a-zA-Z0-9\\.\\)]+");
+	private static final Pattern FIND_PROPERTY_NAME = Pattern.compile("[a-zA-Z0-9\\.\\(]+\\.[a-zA-Z0-9\\[\\]\\.\\)]+");
 	private static final Pattern FIND_OPERATOR = Pattern.compile("(\\s+(IN|in|LIKE|like|NOT\\s+LIKE)\\s+)|\\s*(\\>\\=|\\<\\=|\\!\\=|\\=|\\<\\>|\\>|\\<)\\s*");
-	private static final Pattern FIND_NAMED_PARAM_STEP1 = Pattern.compile("(\\:|\\(\\:){1}\\w+\\)?");
-	private static final Pattern FIND_NAMED_PARAM_STEP2 = Pattern.compile("([^\\:]|[^(\\(\\:)]){1}\\w+[^\\)]?");
+	private static final Pattern FIND_NAMED_PARAM_STEP1 = Pattern.compile("(\\:|\\(\\:){1}[\\w\\[\\]]+\\)?");
+	private static final Pattern FIND_NAMED_PARAM_STEP2 = Pattern.compile("([^\\:]|[^(\\(\\:)]){1}[\\w\\[\\]]+[^\\)]?");
 	
 	private String makeGroupMark;
 	/**
