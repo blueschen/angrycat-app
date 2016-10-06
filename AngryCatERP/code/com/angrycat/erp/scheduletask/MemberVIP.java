@@ -105,36 +105,36 @@ public class MemberVIP {
 	@Deprecated
 //	@Scheduled(cron="0 30 1 1 * ?")
 	public void shortMsgNotifyNextMonthExpired(){
-		String queryHql = "SELECT m FROM " + Member.class.getName() + " m WHERE m.toVipEndDate >= :startDate AND m.toVipEndDate <= :endDate";
-		
-		java.sql.Date startDayOfNextMonth = timeService.nextMonthFirstDayMidnight();
-		java.sql.Date endDayOfNextMonth = timeService.nextMonthLastDayMidnight();
-		int nextMonth = timeService.nextMonthValue();
-		
-		Map<String, Object> params = new HashMap<>();
-		params.put("startDate", startDayOfNextMonth);
-		params.put("endDate", endDayOfNextMonth);
-		
-		String template = "親愛的OHM會員您好，感謝您對OHM的支持，您的VIP資格將於{toVipEndDate}到期，詳情請洽02-27761505";
-		StringBuffer sb = mitakeSMSHttpPost.sendShortMsgToMembers(queryHql, params, (m->{
-			Date toVipEndDate = m.getToVipEndDate();
-			String dateStr = DatetimeUtil.DF_yyyyMMdd_DASHED.format(toVipEndDate);
-			String content = template.replace("{toVipEndDate}", dateStr);
-			return content;
-		}));
-		
-		String sendMsg = sb.toString();
-		String subject = nextMonth + "月VIP到期簡訊發送後訊息";
-		if(sendMsg.contains(NO_DATA_FOUND_STOP_SEND_SHORT_MSG)){
-			subject = nextMonth + "月VIP到期沒有找到符合資格的會員";
-		}
-		SimpleMailMessage simpleMailMessage = new SimpleMailMessage(templateMessage);
-		simpleMailMessage.setTo(MIKO);
-		simpleMailMessage.setText(sendMsg);
-		simpleMailMessage.setSubject(subject);
-		String[] cc = new String[]{IFLY,BLUES,JERRY};
-		simpleMailMessage.setCc(cc);
-		mailSender.send(simpleMailMessage);
+//		String queryHql = "SELECT m FROM " + Member.class.getName() + " m WHERE m.toVipEndDate >= :startDate AND m.toVipEndDate <= :endDate";
+//		
+//		java.sql.Date startDayOfNextMonth = timeService.nextMonthFirstDayMidnight();
+//		java.sql.Date endDayOfNextMonth = timeService.nextMonthLastDayMidnight();
+//		int nextMonth = timeService.nextMonthValue();
+//		
+//		Map<String, Object> params = new HashMap<>();
+//		params.put("startDate", startDayOfNextMonth);
+//		params.put("endDate", endDayOfNextMonth);
+//		
+//		String template = "親愛的OHM會員您好，感謝您對OHM的支持，您的VIP資格將於{toVipEndDate}到期，詳情請洽02-27761505";
+//		StringBuffer sb = mitakeSMSHttpPost.sendShortMsgToMembers(queryHql, params, (m->{
+//			Date toVipEndDate = m.getToVipEndDate();
+//			String dateStr = DatetimeUtil.DF_yyyyMMdd_DASHED.format(toVipEndDate);
+//			String content = template.replace("{toVipEndDate}", dateStr);
+//			return content;
+//		}));
+//		
+//		String sendMsg = sb.toString();
+//		String subject = nextMonth + "月VIP到期簡訊發送後訊息";
+//		if(sendMsg.contains(NO_DATA_FOUND_STOP_SEND_SHORT_MSG)){
+//			subject = nextMonth + "月VIP到期沒有找到符合資格的會員";
+//		}
+//		SimpleMailMessage simpleMailMessage = new SimpleMailMessage(templateMessage);
+//		simpleMailMessage.setTo(MIKO);
+//		simpleMailMessage.setText(sendMsg);
+//		simpleMailMessage.setSubject(subject);
+//		String[] cc = new String[]{IFLY,BLUES,JERRY};
+//		simpleMailMessage.setCc(cc);
+//		mailSender.send(simpleMailMessage);
 	}
 	
 	
@@ -145,30 +145,30 @@ public class MemberVIP {
 	@Deprecated
 //	@Scheduled(cron="0 0 1 * * ?")
 	public void cancelVIPIfExpired(){
-		sfw.executeSaveOrUpdate(s->{
-			java.sql.Date todayMidnight = timeService.todayMidnight();
-			String queryHql = "SELECT m.name, m.idNo, m.mobile, m.id FROM " + Member.class.getName() + " m WHERE m.toVipEndDate < :today AND m.important = 1";
-			List<Object[]> members = s.createQuery(queryHql).setDate("today", todayMidnight).list();
-			List<String> items = members.stream()
-									.map(m->StringUtils.join(m, "|"))
-									.collect(Collectors.toList());
-			String sendMsg = StringUtils.join(items, "\n");
-			
-			String updatHql = "UPDATE " + Member.class.getName() + " m SET m.important = :important WHERE m.toVipEndDate < :today AND m.important = 1";
-			int count = s.createQuery(updatHql).setBoolean("important", false).setDate("today", todayMidnight).executeUpdate();
-			
-			if(count > 0){
-				String dateStr = new SimpleDateFormat("yyyy-MM-dd").format(todayMidnight);
-				SimpleMailMessage simpleMailMessage = new SimpleMailMessage(templateMessage);
-				simpleMailMessage.setTo(MIKO);
-				simpleMailMessage.setText(sendMsg);
-				simpleMailMessage.setSubject(dateStr + "VIP失效更改共:" + count + "筆");
-				
-				String[] cc = new String[]{IFLY, BLUES, JERRY};
-				simpleMailMessage.setCc(cc);
-				mailSender.send(simpleMailMessage);
-			}
-		});
+//		sfw.executeSaveOrUpdate(s->{
+//			java.sql.Date todayMidnight = timeService.todayMidnight();
+//			String queryHql = "SELECT m.name, m.idNo, m.mobile, m.id FROM " + Member.class.getName() + " m WHERE m.toVipEndDate < :today AND m.important = 1";
+//			List<Object[]> members = s.createQuery(queryHql).setDate("today", todayMidnight).list();
+//			List<String> items = members.stream()
+//									.map(m->StringUtils.join(m, "|"))
+//									.collect(Collectors.toList());
+//			String sendMsg = StringUtils.join(items, "\n");
+//			
+//			String updatHql = "UPDATE " + Member.class.getName() + " m SET m.important = :important WHERE m.toVipEndDate < :today AND m.important = 1";
+//			int count = s.createQuery(updatHql).setBoolean("important", false).setDate("today", todayMidnight).executeUpdate();
+//			
+//			if(count > 0){
+//				String dateStr = new SimpleDateFormat("yyyy-MM-dd").format(todayMidnight);
+//				SimpleMailMessage simpleMailMessage = new SimpleMailMessage(templateMessage);
+//				simpleMailMessage.setTo(MIKO);
+//				simpleMailMessage.setText(sendMsg);
+//				simpleMailMessage.setSubject(dateStr + "VIP失效更改共:" + count + "筆");
+//				
+//				String[] cc = new String[]{IFLY, BLUES, JERRY};
+//				simpleMailMessage.setCc(cc);
+//				mailSender.send(simpleMailMessage);
+//			}
+//		});
 	}
 	
 	/**
