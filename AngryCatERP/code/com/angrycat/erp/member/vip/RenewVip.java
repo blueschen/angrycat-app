@@ -165,14 +165,10 @@ public class RenewVip {
 	private static void testRenewVipByMemberIds(){
 		BaseTest.executeApplicationContext(acac->{
 			RenewVip vip = acac.getBean(RenewVip.class);
-			vip.renewVipByMemberIds(Arrays.asList("20151026-125509411-GWBKu"
-					,"20151026-125508985-lUWdK"
-					,"20151026-125511786-olUwa"
-					,"20151026-125509537-Fnayi"
-					,"20151026-125513290-EFkWq"
-					,"20151026-125511651-bEYGp"
-					,"20151026-125510478-ynJsi"
-					,"20151026-125510886-mkLNU"));
+			vip.renewVipByMemberIds(Arrays.asList("20151027-144906767-YuyBD"
+					,"20151027-153048836-ccDZP"
+					,"20151027-145422090-Abdid"
+					,"20151026-125512662-FZsbK"));
 		});
 	}
 	
