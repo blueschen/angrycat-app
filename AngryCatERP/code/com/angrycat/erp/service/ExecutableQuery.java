@@ -422,12 +422,17 @@ public class ExecutableQuery<T> implements Serializable, QueryScrollable{
 					.target("p", "member").getRoot()
 				.from()
 					.target(Member.class.getName(), "p").getRoot()
-				.where()
-					.andConds()
-						.andStrCondition("p.name LIKE :pName", MatchMode.ANYWHERE, "竹").getRoot()
+//				.where()
+//					.andConds()
+//						.andStrCondition("p.name LIKE :pName", MatchMode.ANYWHERE, "竹").getRoot()
+				.orderBy()
+					.asc("p.address")
 						;
-			
+			c.setCurrentPage(20);
+			long start = System.currentTimeMillis();
 			c.executeQueryPageable();
+			long end = System.currentTimeMillis();
+			System.out.println("spent time: "+(end-start)+" millisec.");
 		});
 	}
 	
@@ -467,6 +472,6 @@ public class ExecutableQuery<T> implements Serializable, QueryScrollable{
 	}
 	
 	public static void main(String[]args){
-		testClassFieldsInfo(Member.class);
+		testAddAfterRemove();
 	}
 }
