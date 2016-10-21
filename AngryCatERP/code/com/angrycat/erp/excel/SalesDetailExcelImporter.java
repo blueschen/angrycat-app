@@ -29,7 +29,7 @@ import com.angrycat.erp.model.SalesDetail;
 @Scope("prototype")
 public class SalesDetailExcelImporter extends ExcelImporter {
 	
-	private static final List<Integer> DEFAULT_SHEET_RANGE = Arrays.asList(0, 1);
+	private static final List<Integer> DEFAULT_SHEET_RANGE = Arrays.asList(0);
 	private static final Pattern IDNO = Pattern.compile("([a-z]|[A-Z]){1}[0-9]{9}");
 	
 	private String fileName;
@@ -64,7 +64,7 @@ public class SalesDetailExcelImporter extends ExcelImporter {
 		// "郵寄地址電話"不用匯入
 		// 價格要以會員價為主，會員價即是實收價
 		// 若只有一個價格，名稱雖然不叫會員價，程式應當把他歸為會員價
-		if(sheetIdx == 1){
+		if(sheetIdx == 0){
 			salePoint		= SalesDetail.SALE_POINT_FB;
 			saleStatus		= parseStrVal(row, 			getColumnIdxFromTitle("狀態"));
 			fbName			= parseStrVal(row, 			getColumnIdxFromTitle("FB名稱"));
@@ -84,7 +84,7 @@ public class SalesDetailExcelImporter extends ExcelImporter {
 			shippingDate  	= parseSqlDateVal(row, 		getColumnIdxFromTitle("出貨日"));
 			sendMethod 		= parseStrOrDate(row, 		getColumnIdxFromTitle("郵寄方式"));
 			note 			= parseStrVal(row, 			getColumnIdxFromTitle("備註"));
-		}else if(sheetIdx == 0){
+		}else{// 目前暫時沒專櫃，可以略過這段
 			salePoint		= SalesDetail.SALE_POINT_ESLITE_DUNNAN;
 			saleStatus		= parseStrVal(row, 			getColumnIdxFromTitle("狀態"));
 			fbName			= parseStrVal(row, 			getColumnIdxFromTitle("FB名稱/客人姓名"));
@@ -279,8 +279,8 @@ public class SalesDetailExcelImporter extends ExcelImporter {
 	}
 	
 	private static void testReadAndPersist(){
-		String fileName = "201608_OHM銷售明細";
-		String src = "E:\\angrycat_workitem\\銷售明細\\2016_09_21_from_miko\\"+fileName+".xlsx";
+		String fileName = "201609_OHM銷售明細";
+		String src = "E:\\angrycat_workitem\\銷售明細\\2016_10_21_from_miko\\"+fileName+".xlsx";
 		Map<String, String> msg = null;
 		try(AnnotationConfigApplicationContext acac = new AnnotationConfigApplicationContext(RootConfig.class);){
 			SalesDetailExcelImporter i = acac.getBean(SalesDetailExcelImporter.class);
