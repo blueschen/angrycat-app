@@ -1,7 +1,6 @@
 package com.angrycat.erp.service;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -55,12 +54,16 @@ public class SalesDetailKendoUiService extends
 			@Override
 			public LinkedHashMap<Integer, String> get() {
 				return new LinkedHashMap<Integer, String>();
-			}};	
+			}};
+	
+	static final String ACTION_NEW = "新增";
+	static final String ACTION_UPDATE = "修改";
+	static final String ACTION_DELETE = "刪除";
+	static final String STATUS_INVALID = "作廢";
 	@Override
 	@Transactional
 	public List<?> deleteByIds(List<String> ids){
 		List<?> results = super.deleteByIds(ids);
-		System.out.println("deleteByIds results is: " + results.getClass());
 		List<SalesDetail> targets = (List<SalesDetail>)results;
 		List<Product> products = findProducts(targets, sfw.currentSession());
 		IntStream.range(0, products.size())
@@ -68,7 +71,7 @@ public class SalesDetailKendoUiService extends
 			.forEachOrdered(i->{
 				SalesDetail sd = targets.get(i);
 				Product p = products.get(i);
-				updateStock("刪除", sd, p, null);
+				updateStock(ACTION_DELETE, sd, p, null);
 			});
 		productService.batchSaveOrMerge(products, null);
 		return results;
@@ -77,7 +80,6 @@ public class SalesDetailKendoUiService extends
 	@Transactional
 	public List<SalesDetail> batchSaveOrMerge(List<SalesDetail> targets, BiFunction<SalesDetail, Session, SalesDetail> before){
 		List<String> updateIds = targets.stream().filter(d->StringUtils.isNotBlank(d.getId())).map(d->d.getId()).collect(Collectors.toList());
-		System.out.println("batchSaveOrMerge targets is: " + targets.getClass());
 		
 		Session s = sfw.currentSession();
 		String querySalesDetail = "SELECT p FROM " + SalesDetail.class.getName() + " p WHERE p.id IN (:ids)";
@@ -100,9 +102,9 @@ public class SalesDetailKendoUiService extends
 				String action = null;
 				String oldSaleStatus = null;
 				if(oldDetail==null){
-					action = "新增";
+					action = ACTION_NEW;
 				}else{
-					action = "修改";
+					action = ACTION_UPDATE;
 					oldSaleStatus = oldDetail.getSaleStatus();
 				}
 				updateStock(action, sd, p, oldSaleStatus);
@@ -129,105 +131,50 @@ public class SalesDetailKendoUiService extends
 //					mergeModelIdFunction,
 //					mapModelIdSupplier)); // 用LinkedHashMap確保順序一致
 					
-		String queryProduct = "SELECT p FROM " + Product.class.getName() + " p WHERE p.modelId = :modelId";
-		List<Product> products = modelIds.stream().map(modelId->(Product)s.createQuery(queryProduct).setString("modelId", modelId).uniqueResult()).collect(Collectors.toList());
+		String queryProduct = "SELECT p FROM " + Product.class.getName() + " p WHERE p.modelId IN (:modelIds)";
+		List<Product> products = s.createQuery(queryProduct).setParameterList("modelIds", modelIds).list();
 		return products;		
 	}
-	private int getSaleStatusCode(String saleStatus){
-		int code = Integer.parseInt(saleStatus.substring(0, 2));
-		return code;
-	}
 	public Product updateStock(String action, SalesDetail sd, Product p, String oldStatus){
-		Product stock = null;
-		String saleStatus = sd.getSaleStatus();
+		int stock = 0;
+		String newStatus = sd.getSaleStatus();
 		String saleId = sd.getId();
-		if(action.equals("新增")){
-			stock = getAddedStock(saleStatus);
-		}
-		if(action.equals("修改")){
-			stock = getExistedStock(oldStatus, saleStatus);
-		}
-		if(action.equals("刪除")){
-			stock = getDeletedStock(saleStatus);
-		}
+		
+		stock = getStockChanged(action, oldStatus, newStatus);
+		
 		List<String> template = new ArrayList<>();
 		template.add(action);
 		template.add("銷售明細"+saleId);
-		int totalStockQty = stock.getTotalStockQty();
-		int notShipStockQty = stock.getNotShipStockQty();
-		p.setTotalStockQty(p.getTotalStockQty()+totalStockQty);
-		p.setNotShipStockQty(p.getNotShipStockQty()+notShipStockQty);
-		if(totalStockQty==1){
+		p.setTotalStockQty(p.getTotalStockQty()+stock);
+		if(stock==1){
 			template.add("總庫存+1");
 		}
-		if(totalStockQty==-1){
+		if(stock==-1){
 			template.add("總庫存-1");
 		}
-		if(notShipStockQty==1){
-			template.add("未出貨+1");
-		}
-		if(notShipStockQty==-1){
-			template.add("未出貨-1");
-		}
-		p.setTotalStockChangeNote("產生自:"+StringUtils.join(template, "_"));
-		return p;
-	}
-	public Product getDeletedStock(String saleStatus){
-		if(StringUtils.isBlank(saleStatus)){
-			throw new IllegalArgumentException("銷售狀態為必填");
-		}
-		int code = getSaleStatusCode(saleStatus);
-		Product p = new Product();
-		if(code < 40){
-			p.setNotShipStockQty(-1);
-		}else if(code == 40){
-			// do nothing
-		}else if(code == 99){
-			p.setTotalStockQty(1);
+		if(stock != 0){
+			p.setTotalStockChangeNote("產生自:"+StringUtils.join(template, "_"));
 		}
 		return p;
 	}
-	public Product getAddedStock(String saleStatus){
-		if(StringUtils.isBlank(saleStatus)){
-			throw new IllegalArgumentException("銷售狀態為必填");
+	int getStockChanged(String action, String oldStatus, String newStatus){
+		int stockChanged = 0;
+		if(action.equals(ACTION_NEW)){
+			if(null == newStatus){
+				throw new IllegalArgumentException(ACTION_NEW + " 的時候，應提供狀態");
+			}else if(null != newStatus && newStatus.contains(STATUS_INVALID)){
+				throw new IllegalArgumentException(ACTION_NEW + " 的時候，" + "銷售狀態不應為: " + STATUS_INVALID);
+			}
+			stockChanged = -1;
+		}else if(action.equals(ACTION_DELETE) && null != newStatus && !newStatus.contains(STATUS_INVALID)){
+			stockChanged = 1;
+		}else if(action.equals(ACTION_UPDATE) && oldStatus != newStatus){
+			if(null != oldStatus && oldStatus.contains(STATUS_INVALID)){
+				stockChanged = -1;
+			}else if(null != newStatus && newStatus.contains(STATUS_INVALID)){
+				stockChanged = 1;
+			}
 		}
-		int code = getSaleStatusCode(saleStatus);
-		Product p = new Product();
-		if(code < 40){
-			p.setNotShipStockQty(1);
-		}else if(code == 40){
-			// do nothing
-		}else if(code == 99){
-			p.setTotalStockQty(-1);
-		}
-		return p;
-	}
-	public Product getExistedStock(String oldSaleStatus, String newSaleStatus){
-		if(StringUtils.isBlank(oldSaleStatus) && StringUtils.isBlank(newSaleStatus)){
-			throw new IllegalArgumentException("新舊銷售狀態皆為空值，不是正常參數");
-		}
-		//10. 待出貨
-		//20. 集貨中
-		//30. 調貨中
-		//40. 待補貨
-		//99. 已出貨
-		int oldCode = getSaleStatusCode(oldSaleStatus);
-		int newCode = getSaleStatusCode(newSaleStatus);
-		Product p = new Product();
-		if((oldCode < 50 && newCode < 50)
-		|| (oldCode == 99 && newCode == 99)){
-			// do nothing
-		}else if(oldCode == 99 && newCode == 40){
-			p.setTotalStockQty(1);
-		}else if(oldCode == 99 && newCode < 40){
-			p.setTotalStockQty(1);
-			p.setNotShipStockQty(1);
-		}else if(oldCode == 40 && newCode == 99){
-			p.setTotalStockQty(-1);
-		}else if(oldCode < 40 && newCode == 99){
-			p.setTotalStockQty(-1);
-			p.setNotShipStockQty(-1);
-		}
-		return p;
+		return stockChanged;
 	}
 }
