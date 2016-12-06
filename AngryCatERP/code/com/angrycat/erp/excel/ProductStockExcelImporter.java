@@ -162,10 +162,6 @@ public class ProductStockExcelImporter {
 			int notShipStockQty = parseInt(row, 未出貨);
 			
 			p.setTotalStockQty(totalStockQty);
-			p.setOfficeStockQty(officeStockQty);
-			p.setDrawerStockQty(drawerStockQty);
-			p.setShowcaseStockQty(showcaseStockQty);
-			p.setNotShipStockQty(notShipStockQty);
 			
 //			System.out.println(ReflectionToStringBuilder.toString(p, ToStringStyle.MULTI_LINE_STYLE));
 			
