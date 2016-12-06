@@ -29,6 +29,7 @@ public class ParameterInsertService {
 	private SessionFactoryWrapper sfw;
 	@Transactional
 	public void execute(){
+//		clearAllParams();
 		initSalesDetailParams();
 		initTestParams();
 	}
@@ -58,49 +59,50 @@ public class ParameterInsertService {
 		
 		Arrays.asList(		
 		new Parameters("銷售狀態", s)
-			.addParameter("10. 待出貨")
-			.addParameter("20. 集貨中")
-			.addParameter("30. 調貨中")
-			.addParameter("40. 待補貨")
-			.addParameter("99. 已出貨")
+			.add("10. 待出貨")
+			.add("20. 集貨中")
+			.add("30. 調貨中")
+			.add("40. 待補貨")
+			.add("99. 已出貨")
+			.add("98. 作廢")
 		
 		,new Parameters("銷售點", s)
-			.addParameter("敦南誠品")
-			.addParameter("FB社團")
-			.addParameter("粉絲團")
-			.addParameter("商店")
-			.addParameter("私訊")
+			.add("敦南誠品")
+			.add("FB社團")
+			.add("粉絲團")
+			.add("商店")
+			.add("私訊")
 		
 		,new Parameters("折扣別", s,		"discount")
-			.addParameter("VIP9折",		"0.9")
-			.addParameter("VIPBD8折",	"0.8")
-			.addParameter("EVENT85", 	"0.85")
-			.addParameter("EVENT9", 	"0.9")
-			.addParameter("EVENT8", 	"0.8")
-			.addParameter("FREEBLT", 	"0")
-			.addParameter("FREEBED", 	"0")
+			.add("VIP9折",		"0.9")
+			.add("VIPBD8折",	"0.8")
+			.add("EVENT85", 	"0.85")
+			.add("EVENT9", 	"0.9")
+			.add("EVENT8", 	"0.8")
+			.add("FREEBLT", 	"0")
+			.add("FREEBED", 	"0")
 		
 		,new Parameters("付款別", s)
-			.addParameter("誠品")
-			.addParameter("PayPal")
-			.addParameter("匯款")
-			.addParameter("現金")
-			.addParameter("刷卡")
+			.add("誠品")
+			.add("PayPal")
+			.add("匯款")
+			.add("現金")
+			.add("刷卡")
 		
 		,new Parameters("付款狀態", s)
-			.addParameter("已付款")
-			.addParameter("未付款")
-			.addParameter("已付訂金")
+			.add("已付款")
+			.add("未付款")
+			.add("已付訂金")
 		
 		,new Parameters("郵寄方式", s)
-			.addParameter("郵局掛號")
-			.addParameter("EMS(國際)")
-			.addParameter("黑貓")
-			.addParameter("全家店取")
-			.addParameter("7-11店取")
-			.addParameter("面交")
-			.addParameter("Fedex(國際)")
-			.addParameter("國際掛號")
+			.add("郵局掛號")
+			.add("EMS(國際)")
+			.add("黑貓")
+			.add("全家店取")
+			.add("7-11店取")
+			.add("面交")
+			.add("Fedex(國際)")
+			.add("國際掛號")
 			
 		).forEach(p->{
 			p.save();
@@ -113,7 +115,7 @@ public class ParameterInsertService {
 		
 		Arrays.asList(
 			new Parameters("出題", s)
-				.addParameter("配題數")
+				.add("配題數")
 				.addProperty("total", "5")
 				.addProperty("product", "5")
 				.addProperty("exam", "0")
@@ -128,11 +130,11 @@ public class ParameterInsertService {
 		
 		Arrays.asList(
 			new Parameters("測試用", s)
-				.addParameter("測試一")
-				.addParameter("測試二")
-				.addParameter("測試三")
-				.addParameter("測試四")
-				.addParameter("測試五")
+				.add("測試一")
+				.add("測試二")
+				.add("測試三")
+				.add("測試四")
+				.add("測試五")
 		).forEach(p->{
 			p.save();
 		});
@@ -156,15 +158,15 @@ public class ParameterInsertService {
 			this(catName, s);
 			this.propertyNames = propertyNames;
 		};		
-		public Parameters addParameter(String name){
+		public Parameters add(String name){
 			Parameter p = new Parameter();
 			p.setNameDefault(name);
 			p.setParameterCategory(cat);
 			params.add(p);
 			return this;
 		}
-		public Parameters addParameter(String name, String...propertyValues){
-			addParameter(name);
+		public Parameters add(String name, String...propertyValues){
+			add(name);
 			Parameter p = params.getLast();
 			IntStream.range(0, propertyValues.length).forEach(idx->{
 				p.getLocaleNames().put(propertyNames[idx], propertyValues[idx]);
@@ -217,11 +219,17 @@ public class ParameterInsertService {
 			}
 		});
 	}
-	
+	private static void testExecute(){
+		BaseTest.executeApplicationContext(acac->{
+			ParameterInsertService serv = acac.getBean(ParameterInsertService.class);
+			serv.execute();
+		});
+	} 
 	public static void main(String[]args){
 //		testInitSalesDetailParams();
 //		testInitTestParams();
 //		testToJsonStr();
-		testInitMockParams();
+//		testInitMockParams();
+		testExecute();
 	}
 }
