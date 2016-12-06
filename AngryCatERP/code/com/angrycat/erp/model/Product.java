@@ -26,10 +26,6 @@ public class Product {
 	private String imgDir;
 	
 	private int totalStockQty;
-	private int officeStockQty;					
-	private int drawerStockQty;					
-	private int showcaseStockQty;
-	private int notShipStockQty;
 	
 	private String totalStockChangeNote;
 	@Id
@@ -128,34 +124,6 @@ public class Product {
 	}
 	public void setTotalStockQty(int totalStockQty) {
 		this.totalStockQty = totalStockQty;
-	}
-	@Column(name="officeStockQty", columnDefinition="辦公室庫存")
-	public int getOfficeStockQty() {
-		return officeStockQty;
-	}
-	public void setOfficeStockQty(int officeStockQty) {
-		this.officeStockQty = officeStockQty;
-	}
-	@Column(name="drawerStockQty", columnDefinition="專櫃抽屜")
-	public int getDrawerStockQty() {
-		return drawerStockQty;
-	}
-	public void setDrawerStockQty(int drawerStockQty) {
-		this.drawerStockQty = drawerStockQty;
-	}
-	@Column(name="showcaseStockQty", columnDefinition="展示櫃")
-	public int getShowcaseStockQty() {
-		return showcaseStockQty;
-	}
-	public void setShowcaseStockQty(int showcaseStockQty) {
-		this.showcaseStockQty = showcaseStockQty;
-	}
-	@Column(name="notShipStockQty", columnDefinition="未出貨")
-	public int getNotShipStockQty() {
-		return notShipStockQty;
-	}
-	public void setNotShipStockQty(int notShipStockQty) {
-		this.notShipStockQty = notShipStockQty;
 	}
 	@Column(name="totalStockChangeNote", columnDefinition="總庫存修改備註")
 	public String getTotalStockChangeNote() {
