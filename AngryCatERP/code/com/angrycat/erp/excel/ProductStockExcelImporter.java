@@ -62,6 +62,7 @@ public class ProductStockExcelImporter {
 	}
 	private void persistAsProduct(Session s, Workbook wb, String...sheetNames){
 		String queryByModelId = "SELECT p FROM " + Product.class.getName() + " p WHERE p.modelId = :modelId";
+		List<String> priceChangeds = new ArrayList<>();
 		for(String sheetName : sheetNames){
 			XSSFProcessor processor = initProcessor(wb, sheetName);
 			
@@ -88,6 +89,14 @@ public class ProductStockExcelImporter {
 					
 					p.setSeriesName(seriesName); // collection商品
 					p.setName(name); // 保養品
+				}else{
+//					int originalStockQty = p.getTotalStockQty();
+//					String updateStock = modelId + "["+ originalStockQty + "=>" + totalStockQty + "]";
+					double originalPrice = p.getSuggestedRetailPrice();
+					if(originalPrice != price){
+						String priceChanged = modelId + "["+ originalPrice + "=>" + price + "]";
+						priceChangeds.add(priceChanged);
+					}
 				}
 				p.setTotalStockQty(totalStockQty);
 				
@@ -100,8 +109,13 @@ public class ProductStockExcelImporter {
 				s.clear();
 			}
 			System.out.println(sheetName + " toalCount: " + processor.getCurrentRowIdx());
+			System.out.println("priceChangeds: " + priceChangeds.stream().collect(Collectors.joining(",")));
 		}
 	}
+	/**
+	 * TODO 要重新考量會遇到的多種情境，譬如: 更新庫存、比對資料、觀察資料、通報沒有庫存或定價等...
+	 * TODO 重新思考方法名稱
+	 */
 	@Transactional
 	public void resolveToDB(){
 		
