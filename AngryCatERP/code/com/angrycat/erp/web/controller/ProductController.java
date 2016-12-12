@@ -7,6 +7,7 @@ import java.util.Map;
 import javax.servlet.http.HttpServletResponse;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -19,6 +20,7 @@ import com.angrycat.erp.excel.ProductExcelExporter;
 import com.angrycat.erp.initialize.StartupWebAppInitializer;
 import com.angrycat.erp.model.Product;
 import com.angrycat.erp.model.ProductCategory;
+import com.angrycat.erp.service.KendoUiService;
 import com.angrycat.erp.service.ProductCategoryQueryService;
 import com.angrycat.erp.web.component.ConditionConfig;
 
@@ -43,6 +45,11 @@ public class ProductController extends KendoUiGridController<Product, Product> {
 	void init(){
 		super.init();
 		kendoUiGridService.setFilterFieldConverter(filterFieldConverter);
+	}
+	@Override
+	@Autowired
+	public <ProductKendoUiService extends KendoUiService<Product, Product>>void setKendoUiGridService(@Qualifier("productKendoUiService") ProductKendoUiService productKendoUiService) {
+		kendoUiGridService = productKendoUiService;
 	}
 	@SuppressWarnings("unchecked")
 	@Override
