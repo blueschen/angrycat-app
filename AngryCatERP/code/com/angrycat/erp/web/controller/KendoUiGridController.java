@@ -36,7 +36,6 @@ import com.angrycat.erp.web.component.ConditionConfig;
 
 public abstract class KendoUiGridController<T, R> implements Serializable{
 	private static final long serialVersionUID = 6941560925887626505L;
-	@Autowired
 	KendoUiService<T, R> kendoUiGridService;	
 	@Autowired
 	private SessionFactoryWrapper sfw;
@@ -56,7 +55,11 @@ public abstract class KendoUiGridController<T, R> implements Serializable{
 		String[] modulePaths = rm.value();
 		moduleName = modulePaths[0].substring(1);
 	}
-	
+	@Autowired
+	public <S extends KendoUiService<T, R>>void setKendoUiGridService(S kendoUiGridService) {
+		this.kendoUiGridService = kendoUiGridService;
+	}
+
 	public Class<T> getRootType(){
 		return rootType;
 	}
