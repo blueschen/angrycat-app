@@ -53,7 +53,7 @@ public class XSSFProcessor {
 		}
 //		System.out.println("header column count:" + (columnIdx+1));
 	}
-	public boolean isLast(int columnIdx){
+	private boolean isLast(int columnIdx){
 		return columnIdx >= columnEndIdx;
 	}
 	public int getHeaderRowIdx() {
@@ -108,6 +108,10 @@ public class XSSFProcessor {
 	public int getIntValu(String columnName){
 		return getIntValu(currentRow, columnName);
 	}
+	/**
+	 * 回傳header所在row以後的Iterator
+	 * @return
+	 */
 	public Iterator<Row> bypassHeader(){
 		Iterator<Row> itr = sheet.iterator();
 		int rowIdx = -1;
