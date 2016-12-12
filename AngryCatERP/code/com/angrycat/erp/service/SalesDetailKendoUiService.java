@@ -2,13 +2,10 @@ package com.angrycat.erp.service;
 
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.function.BiFunction;
-import java.util.function.BinaryOperator;
 import java.util.function.Function;
-import java.util.function.Supplier;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
@@ -28,33 +25,9 @@ public class SalesDetailKendoUiService extends
 		KendoUiService<SalesDetail, SalesDetail> {
 	private static final long serialVersionUID = 2968402826378838925L;
 	@Autowired
-	private KendoUiService<Product, Product> productService;
+	private ProductKendoUiService productKendoUiService;
 	@Autowired
 	private SessionFactoryWrapper sfw;
-	private static BinaryOperator<SalesDetail> mergeSalesDetailFunction = 
-		new BinaryOperator<SalesDetail>(){
-			@Override
-			public SalesDetail apply(SalesDetail u, SalesDetail v) {
-				throw new IllegalStateException(String.format("Duplicate keys %s", u));
-			}};
-	private static BinaryOperator<String> mergeModelIdFunction = 
-		new BinaryOperator<String>(){
-			@Override
-			public String apply(String u, String v) {
-				throw new IllegalStateException(String.format("Duplicate keys %s", u));
-			}};			
-	private static Supplier<LinkedHashMap<Integer, SalesDetail>> mapSalesDetailSupplier =
-		new Supplier<LinkedHashMap<Integer, SalesDetail>>(){
-			@Override
-			public LinkedHashMap<Integer, SalesDetail> get() {
-				return new LinkedHashMap<Integer, SalesDetail>();
-			}};
-	private static Supplier<LinkedHashMap<Integer, String>> mapModelIdSupplier =
-		new Supplier<LinkedHashMap<Integer, String>>(){
-			@Override
-			public LinkedHashMap<Integer, String> get() {
-				return new LinkedHashMap<Integer, String>();
-			}};
 	
 	static final String ACTION_NEW = "新增";
 	static final String ACTION_UPDATE = "修改";
@@ -82,7 +55,7 @@ public class SalesDetailKendoUiService extends
 					productsUpdated.add(p);
 				}
 			});
-		productService.batchSaveOrMerge(productsUpdated, null);
+		productKendoUiService.batchSaveOrMerge(productsUpdated, null);
 		return results;
 	}
 	@Override
@@ -125,7 +98,7 @@ public class SalesDetailKendoUiService extends
 				}
 			});
 		
-		productService.batchSaveOrMerge(productsUpdated, null);
+		productKendoUiService.batchSaveOrMerge(productsUpdated, null);
 		return details;
 	}
 	/**
