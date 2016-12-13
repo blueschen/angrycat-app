@@ -102,6 +102,7 @@ public class MagentoBaseService implements Serializable{
 			System.out.println("return data:\n" + json);
 		}
 		JsonNodeWrapper jnw = beanFactory.getBean(JsonNodeWrapper.class, json);
+		jnw.filterObjectNode();
 		return jnw;
 	}
 }
