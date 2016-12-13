@@ -27,7 +27,8 @@ public class MagentoBaseService implements Serializable{
 	@Autowired
 	private Environment env;
 	@Autowired
-	private BeanFactory beanFactory;
+	BeanFactory beanFactory;
+	boolean debug;
 	
 	static final String INTRANET_BASE_URL = "http://192.168.1.15/magento/index.php";
 	static final String LOCALHOST_BASE_URL = "http://localhost/magento/index.php";
@@ -58,7 +59,11 @@ public class MagentoBaseService implements Serializable{
 		try{
 			if(args!=null && args.length>0){
 				ObjectMapper om = new ObjectMapper();
-				data += ("data=" + om.writeValueAsString(Arrays.asList(args)));
+				String writeData = om.writeValueAsString(args);
+				data += ("data=" + writeData);
+				if(debug){
+					System.out.println("post data:\n" + writeData);
+				}
 			}
 			byte[] postData = data.getBytes(StandardCharsets.UTF_8);
 			int len = postData.length;
@@ -93,7 +98,9 @@ public class MagentoBaseService implements Serializable{
 	}
 	public JsonNodeWrapper request(String url, Object...args){
 		String json = connect(url, args);
-		System.out.println(json);
+		if(debug){
+			System.out.println("return data:\n" + json);
+		}
 		JsonNodeWrapper jnw = beanFactory.getBean(JsonNodeWrapper.class, json);
 		return jnw;
 	}
