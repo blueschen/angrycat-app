@@ -5,6 +5,7 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.function.Consumer;
 import java.util.function.Function;
+import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
 import org.springframework.context.annotation.Lazy;
@@ -26,7 +27,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 @Lazy(value=true)
 public class JsonNodeWrapper {
 	private JsonNode root;
-	private LinkedList<JsonNode> found = new LinkedList<>();
+	private List<JsonNode> found = new LinkedList<>();
 	public JsonNodeWrapper(String source){
 		ObjectMapper om = new ObjectMapper();
 		try{
@@ -57,14 +58,21 @@ public class JsonNodeWrapper {
 			});
 		}
 	}
-	public <T>List<T> transformTo(Function<JsonNode, T> exe){
+	public <T>List<T> toList(Function<JsonNode, T> exe){
 		return found.stream().map(exe).collect(Collectors.toList());
-	}
+	} 
 	public void consume(Consumer<JsonNode> consumer){
 		found.stream().forEachOrdered(consumer);
 	}
+	public JsonNodeWrapper filter(Predicate<JsonNode> tester){
+		found = found.stream().filter(tester).collect(Collectors.toList());
+		return this;
+	}
 	public JsonNode getRoot(){
 		return root;
+	}
+	public List<JsonNode> getFound(){
+		return found;
 	}
 	/**
 	 * 列印出Object Node上所有的屬性值<br>
