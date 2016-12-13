@@ -2,21 +2,26 @@ package com.angrycat.erp.service.magento;
 
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.function.BiPredicate;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 
 import org.apache.commons.lang.StringUtils;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Service;
 
 import com.angrycat.erp.component.JsonNodeWrapper;
+import com.angrycat.erp.model.Product;
 
 @Service
 @Scope("prototype")
 public class MagentoProductService extends MagentoBaseService {
 	private static final long serialVersionUID = 8322835412340989148L;
 	public MagentoProductService(){
-		setBaseUrl(LOCALHOST_BASE_URL);
+//		setBaseUrl(LOCALHOST_BASE_URL);
 		setModule("angrycatproduct");
 		setController("api");
 	}
@@ -42,6 +47,39 @@ public class MagentoProductService extends MagentoBaseService {
 		String result = connect("listProductsByFilters", filters);
 		return result;
 	}
+	private String getIsInStock(Object stock){
+		if(stock == null || (stock.getClass() != Integer.class)){
+			throw new RuntimeException("stock should be int");
+		}
+		int qty = Integer.class.cast(stock);
+		return qty > 0 ? "1" : "0";
+	}
+	/**
+	 * 跟Magento庫存比較
+	 * 過濾出不同比較基準的結果
+	 * @param products
+	 * @param compareStock: the first argument is stock quantity from Magento; the second from the memory
+	 * @return
+	 */
+	public List<StockInfo> filterByComparingStock(List<Product> products, BiPredicate<Integer, Integer> compareStock){
+		Map<String, Product> map = products.stream().collect(Collectors.toMap(Product::getModelId, Function.identity()));
+		JsonNodeWrapper jnw = listInventoryById(map.keySet().toArray(new String[map.size()]));
+		if(debug){
+			System.out.println("listInventoryById magento found count: " + jnw.getFound().size());
+		}
+		List<StockInfo> infos = jnw
+			.toList(n->{
+				int qty = Double.valueOf(n.findValue("qty").textValue()).intValue();
+				String modelId = n.findValue("sku").textValue();
+				Product p = map.get(modelId);
+				StockInfo si = new StockInfo(modelId, qty, p.getTotalStockQty());
+				return si;
+			})
+			.stream()
+			.filter(si->compareStock.test(si.getMagentoStockQty(), si.getTotalStockQty()))
+			.collect(Collectors.toList());
+		return infos;
+	}
 	/**
 	 * 根據資料庫ID或型號找到商品庫存<br>
 	 * 資料結構範例如下:<br>
@@ -62,5 +100,73 @@ public class MagentoProductService extends MagentoBaseService {
 	public JsonNodeWrapper listAllInventory(){
 		JsonNodeWrapper result = request("listAllInventory");
 		return result;
+	}
+	/**
+	 * 如果Magento庫存較多，<br>
+	 * 用庫存表的庫存更改他，<br>
+	 * 讓Magenot庫存與庫存表一致<br>
+	 * @param products
+	 * @return
+	 */
+	public JsonNodeWrapper updateStockIfMagentoIsMore(List<Product> products){
+		Map<String, Object> params = 
+			filterByComparingStock(products, (magentoStock, totalStock)-> magentoStock > totalStock)
+			.stream().collect(Collectors.toMap(StockInfo::getSku, StockInfo::getTotalStockQty));
+		JsonNodeWrapper result = updateInventoryByProductId(params);
+		return result;
+	}
+	/**
+	 * 批次修改Magento庫存數量及有無庫存flag<br>
+	 * 傳入參數資料結構範例如下:<br>
+	 * [{"productId":"2","updateData":{"qty":3,"is_in_stock":"1"}},{"productId":"4","updateData":{"qty":0,"is_in_stock":"0"}}]<br>
+	 * 成功回傳值資料結構如下:<br>
+	 * [{"2":true},{"4":true}]
+	 * @param params
+	 * @return
+	 */
+	public JsonNodeWrapper updateInventoryByProductId(Map<String, Object> params){
+		JsonNodeWrapper result = null;
+		if(params.size()==0){
+			result = beanFactory.getBean(JsonNodeWrapper.class, "{\"status\":\"Params is empty\"}");
+			return result;
+		}
+		List<Object> args = new LinkedList<>();
+		for(Map.Entry<String, Object> p : params.entrySet()){
+			Map<String, Object> updateData = new LinkedHashMap<>();
+			updateData.put("qty", p.getValue());
+			updateData.put("is_in_stock", getIsInStock(p.getValue()));
+			Map<String, Object> update = new LinkedHashMap<>();
+			String productId = p.getKey();
+			update.put("productId", productId);
+			update.put("updateData", updateData);
+			
+			args.add(update);
+		}
+		result = request("updateInventoryByProductId", args.toArray());
+		return result;
+	}
+	/**
+	 * Magento購物網站及庫存表庫存資訊
+	 * @author JerryLin
+	 *
+	 */
+	public static class StockInfo{
+		private String sku;
+		private int magentoStockQty;
+		private int totalStockQty;
+		public StockInfo(String sku, int magentoStockQty, int totalStockQty){
+			this.sku = sku;
+			this.magentoStockQty = magentoStockQty;
+			this.totalStockQty = totalStockQty;
+		}
+		public String getSku() {
+			return sku;
+		}
+		public int getMagentoStockQty() {
+			return magentoStockQty;
+		}
+		public int getTotalStockQty() {
+			return totalStockQty;
+		}
 	}
 }
