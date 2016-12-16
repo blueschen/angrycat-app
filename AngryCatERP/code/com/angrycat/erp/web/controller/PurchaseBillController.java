@@ -4,15 +4,20 @@ import static com.angrycat.erp.condition.ConditionFactory.putSqlDate;
 import static com.angrycat.erp.condition.ConditionFactory.putStrCaseInsensitive;
 import static com.angrycat.erp.condition.MatchMode.ANYWHERE;
 
-import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashMap;
+import java.util.Iterator;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
 import javax.annotation.PostConstruct;
 
+import org.apache.commons.lang3.StringUtils;
+import org.hibernate.Session;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -23,9 +28,12 @@ import org.springframework.web.bind.annotation.ResponseBody;
 
 import com.angrycat.erp.excel.ExcelExporter;
 import com.angrycat.erp.excel.ExcelImporter;
+import com.angrycat.erp.model.Member;
 import com.angrycat.erp.model.Product;
 import com.angrycat.erp.model.PurchaseBill;
+import com.angrycat.erp.model.PurchaseBillDetail;
 import com.angrycat.erp.service.ProductKendoUiService;
+import com.angrycat.erp.service.SalesDetailKendoUiService;
 import com.angrycat.erp.service.TimeService;
 import com.angrycat.erp.web.component.ConditionConfig;
 
@@ -38,6 +46,7 @@ public class PurchaseBillController extends
 	@Autowired
 	private TimeService timeService;
 	@Autowired
+	@Qualifier("productKendoUiService")
 	private ProductKendoUiService productKendoUiService;
 	
 	@Override
@@ -67,6 +76,71 @@ public class PurchaseBillController extends
 		});
 		return results;
 	}
+	@Override
+	PurchaseBill saveOrMerge(PurchaseBill pb, Session s){
+		// TODO 入庫之後修改進貨單，是否能夠允許再次入庫
+		// TODO 入庫之後刪除進貨單或明細，庫存是否加回來
+		if(pb.getPurchaseBillDetails() != null){
+			Collections.reverse(pb.getPurchaseBillDetails());
+		}
+		PurchaseBill oldSnapshot = null;
+			if(StringUtils.isBlank(pb.getId())){// add
+				int detailCount = pb.getPurchaseBillDetails().size();
+				if(detailCount > 0){// 連同明細一起新增
+					List<PurchaseBillDetail> detail = pb.getPurchaseBillDetails();
+					pb.setPurchaseBillDetails(new LinkedList<PurchaseBillDetail>());
+					s.save(pb);
+					s.flush();
+					detail.stream().forEach(d->{
+						d.setPurchaseBillId(pb.getId());
+					});
+					pb.getPurchaseBillDetails().addAll(detail);
+				}
+			}else{// update
+				findTargetService.getSimpleExpressions().get("pId").setValue(pb.getId());
+				List<PurchaseBill> pbs = findTargetService.executeQueryList(s);
+				
+				if(!pbs.isEmpty()){
+					oldSnapshot = pbs.get(0);// old data detached
+					s.evict(oldSnapshot);
+					
+					PurchaseBill sessionPurchaseBill = findTargetService.executeQueryList(s).get(0);
+					Iterator<PurchaseBillDetail> details = sessionPurchaseBill.getPurchaseBillDetails().iterator();
+					boolean deleted = false;
+					while(details.hasNext()){// delete vipDiscountDetails in memory
+						boolean deleting = true;
+						PurchaseBillDetail detail = details.next(); // data in database 
+						for(PurchaseBillDetail d : pb.getPurchaseBillDetails()){// data in memery (not in relation with session)
+							if(detail.getId().equals(d.getId())){// if both existed, representing not deleted yet
+								deleting = false;
+								break;
+							}
+						}
+						if(deleting){
+							details.remove();
+							deleted = true;
+						}
+					}
+					if(deleted){// change database to really delete vipDiscountDetails
+						s.saveOrUpdate(sessionPurchaseBill);
+						s.flush();
+					}
+					s.evict(sessionPurchaseBill);
+				}
+			}
+			s.saveOrUpdate(pb);// update pb, or add or update detail
+			s.flush();
+			if(oldSnapshot == null){
+				dataChangeLogger.logAdd(pb, s);
+			}else{
+//				Collections.reverse(oldSnapshot.getPurchaseBillDetails());
+//				Collections.reverse(pb.getPurchaseBillDetails());
+				dataChangeLogger.logUpdate(oldSnapshot, pb, s);
+			}
+			s.flush();
+			Collections.reverse(pb.getPurchaseBillDetails());
+		return pb;
+	}
 	@RequestMapping(value="/toStock",
 			method=RequestMethod.POST,
 			produces={"application/xml", "application/json"},
@@ -79,10 +153,18 @@ public class PurchaseBillController extends
 		}
 		target.setStockDate(timeService.todayMidnight());
 		sfw.executeSaveOrUpdate(s->{
-			super.saveOrMerge(target, s);
-			List<String> modelIds = target.getPurchaseBillDetails().stream().map(p->p.getModelId()).collect(Collectors.toList());
+			saveOrMerge(target, s);
+			Map<String, Integer> stockAdded = target.getPurchaseBillDetails().stream().collect(Collectors.toMap(p->p.getModelId(), p->p.getCount()));
 			String q = "SELECT p FROM " + Product.class.getName() + " p WHERE p.modelId IN (:modelIds)";
-			List<Product> products = s.createQuery(q).setParameterList("modelIds", modelIds).list();
+			List<Product> products = s.createQuery(q).setParameterList("modelIds", stockAdded.keySet()).list();
+			s.clear();
+			products.stream().forEach(p->{
+				int oriStock = p.getTotalStockQty();
+				int addedStock = stockAdded.get(p.getModelId());
+				int newStock = oriStock + addedStock;
+				p.setTotalStockQty(newStock);
+				p.setTotalStockChangeNote(ProductKendoUiService.genTotalStockChangeNote(SalesDetailKendoUiService.ACTION_NEW, "進貨單"+target.getNo(), addedStock));
+			});
 			productKendoUiService.batchSaveOrMerge(products, null, s);
 		});
 		return target;
