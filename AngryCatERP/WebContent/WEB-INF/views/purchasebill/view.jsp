@@ -25,15 +25,16 @@
     <link rel="stylesheet" href="${kendouiStyle}/kendo.common.min.css">
 	<link rel="stylesheet" href="${kendouiStyle}/kendo.default.min.css">
     <script type="text/javascript" src="${kendouiJs}/jquery.min.js"></script>
-	<script type="text/javascript">		
+	<script type="text/javascript">
+		<%@ include file="/common/angrycat/js/angrycat.js" %>
 		<%@ include file="/vendor/angularjs/1.4.3/angular.min.js" %>
 		<%@ include file="/vendor/angularjs/1.4.3/i18n/angular-locale_zh-tw.js" %>
 		<%@ include file="/common/ajax/ajax-service.js" %>
 		<%@ include file="/common/date/date-service.js" %>
 	</script>
-	<script type="text/javascript" src="${rootPath}/common/angrycat/angrycat.kendo.grid.js"></script>
 	<script type="text/javascript" src="${kendouiJs}/kendo.web.min.js"></script>
 	<script type="text/javascript" src="${kendouiJs}/messages/kendo.messages.zh-TW.min.js"></script>
+	<script type="text/javascript" src="${rootPath}/common/angrycat/js/angrycat.kendo.grid.js"></script>
 	<script type="text/javascript" src="<c:url value="/vendor/angular-strap/2.3.1/angular-strap.min.js"/>"></script>
 	<script type="text/javascript" src="<c:url value="/vendor/angular-strap/2.3.1/angular-strap.tpl.min.js"/>"></script>
 
@@ -63,7 +64,7 @@
  				單號<span style="color:red;">*</span>
  			</label>
  			<div class="col-sm-7">
- 				<input type="text" ng-model="mainCtrl.purchaseBill.no" id="no" name="no" class="form-control" no-duplicated="{{mainCtrl.purchaseBill.no}}"  ng-required="true" ng-disabled="mainCtrl.purchaseBill.id != null"/>
+ 				<input type="text" ng-model="mainCtrl.purchaseBill.no" id="no" name="no" class="form-control" no-duplicated="{{mainCtrl.purchaseBill.no}}"  ng-required="true" ng-disabled="mainCtrl.purchaseBill.id != null" autofocus/>
  				<span ng-show="mainCtrl.isNoDuplicated()">
  					單號已重複
  				</span> 				
@@ -126,15 +127,26 @@
 			<input type="hidden" ng-value="detail.purchaseBillId" ng-model="detail.purchaseBillId"/>
 			<div class="form-group">
 				<label for="modelId{{$index}}" style="font-size:12px;">型號</label>
-				<input id="modelId{{$index}}" type="text" class="form-control" ng-model="detail.modelId" ng-required="true" kendo-auto-complete k-data-source="ds"/>
-			</div>
-			<div class="form-group">
-				<label for="name{{$index}}" style="font-size:12px;">名稱</label>
-				<input id="name{{$index}}" type="text" class="form-control" ng-model="detail.name"/>
+				<input 
+					id="modelId{{$index}}" 
+					type="text" 
+					class="form-control" 
+					ng-model="detail.modelId" 
+					ng-required="true" 
+					kendo-auto-complete 
+					k-data-source="ds"
+					k-data-text-field="'modelId'"
+					k-data-value-field="'modelId'"
+					k-filter="'contains'"
+					k-select="selectAction"/>
 			</div>
 			<div class="form-group">
 				<label for="nameEng{{$index}}" style="font-size:12px;">英文名稱</label>
 				<input id="nameEng{{$index}}" type="text" class="form-control" ng-model="detail.nameEng"/>
+			</div>			
+			<div class="form-group">
+				<label for="name{{$index}}" style="font-size:12px;">名稱</label>
+				<input id="name{{$index}}" type="text" class="form-control" ng-model="detail.name"/>
 			</div>
 			<div class="form-group">
 				<label for="count{{$index}}" style="font-size:12px;">數量</label>
@@ -155,9 +167,17 @@
 		.controller('MainCtrl', ['$scope', 'DateService', 'AjaxService', 'urlPrefix', 'login', 'targetData', function($scope, DateService, AjaxService, urlPrefix, login, targetData){
 			var self = this,
 				saveUrl = urlPrefix + '/save.json';
-			
+			function assignModel(m){
+				self.purchaseBill = m;
+				if(self.purchaseBill.purchaseBillDetails){
+					$scope.details = self.purchaseBill.purchaseBillDetails;
+				}
+			}
 			if(targetData){
-				self.purchaseBill = targetData;
+				if(targetData.purchaseBillDetails){
+					targetData.purchaseBill.purchaseBillDetails.reverse(); // 讓最新的項目出現在最上面
+				}
+				assignModel(targetData);
 			}else{
 				self.purchaseBill = {};
 			}
@@ -171,10 +191,17 @@
 						action: "queryProductAutocomplete",
 						autocompleteFieldsToFilter: ["modelId", "nameEng"]
 					});
+			$scope.selectAction = function(e){
+				var dataItem = this.dataItem(e.item.index()),
+					id = e.sender.element.attr('id'),
+					idx = parseInt(id.replace('modelId', ''), 10);
+				self.purchaseBill.purchaseBillDetails[idx].name = dataItem.name;
+				self.purchaseBill.purchaseBillDetails[idx].nameEng = dataItem.nameEng;
+			};
 			self.save = function(){
 				AjaxService.post(saveUrl, self.purchaseBill)
 					.then(function(response){
-						self.purchaseBill = response.data;
+						assignModel(response.data);
 						alert('儲存成功!!');
 					},
 					function(errResponse){
@@ -189,7 +216,7 @@
 				}
 				AjaxService.post(urlPrefix + '/toStock.json', self.purchaseBill)
 					.then(function(response){
-						self.purchaseBill = response.data;
+						assignModel(response.data);
 						alert('歸檔成功!!');
 					},
 					function(errResponse){
@@ -200,9 +227,8 @@
 				if(!self.purchaseBill.purchaseBillDetails){
 					self.purchaseBill.purchaseBillDetails = [];
 				}
-				self.purchaseBill.purchaseBillDetails.push({count: 1});
+				self.purchaseBill.purchaseBillDetails.unshift({purchaseBillId: self.purchaseBill.id, count: 1});
 				$scope.details = self.purchaseBill.purchaseBillDetails; // 指定給$scope的物件，才會馬上重新render頁面，指給controller就沒辦法
-				console.log("newObj" + JSON.stringify(self.purchaseBill));
 			};
 			self.removeDetail = function(detail){
 				var idx = self.purchaseBill.purchaseBillDetails.indexOf(detail);
