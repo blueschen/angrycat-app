@@ -29,7 +29,7 @@ public class SalesDetailKendoUiService extends
 	@Autowired
 	private SessionFactoryWrapper sfw;
 	
-	static final String ACTION_NEW = "新增";
+	public static final String ACTION_NEW = "新增";
 	static final String ACTION_UPDATE = "修改";
 	static final String ACTION_DELETE = "刪除";
 	static final String STATUS_INVALID = "作廢";
@@ -147,19 +147,10 @@ public class SalesDetailKendoUiService extends
 		String saleId = sd.getId();
 		
 		stock = getStockChanged(action, oldStatus, newStatus);
-		
-		List<String> template = new ArrayList<>();
-		template.add(action);
-		template.add("銷售明細"+saleId);
 		p.setTotalStockQty(p.getTotalStockQty()+stock);
-		if(stock==1){
-			template.add("總庫存+1");
-		}
-		if(stock==-1){
-			template.add("總庫存-1");
-		}
+		
 		if(stock != 0){
-			p.setTotalStockChangeNote("產生自:"+StringUtils.join(template, "_"));
+			p.setTotalStockChangeNote(ProductKendoUiService.genTotalStockChangeNote(action, "銷售明細"+saleId, stock));
 		}
 		return stock;
 	}
