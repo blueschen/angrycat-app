@@ -6,11 +6,42 @@ import com.angrycat.erp.model.Exam;
 import com.angrycat.erp.model.ExamItem;
 import com.angrycat.erp.model.Member;
 import com.angrycat.erp.model.Product;
+import com.angrycat.erp.model.PurchaseBill;
+import com.angrycat.erp.model.PurchaseBillDetail;
 import com.angrycat.erp.model.SalesDetail;
 import com.angrycat.erp.model.VipDiscountDetail;
 
 
 public class FormatListFactory {
+	private static FormatList ofPurchaseBillDetails(int detailCount){
+		FormatList list = ofPurchaseBase("yyyy-MM-dd");
+		for(int i = 0; i < detailCount; i++){
+			String subject = "進貨單紀錄"+(i+1)+"_";
+			String field = "purchaseBillDetails["+i+"].";
+			list.add(new DetailPropertyFormat(subject + "型號", field+"modelId"));
+			list.add(new DetailPropertyFormat(subject + "名稱", field+"name"));
+			list.add(new DetailPropertyFormat(subject + "英文名稱", field+"nameEng"));
+			list.add(new DetailPropertyFormat(subject + "數量", field+"count"){});
+		}
+		return list;
+	}
+	
+	private static FormatList ofPurchaseBase(String dateFormat){
+		FormatList f = new FormatList();
+		f.setDocTitle("no");
+		
+		PropertyFormat arriveDate = new PropertyFormat("到貨日", "arriveDate");
+		arriveDate.setDateFormat(dateFormat);
+		PropertyFormat stockDate = new PropertyFormat("入庫日", "stockDate");
+		stockDate.setDateFormat(dateFormat);
+		
+		f.add(new PropertyFormat("單號", "no"));
+		f.add(arriveDate);
+		f.add(stockDate);
+		f.add(new PropertyFormat("備註", "note"));
+		
+		return f;
+	}
 	
 	private static FormatList ofProductBase(String dateFormat){
 		FormatList f = new FormatList();
@@ -186,6 +217,10 @@ public class FormatListFactory {
 			Exam e = (Exam)obj;
 			int size = e.getItems().size();
 			formats = ofExamItems(size);
+		}else if(clz == PurchaseBill.class){
+			PurchaseBill p = (PurchaseBill)obj;
+			int size = p.getPurchaseBillDetails().size();
+			formats = ofPurchaseBillDetails(size);
 		}
 		return formats;
 	}
@@ -224,6 +259,17 @@ public class FormatListFactory {
 			int newSize = newItems.size();
 			int maxSize = Math.max(oldSize, newSize);
 			formats = ofExamItems(maxSize);
+		}else if(clz == PurchaseBill.class){
+			PurchaseBill oldOne = (PurchaseBill)oldObj;
+			List<PurchaseBillDetail> oldDetails = oldOne.getPurchaseBillDetails();
+			int oldSize = oldDetails.size();
+			
+			PurchaseBill newOne = (PurchaseBill)newObj;
+			List<PurchaseBillDetail> newDetails = newOne.getPurchaseBillDetails();
+			int newSize = newDetails.size();
+			
+			int maxSize = Math.max(oldSize, newSize);
+			formats = ofPurchaseBillDetails(maxSize);
 		}
 		return formats;
 	}
