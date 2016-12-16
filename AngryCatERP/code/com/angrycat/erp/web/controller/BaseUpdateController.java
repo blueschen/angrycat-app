@@ -9,6 +9,7 @@ import javax.servlet.http.HttpServletResponse;
 
 import org.apache.commons.beanutils.PropertyUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.hibernate.Session;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -51,42 +52,45 @@ public abstract class BaseUpdateController<T, R> extends
 		addUrlPrefixAsModuleName(model);
 		return urlPrefix + "/view";
 	}
-	
+	T saveOrMerge(T target, Session s){
+		T oldSnapshot = null;
+		String id = null;
+		try{
+			id = (String)PropertyUtils.getProperty(target, "id");
+		}catch(Throwable e){
+			throw new RuntimeException(e);
+		}
+		if(StringUtils.isBlank(id)){// add
+			s.save(target);
+			s.flush();
+		}else{// update
+			findTargetService.getSimpleExpressions().get("pId").setValue(id);
+			List<T> targets = findTargetService.executeQueryList(s);
+			
+			if(!targets.isEmpty()){
+				oldSnapshot = targets.get(0);// old data detached
+				s.evict(oldSnapshot);
+			}
+		}
+		s.saveOrUpdate(target);// update member, or add or update detail
+		s.flush();
+		User user = WebUtils.getSessionUser();
+		dataChangeLogger.setUser(user);
+		if(oldSnapshot == null){
+			dataChangeLogger.logAdd(target, s);
+		}else{
+			dataChangeLogger.logUpdate(oldSnapshot, target, s);
+		}
+		s.flush();
+		return target;
+	}
 	@RequestMapping(value="/save",
 			method=RequestMethod.POST,
 			produces={"application/xml", "application/json"},
 			headers="Accept=*/*")
 	public @ResponseBody T saveOrMerge(@RequestBody T target){
 		sfw.executeSaveOrUpdate(s->{
-			T oldSnapshot = null;
-			String id = null;
-			try{
-				id = (String)PropertyUtils.getProperty(target, "id");
-			}catch(Throwable e){
-				throw new RuntimeException(e);
-			}
-			if(StringUtils.isBlank(id)){// add
-				s.save(target);
-				s.flush();
-			}else{// update
-				findTargetService.getSimpleExpressions().get("pId").setValue(id);
-				List<T> targets = findTargetService.executeQueryList(s);
-				
-				if(!targets.isEmpty()){
-					oldSnapshot = targets.get(0);// old data detached
-					s.evict(oldSnapshot);
-				}
-			}
-			s.saveOrUpdate(target);// update member, or add or update detail
-			s.flush();
-			User user = WebUtils.getSessionUser();
-			dataChangeLogger.setUser(user);
-			if(oldSnapshot == null){
-				dataChangeLogger.logAdd(target, s);
-			}else{
-				dataChangeLogger.logUpdate(oldSnapshot, target, s);
-			}
-			s.flush();
+			saveOrMerge(target, s);
 		});
 		return target;
 	}
