@@ -158,10 +158,9 @@ public abstract class BaseQueryController<T, R> implements Serializable {
 			produces={"application/xml", "application/json"},
 			headers="Accept=*/*")
 	@ResponseStatus(HttpStatus.OK)
-	public @ResponseBody String resetConditions(){
+	public @ResponseBody ConditionConfig<T> resetConditions(){
 		ConditionConfig<T> cc = queryBaseService.resetConditions();
-		String result = conditionConfigToJsonStr(cc);
-		return result;
+		return cc;
 	}
 	
 	/**
@@ -172,10 +171,9 @@ public abstract class BaseQueryController<T, R> implements Serializable {
 			method={RequestMethod.POST, RequestMethod.GET},
 			produces={"application/xml", "application/json"},
 			headers="Accept=*/*")
-	public @ResponseBody String queryAll(){
+	public @ResponseBody ConditionConfig<T> queryAll(){
 		ConditionConfig<T> cc = queryBaseService.genCondtitionsAfterExecuteQueryPageable();
-		String result = conditionConfigToJsonStr(cc);
-		return result;
+		return cc;
 	}
 	/**
 	 * 分頁條件查詢
@@ -184,10 +182,9 @@ public abstract class BaseQueryController<T, R> implements Serializable {
 			method=RequestMethod.POST,
 			produces={"application/xml", "application/json"},
 			headers="Accept=*/*")
-	public @ResponseBody String queryConditional(@RequestBody ConditionConfig<T> conditionConfig){
+	public @ResponseBody ConditionConfig<T> queryConditional(@RequestBody ConditionConfig<T> conditionConfig){
 		ConditionConfig<T> cc = queryBaseService.executeQueryPageable(conditionConfig);
-		String result = conditionConfigToJsonStr(cc);
-		return result;
+		return cc;
 	}
 	/**
 	 * 查詢下載Excel之前，先把頁面的條件傳到後端，所以要複製查詢條件
