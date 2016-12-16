@@ -69,7 +69,7 @@ public class KendoUiService<T, R> implements Serializable{
 	@Autowired
 	private ExecutableQuery<T> q;
 	@Autowired
-	private SessionFactoryWrapper sfw;
+	SessionFactoryWrapper sfw;
 	@Autowired
 	private ModelPropertyService modelPropertyService;
 	@Autowired
@@ -188,10 +188,7 @@ public class KendoUiService<T, R> implements Serializable{
 			
 		}
 	}
-	
-	@Transactional
-	public List<T> batchSaveOrMerge(List<T> targets, BiFunction<T, Session, T> before){
-		Session s = sfw.currentSession();
+	public List<T> batchSaveOrMerge(List<T> targets, BiFunction<T, Session, T> before, Session s){
 		int batchSize = sfw.getBatchSize();
 		int count = 0;
 		
@@ -233,10 +230,13 @@ public class KendoUiService<T, R> implements Serializable{
 		
 		return targets;
 	}
-	
 	@Transactional
-	public List<?> deleteByIds(List<String> ids){
+	public List<T> batchSaveOrMerge(List<T> targets, BiFunction<T, Session, T> before){
 		Session s = sfw.currentSession();
+		batchSaveOrMerge(targets, before, s);
+		return targets;
+	}
+	List<?> deleteByIds(List<String> ids, Session s){
 		String queryHql = "SELECT DISTINCT p FROM " + q.findFirstSqlTarget().getTargetClass().getName() + " p WHERE p."+ q.getIdFieldName() +" IN (:ids)";
 		ScrollableResults results = s.createQuery(queryHql).setParameterList("ids", ids).scroll(ScrollMode.FORWARD_ONLY);
 		List<Object> saved = new ArrayList<>();
@@ -250,7 +250,12 @@ public class KendoUiService<T, R> implements Serializable{
 		}
 		s.flush();
 		s.clear();
-		
+		return saved;
+	}
+	@Transactional
+	public List<?> deleteByIds(List<String> ids){
+		Session s = sfw.currentSession();
+		List<?> saved = deleteByIds(ids, s);
 		return saved;
 	}
 	
