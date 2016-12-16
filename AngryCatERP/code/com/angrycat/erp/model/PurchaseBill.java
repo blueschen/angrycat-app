@@ -63,7 +63,7 @@ public class PurchaseBill {
 		this.note = note;
 	}
 	@OneToMany(fetch=FetchType.LAZY, targetEntity=PurchaseBillDetail.class, cascade=CascadeType.ALL, mappedBy="purchaseBillId", orphanRemoval=true)
-	@OrderBy("id DESC")
+	@OrderBy("id ASC")
 	public List<PurchaseBillDetail> getPurchaseBillDetails() {
 		return purchaseBillDetails;
 	}
