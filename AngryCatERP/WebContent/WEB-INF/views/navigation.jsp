@@ -61,6 +61,12 @@
         			<li ${moduleName == "product" ? "class='active'" : ""}>
 						<a href="${pageContext.request.contextPath}/product/list">產品及庫存</a>
 					</li>
+					<li ${moduleName == "purchasebill" ? "class='active'" : ""}>
+						<a href="${pageContext.request.contextPath}/purchasebill/list">進貨</a>
+					</li>
+					<li>
+						<a href="${pageContext.request.contextPath}/purchasebill/add">進貨新增</a>
+					</li>
 				</ul>
 				<ul class="nav navbar-nav navbar-right">
 					<li>
