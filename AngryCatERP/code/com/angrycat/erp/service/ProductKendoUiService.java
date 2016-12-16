@@ -1,37 +1,76 @@
 package com.angrycat.erp.service;
 
+import static com.angrycat.erp.common.EmailContact.JERRY;
+
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 import java.util.function.BiFunction;
+import java.util.stream.Collectors;
 
 import org.hibernate.Session;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Scope;
+import org.springframework.mail.MailSender;
+import org.springframework.mail.SimpleMailMessage;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.angrycat.erp.model.Product;
+import com.angrycat.erp.service.magento.MagentoProductService;
 @Service
 @Scope("prototype")
 @Qualifier("productKendoUiService")
 public class ProductKendoUiService extends KendoUiService<Product, Product> {
 	private static final long serialVersionUID = 9088514750485237337L;
+	@Autowired
+	private MagentoProductService magentoProductService;
+	@Autowired
+	private MailSender mailSender;
+	@Autowired
+	private SimpleMailMessage templateMessage;
+	
 	@Override
 	@Transactional
 	public List<?> deleteByIds(List<String> ids){
-		List<?> results = super.deleteByIds(ids);
-		// TODO 與Magento庫存非同步連動
-		mockAsyncRequest();
+		List<Product> results = (List<Product>)super.deleteByIds(ids);
+		// TODO 與Magento庫存非同步連動: 待其他功能完成後，再測試
+//		Map<String, Object> params = 
+//			results
+//				.stream()
+//				.map(r->{r.setTotalStockQty(0); return r;}) // 把所有庫存歸0
+//				.collect(Collectors.toMap(p->p.getModelId(), p->p.getTotalStockQty()));
+//		asyncUpdateMagentoStock(params);
 		return results;
 	}
 	
 	@Override
 	@Transactional
 	public List<Product> batchSaveOrMerge(List<Product> targets, BiFunction<Product, Session, Product> before){
-		List<Product> results = super.batchSaveOrMerge(targets, before);
-		// TODO 與Magento庫存非同步連動
-		mockAsyncRequest();
+		Session s = sfw.currentSession();
+		List<Product> results = super.batchSaveOrMerge(targets, before, s);
+		// TODO 與Magento庫存非同步連動: 待其他功能完成後，再測試
+//		Map<String, Object> params = 
+//			results
+//				.stream()
+//				.collect(Collectors.toMap(p->p.getModelId(), p->p.getTotalStockQty()));
+//		asyncUpdateMagentoStock(params);
 		return results;
+	}
+	private void asyncUpdateMagentoStock(Map<String, Object> params){
+		CompletableFuture.supplyAsync(()->magentoProductService.updateInventoryByProductId(params))
+			.exceptionally((ex)-> {
+				String msg = "Contents:\n"; 
+				msg += params.keySet().stream().map(k->k+":"+params.get(k)).collect(Collectors.joining("\n"));
+				SimpleMailMessage simpleMailMessage = new SimpleMailMessage(templateMessage);
+				simpleMailMessage.setTo(JERRY);
+				simpleMailMessage.setText(msg);
+				simpleMailMessage.setSubject("Update Magento Errors");
+				mailSender.send(simpleMailMessage);
+				return null;
+			});
+			
 	}
 	/**
 	 * 測試非同步
