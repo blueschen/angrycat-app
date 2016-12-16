@@ -280,6 +280,6 @@ public class MemberVIP {
 		
 	}
 	public static void main(String[]args){
-		testShortMsgNotifyBirthVIPAvailableBasicLogic();
+		testShortMsgNotifyBirthVIPAvailable();
 	}
 }
