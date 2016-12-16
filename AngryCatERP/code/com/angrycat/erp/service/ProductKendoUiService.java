@@ -2,12 +2,14 @@ package com.angrycat.erp.service;
 
 import static com.angrycat.erp.common.EmailContact.JERRY;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 import java.util.function.BiFunction;
 import java.util.stream.Collectors;
 
+import org.apache.commons.lang3.StringUtils;
 import org.hibernate.Session;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -90,5 +92,21 @@ public class ProductKendoUiService extends KendoUiService<Product, Product> {
 			System.out.println("mockAsyncRequest:\n" + retMsg);
 		});
 		System.out.println("main thread keeps executing");
+	}
+	public static String genTotalStockChangeNote(String action, String title, int stockChanged){
+		if(stockChanged == 0){
+			return null;
+		}
+		List<String> template = new ArrayList<>();
+		template.add(action);
+		template.add(title);
+		if(stockChanged > 0){
+			template.add("總庫存+"+stockChanged);
+		}
+		if(stockChanged < 0){
+			template.add("總庫存"+stockChanged);
+		}
+		String note = "產生自:"+StringUtils.join(template, "_");
+		return note;
 	}
 }
