@@ -55,7 +55,7 @@ public class SalesDetailKendoUiService extends
 					productsUpdated.add(p);
 				}
 			});
-		productKendoUiService.batchSaveOrMerge(productsUpdated, null);
+		productKendoUiService.batchSaveOrMerge(productsUpdated, null, s);
 		return results;
 	}
 	@Override
@@ -98,7 +98,7 @@ public class SalesDetailKendoUiService extends
 				}
 			});
 		
-		productKendoUiService.batchSaveOrMerge(productsUpdated, null);
+		productKendoUiService.batchSaveOrMerge(productsUpdated, null, s);
 		return details;
 	}
 	/**
