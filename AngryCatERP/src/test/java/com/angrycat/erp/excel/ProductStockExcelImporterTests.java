@@ -15,8 +15,8 @@ public class ProductStockExcelImporterTests {
 	private ProductStockExcelImporter importer;
 	@Test
 	public void resolveToDB(){
-		importer.setSrc("C:\\Users\\JerryLin\\Desktop\\臺灣OHM商品總庫存清單_2016_12_07.xlsx");
-		importer.setMergeDisabled(true);
+		importer.setSrc("C:\\Users\\JerryLin\\Desktop\\臺灣OHM商品總庫存清單_2016_12_13.xlsx");
+		importer.setMergeDisabled(false);
 		importer.resolveToDB();
 	}
 }
