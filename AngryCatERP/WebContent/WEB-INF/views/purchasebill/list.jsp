@@ -348,7 +348,7 @@
 		.directive('toChangeLog', [function(){
 			return function(scope, ele, attrs){
 				ele.bind('click', function(){
-					document.location.href = '${pageContext.request.contextPath}/datachangelog/list?docId=' + attrs.toChangeLog + '&docType=com.angrycat.erp.model.Member';
+					document.location.href = '${pageContext.request.contextPath}/datachangelog/list?docId=' + attrs.toChangeLog + '&docType=com.angrycat.erp.model.PurchaseBill';
 				});
 			};
 		}])
