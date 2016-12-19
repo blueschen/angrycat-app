@@ -8,7 +8,6 @@ import java.io.Serializable;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.nio.charset.StandardCharsets;
-import java.util.Arrays;
 
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -32,6 +31,7 @@ public class MagentoBaseService implements Serializable{
 	
 	static final String INTRANET_BASE_URL = "http://192.168.1.15/magento/index.php";
 	static final String LOCALHOST_BASE_URL = "http://localhost/magento/index.php";
+	public static final String SERVER_LOCAL_BASE_URL = "http://127.0.0.1/magento/index.php";
 	private String baseUrl = LOCALHOST_BASE_URL;
 	private String controller = "";
 	private String module = "";
