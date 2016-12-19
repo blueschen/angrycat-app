@@ -21,7 +21,7 @@ import com.angrycat.erp.model.Product;
 public class MagentoProductService extends MagentoBaseService {
 	private static final long serialVersionUID = 8322835412340989148L;
 	public MagentoProductService(){
-//		setBaseUrl(LOCALHOST_BASE_URL);
+		setBaseUrl(SERVER_LOCAL_BASE_URL);
 		setModule("angrycatproduct");
 		setController("api");
 	}
