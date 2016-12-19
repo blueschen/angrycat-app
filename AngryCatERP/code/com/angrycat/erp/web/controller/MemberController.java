@@ -44,6 +44,7 @@ import com.angrycat.erp.model.Member;
 import com.angrycat.erp.model.VipDiscountDetail;
 import com.angrycat.erp.security.User;
 import com.angrycat.erp.web.WebUtils;
+import com.angrycat.erp.web.component.ConditionConfig;
 
 
 
@@ -109,7 +110,7 @@ public class MemberController extends BaseUpdateController<Member, Member>{
 			method=RequestMethod.POST,
 			produces={"application/xml", "application/json"},
 			headers="Accept=*/*")
-	public @ResponseBody String deleteItems(@RequestBody List<String> ids){
+	public @ResponseBody ConditionConfig<Member> deleteItems(@RequestBody List<String> ids){
 		addUserToComponent();
 		return super.deleteItems(ids);
 	}
@@ -227,7 +228,7 @@ public class MemberController extends BaseUpdateController<Member, Member>{
 			method=RequestMethod.POST, 
 			produces={"application/xml", "application/json"},
 			headers="Accept=*/*")
-	public @ResponseBody String uploadExcel(
+	public @ResponseBody ConditionConfig<Member> uploadExcel(
 		@RequestPart("uploadExcelFile") byte[] uploadExcelFile){
 		addUserToComponent();
 		return super.uploadExcel(uploadExcelFile);
