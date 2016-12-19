@@ -34,7 +34,7 @@ public class MagentoProductServiceTests {
 	private BeanFactory beanFactory;
 	@Before
 	public void init(){
-		serv.setBaseUrl(MagentoProductService.LOCALHOST_BASE_URL);
+		serv.setBaseUrl(MagentoProductService.SERVER_LOCAL_BASE_URL);
 		serv.debug = true;
 	}
 	private List<Product> mockProducts(){
