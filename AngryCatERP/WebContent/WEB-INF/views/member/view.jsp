@@ -18,9 +18,9 @@
 	<link rel="stylesheet" href='<c:url value="/vendor/bootstrap/3.3.5/css/bootstrap.css"/>'/>
 	<link rel="stylesheet" href='<c:url value="/vendor/bootstrap/3.3.5/css/bootstrap-theme.css"/>'/>
     
-	<script type="text/javascript">		
-		<%@ include file="/vendor/angularjs/1.4.3/angular.min.js" %>
-		<%@ include file="/vendor/angularjs/1.4.3/i18n/angular-locale_zh-tw.js" %>
+    	<script type="text/javascript" src="<c:url value="/vendor/angularjs/1.4.3/angular.min.js"/>"></script>
+	<script type="text/javascript" src="<c:url value="/vendor/angularjs/1.4.3/i18n/angular-locale_zh-tw.js"/>"></script>
+	<script type="text/javascript">
 		<%@ include file="/common/ajax/ajax-service.js" %>
 		<%@ include file="/common/date/date-service.js" %>
 	</script>
