@@ -226,7 +226,8 @@
 			self.docTypes = [
 				{label: '會員', value: 'com.angrycat.erp.model.Member'}, 
 				{label: '銷售明細', value: 'com.angrycat.erp.model.SalesDetail'},
-				{label: '題庫', value: 'com.angrycat.erp.model.Exam'}
+				{label: '題庫', value: 'com.angrycat.erp.model.Exam'},
+				{label: '進貨', value: 'com.angrycat.erp.model.PurchaseBill'}
 			];
 			
 			self.queryAll = function(){
