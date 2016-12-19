@@ -25,13 +25,13 @@
     <link rel="stylesheet" href="${kendouiStyle}/kendo.common.min.css">
 	<link rel="stylesheet" href="${kendouiStyle}/kendo.default.min.css">
     <script type="text/javascript" src="${kendouiJs}/jquery.min.js"></script>
+    <script type="text/javascript" src="<c:url value="/vendor/angularjs/1.4.3/angular.min.js"/>"></script>
+	<script type="text/javascript" src="<c:url value="/vendor/angularjs/1.4.3/i18n/angular-locale_zh-tw.js"/>"></script>
 	<script type="text/javascript">
 		<%@ include file="/common/angrycat/js/angrycat.js" %>
-		<%@ include file="/vendor/angularjs/1.4.3/angular.min.js" %>
-		<%@ include file="/vendor/angularjs/1.4.3/i18n/angular-locale_zh-tw.js" %>
 		<%@ include file="/common/ajax/ajax-service.js" %>
 		<%@ include file="/common/date/date-service.js" %>
-	</script>
+	</script>	
 	<script type="text/javascript" src="${kendouiJs}/kendo.web.min.js"></script>
 	<script type="text/javascript" src="${kendouiJs}/messages/kendo.messages.zh-TW.min.js"></script>
 	<script type="text/javascript" src="${rootPath}/common/angrycat/js/angrycat.kendo.grid.js"></script>
@@ -175,11 +175,11 @@
 			}
 			if(targetData){
 				if(targetData.purchaseBillDetails){
-					targetData.purchaseBill.purchaseBillDetails.reverse(); // 讓最新的項目出現在最上面
+					targetData.purchaseBillDetails.reverse(); // 讓最新的項目出現在最上面
 				}
 				assignModel(targetData);
 			}else{
-				self.purchaseBill = {};
+				assignModel({});
 			}
 			$scope.ds = 
 				angrycat
