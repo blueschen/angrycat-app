@@ -86,7 +86,7 @@ public class PurchaseBillController extends
 		PurchaseBill oldSnapshot = null;
 			if(StringUtils.isBlank(pb.getId())){// add
 				int detailCount = pb.getPurchaseBillDetails().size();
-				if(detailCount > 0){// 連同明細一起新增
+				if(detailCount > 0){
 					List<PurchaseBillDetail> detail = pb.getPurchaseBillDetails();
 					pb.setPurchaseBillDetails(new LinkedList<PurchaseBillDetail>());
 					s.save(pb);
@@ -107,7 +107,7 @@ public class PurchaseBillController extends
 					PurchaseBill sessionPurchaseBill = findTargetService.executeQueryList(s).get(0);
 					Iterator<PurchaseBillDetail> details = sessionPurchaseBill.getPurchaseBillDetails().iterator();
 					boolean deleted = false;
-					while(details.hasNext()){// delete vipDiscountDetails in memory
+					while(details.hasNext()){// delete details in memory
 						boolean deleting = true;
 						PurchaseBillDetail detail = details.next(); // data in database 
 						for(PurchaseBillDetail d : pb.getPurchaseBillDetails()){// data in memery (not in relation with session)
@@ -121,7 +121,7 @@ public class PurchaseBillController extends
 							deleted = true;
 						}
 					}
-					if(deleted){// change database to really delete vipDiscountDetails
+					if(deleted){// change database to really delete details
 						s.saveOrUpdate(sessionPurchaseBill);
 						s.flush();
 					}
