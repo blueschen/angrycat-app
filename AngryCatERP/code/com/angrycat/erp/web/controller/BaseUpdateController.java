@@ -99,10 +99,9 @@ public abstract class BaseUpdateController<T, R> extends
 			method=RequestMethod.POST,
 			produces={"application/xml", "application/json"},
 			headers="Accept=*/*")
-	public @ResponseBody String deleteItems(@RequestBody List<String> ids){
+	public @ResponseBody ConditionConfig<T> deleteItems(@RequestBody List<String> ids){
 		ConditionConfig<T> cc = queryBaseService.executeQueryPageableAfterDelete(ids);
-		String result = conditionConfigToJsonStr(cc);
-		return result;
+		return cc;
 	}
 	
 	abstract <I extends ExcelImporter>I getExcelImporter();
@@ -112,14 +111,13 @@ public abstract class BaseUpdateController<T, R> extends
 			method=RequestMethod.POST, 
 			produces={"application/xml", "application/json"},
 			headers="Accept=*/*")
-	public @ResponseBody String uploadExcel(
+	public @ResponseBody ConditionConfig<T> uploadExcel(
 		@RequestPart("uploadExcelFile") byte[] uploadExcelFile){
 		Map<String, String> msg = getExcelImporter().persist(uploadExcelFile, dataChangeLogger);
 		ConditionConfig<T> cc = queryBaseService.genCondtitionsAfterExecuteQueryPageable();
 		cc.getMsgs().clear();
 		cc.getMsgs().putAll(msg);
-		String result = conditionConfigToJsonStr(cc);
-		return result;
+		return cc;
 	}
 	
 	/**
