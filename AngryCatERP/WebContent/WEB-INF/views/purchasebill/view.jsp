@@ -195,14 +195,27 @@
 					})
 					.getDefaultFieldAutoCompleteDataSource({
 						action: "queryProductAutocomplete",
-						autocompleteFieldsToFilter: ["modelId", "nameEng"]
+						autocompleteFieldsToFilter: ["modelId", "nameEng", "name"]
 					});
 			$scope.selectAction = function(e){
 				var dataItem = this.dataItem(e.item.index()),
 					id = e.sender.element.attr('id'),
-					idx = parseInt(id.replace('modelId', ''), 10);
-				self.purchaseBill.purchaseBillDetails[idx].name = dataItem.name;
-				self.purchaseBill.purchaseBillDetails[idx].nameEng = dataItem.nameEng;
+					idx = parseInt(id.replace('modelId', ''), 10),
+					modelId = dataItem.modelId,
+					details = self.purchaseBill.purchaseBillDetails,
+					modelIdDuplicated = false;
+				$.each(details, function(i, detail){
+					if(detail.modelId == modelId){
+						modelIdDuplicated = true;
+						return false;
+					}
+				});
+				if(modelIdDuplicated && !confirm("型號"+modelId+"已經存在，\n重複型號會造成異動記錄無法識別，是否要繼續下去??")){
+					details.shift();
+					return;
+				}
+				details[idx].name = dataItem.name;
+				details[idx].nameEng = dataItem.nameEng;
 			};
 			self.save = function(){
 				AjaxService.post(saveUrl, self.purchaseBill)
