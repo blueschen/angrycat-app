@@ -36,13 +36,11 @@ public class PropertyFormat implements ObjectFormat {
 	public String getName() {
 		return name;
 	}
-	
+	void setName(String name) {
+		this.name = name;
+	}
 	public Object getPropertyObject(Object obj){
-		try{
-			return ModelPropertyService.getNestedProperty(obj, property);
-		}catch(Throwable e){
-			throw new RuntimeException(e);
-		}
+		return ModelPropertyService.getNestedProperty(obj, property);
 	}
 	
 	public Class<?> getPropertyType(Object obj){
