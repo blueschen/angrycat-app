@@ -50,13 +50,15 @@
 	</style>
 </head>
 <body ng-controller="MainCtrl as mainCtrl">
+<jsp:include page="/WEB-INF/views/navigation.jsp"></jsp:include>
 <input type="hidden" value="{{mainCtrl.purchaseBill.id}}"/>
 
 
 <div class="container">
-	<div class="col-sm-offset-2">
-		<h2>進貨單資料</h2>
-	</div>
+<hr>
+<div class="col-sm-offset-2">
+	<h2>進貨單資料</h2>
+</div>
 <form class="form-horizontal" name="purchaseBillForm">
  	<div class="form-group">
  		<div class="form-group col-sm-5" ng-class="{'has-error': purchaseBillForm.no.$error.required || mainCtrl.isNoDuplicated()}">
@@ -152,7 +154,11 @@
 				<label for="count{{$index}}" style="font-size:12px;">數量</label>
 				<input id="count{{$index}}" type="number" class="form-control" ng-model="detail.count" ng-required="true"/>
 			</div>
-			<div class="form-group" ng-show="mainCtrl.showRemoveBtn(detail)">
+			<div class="form-group">
+				<label for="note{{$index}}" style="font-size:12px;">備註</label>
+				<input id="note{{$index}}" type="text" class="form-control" ng-model="detail.note"/>
+			</div>			
+			<div class="form-group">
 				<button type="button" class="btn btn-default" ng-click="mainCtrl.removeDetail(detail)"><span class="glyphicon glyphicon-remove"></span></button>
 			</div>
 		</form>			
