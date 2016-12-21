@@ -17,6 +17,7 @@ public class PurchaseBillDetail {
 	private String name;
 	private String nameEng;
 	private int count;
+	private String note;
 	@Id
 	@Column(name="id")
 	@GenericGenerator(name = "angrycat_purchasebilldetail_id", strategy = "com.angrycat.erp.ds.TimeUID")
@@ -61,5 +62,12 @@ public class PurchaseBillDetail {
 	}
 	public void setCount(int count) {
 		this.count = count;
+	}
+	@Column(name="note")
+	public String getNote() {
+		return note;
+	}
+	public void setNote(String note) {
+		this.note = note;
 	}
 }
