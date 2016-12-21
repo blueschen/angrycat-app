@@ -7,26 +7,47 @@ import com.angrycat.erp.model.ExamItem;
 import com.angrycat.erp.model.Member;
 import com.angrycat.erp.model.Product;
 import com.angrycat.erp.model.PurchaseBill;
-import com.angrycat.erp.model.PurchaseBillDetail;
 import com.angrycat.erp.model.SalesDetail;
 import com.angrycat.erp.model.VipDiscountDetail;
 
 
 public class FormatListFactory {
+	private static FormatList ofPurchaseBillDetails(){
+		PropertyFormat modelId = new PropertyFormat("{{modelId}}_型號", "modelId");
+		PropertyFormat name = new PropertyFormat("{{modelId}}_名稱", "name");
+		PropertyFormat nameEng = new PropertyFormat("{{modelId}}_英文名稱", "nameEng");
+		PropertyFormat count = new PropertyFormat("{{modelId}}_數量", "count");
+		PropertyFormat note = new PropertyFormat("{{modelId}}_備註", "note");
+		
+		FormatList detailFormats = new FormatList();
+		detailFormats.add(modelId);
+		detailFormats.add(name);
+		detailFormats.add(nameEng);
+		detailFormats.add(count);
+		detailFormats.add(note);
+		
+		ComplexDetailPropertyFormat cdpf = new ComplexDetailPropertyFormat("進貨明細", "purchaseBillDetails", detailFormats);
+		FormatList list = ofPurchaseBillBase("yyyy-MM-dd");
+		list.add(cdpf);
+		
+		return list;
+	}
+	
 	private static FormatList ofPurchaseBillDetails(int detailCount){
-		FormatList list = ofPurchaseBase("yyyy-MM-dd");
+		FormatList list = ofPurchaseBillBase("yyyy-MM-dd");
 		for(int i = 0; i < detailCount; i++){
-			String subject = "進貨單紀錄"+(i+1)+"_";
+			String subject = "進貨明細{{modelId}}_";
 			String field = "purchaseBillDetails["+i+"].";
 			list.add(new DetailPropertyFormat(subject + "型號", field+"modelId"));
 			list.add(new DetailPropertyFormat(subject + "名稱", field+"name"));
 			list.add(new DetailPropertyFormat(subject + "英文名稱", field+"nameEng"));
-			list.add(new DetailPropertyFormat(subject + "數量", field+"count"){});
+			list.add(new DetailPropertyFormat(subject + "數量", field+"count"));
+			list.add(new DetailPropertyFormat(subject + "備註", field+"note"));
 		}
 		return list;
 	}
 	
-	private static FormatList ofPurchaseBase(String dateFormat){
+	private static FormatList ofPurchaseBillBase(String dateFormat){
 		FormatList f = new FormatList();
 		f.setDocTitle("no");
 		
@@ -218,9 +239,7 @@ public class FormatListFactory {
 			int size = e.getItems().size();
 			formats = ofExamItems(size);
 		}else if(clz == PurchaseBill.class){
-			PurchaseBill p = (PurchaseBill)obj;
-			int size = p.getPurchaseBillDetails().size();
-			formats = ofPurchaseBillDetails(size);
+			formats = ofPurchaseBillDetails(PurchaseBill.class.cast(obj).getPurchaseBillDetails().size());
 		}
 		return formats;
 	}
@@ -260,16 +279,7 @@ public class FormatListFactory {
 			int maxSize = Math.max(oldSize, newSize);
 			formats = ofExamItems(maxSize);
 		}else if(clz == PurchaseBill.class){
-			PurchaseBill oldOne = (PurchaseBill)oldObj;
-			List<PurchaseBillDetail> oldDetails = oldOne.getPurchaseBillDetails();
-			int oldSize = oldDetails.size();
-			
-			PurchaseBill newOne = (PurchaseBill)newObj;
-			List<PurchaseBillDetail> newDetails = newOne.getPurchaseBillDetails();
-			int newSize = newDetails.size();
-			
-			int maxSize = Math.max(oldSize, newSize);
-			formats = ofPurchaseBillDetails(maxSize);
+			formats = ofPurchaseBillDetails();
 		}
 		return formats;
 	}
