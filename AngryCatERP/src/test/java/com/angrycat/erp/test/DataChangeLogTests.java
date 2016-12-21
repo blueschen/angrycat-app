@@ -1,19 +1,17 @@
 package com.angrycat.erp.test;
 
+import static com.angrycat.erp.common.CommonUtil.getStringProperty;
+import static org.junit.Assert.assertArrayEquals;
+
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.function.BiPredicate;
 import java.util.stream.Collectors;
 
-
-
 import org.apache.commons.lang3.StringUtils;
 import org.junit.Test;
-import static org.junit.Assert.*;
 
-
-import com.angrycat.erp.common.CommonUtil;
 import com.angrycat.erp.model.ExamItem;
 public class DataChangeLogTests {
 	private List<ExamItem> details(int start, int count){
@@ -40,8 +38,8 @@ public class DataChangeLogTests {
 	private <T>List<T> collectDuplicate(Collection<T> c1, Collection<T> c2){
 		List<T> results = collectCoordinate(c1, c2, (oe, ie)->{
 			String pk = "id";
-			String oeId = (String)CommonUtil.getProperty(oe, pk);
-			String ieId = (String)CommonUtil.getProperty(ie, pk);
+			String oeId = getStringProperty(oe, pk);
+			String ieId = getStringProperty(ie, pk);
 			if(StringUtils.isBlank(oeId)
 			|| StringUtils.isBlank(ieId)){
 				return false;
@@ -53,12 +51,12 @@ public class DataChangeLogTests {
 	private <T>List<T> removeDuplicate(Collection<T> c1, Collection<T> c2){
 		String pk = "id";
 		List<String> duplicates = collectDuplicate(c1, c2).stream().map(e->{
-			String id = (String)CommonUtil.getProperty(e, pk);
+			String id = getStringProperty(e, pk);
 			return id;
 		}).collect(Collectors.toList());
 		List<T> copyC2 = c2.stream().collect(Collectors.toList());
 		copyC2.removeIf(e->{
-			String id = (String)CommonUtil.getProperty(e, pk);
+			String id = getStringProperty(e, pk);
 			return duplicates.contains(id);
 		});
 		return copyC2;
@@ -67,22 +65,22 @@ public class DataChangeLogTests {
 		String pk = "id";
 		List<T> duplicated = collectDuplicate(oldDetails, newDetails);
 		List<String> dupIds = duplicated.stream().map(e->{
-			String id = (String)CommonUtil.getProperty(e, pk);
+			String id = getStringProperty(e, pk);
 			return id;
 		}).collect(Collectors.toList());
 		List<T> oldMore = removeDuplicate(newDetails, oldDetails);
 		List<String> oldMoreIds = oldMore.stream().map(e->{
-			String id = (String)CommonUtil.getProperty(e, pk);
+			String id = getStringProperty(e, pk);
 			return id;
 		}).collect(Collectors.toList());
 		List<T> newMore = removeDuplicate(oldDetails, newDetails);
 		List<String> newMoreIds = newMore.stream().map(e->{
-			String id = (String)CommonUtil.getProperty(e, pk);
+			String id = getStringProperty(e, pk);
 			return id;
 		}).collect(Collectors.toList());
 		
 		List<T> results = newDetails.stream().map(e->{
-			String id = (String)CommonUtil.getProperty(e, pk);
+			String id = getStringProperty(e, pk);
 			if(dupIds.contains(id) || newMoreIds.contains(id)){
 				return e;
 			}
