@@ -28,7 +28,6 @@ import org.springframework.web.bind.annotation.ResponseBody;
 
 import com.angrycat.erp.excel.ExcelExporter;
 import com.angrycat.erp.excel.ExcelImporter;
-import com.angrycat.erp.model.Member;
 import com.angrycat.erp.model.Product;
 import com.angrycat.erp.model.PurchaseBill;
 import com.angrycat.erp.model.PurchaseBillDetail;
@@ -78,8 +77,8 @@ public class PurchaseBillController extends
 	}
 	@Override
 	PurchaseBill saveOrMerge(PurchaseBill pb, Session s){
-		// TODO 入庫之後修改進貨單，是否能夠允許再次入庫
-		// TODO 入庫之後刪除進貨單或明細，庫存是否加回來
+		// 入庫之後修改進貨單=>若需要再次入庫，得手動調整庫存
+		// 入庫之後刪除進貨單或明細=>若需要再次入庫，得手動調整庫存
 		if(pb.getPurchaseBillDetails() != null){
 			Collections.reverse(pb.getPurchaseBillDetails());
 		}
