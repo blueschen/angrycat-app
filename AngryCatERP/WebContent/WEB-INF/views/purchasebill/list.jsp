@@ -118,6 +118,9 @@
  		<button type="submit" ng-click="mainCtrl.query()" class="btn btn-default" ng-disabled="purchaseBillListForm.$dirty && purchaseBillListForm.$invalid">查詢</button>
  	</div>
  	<div class="btn-group" role="group">
+ 		<a href="${pageContext.request.contextPath}/purchasebill/add" class="btn btn-default">新增</a>
+ 	</div>
+ 	<div class="btn-group" role="group">
  		<input type="button" value="清除" ng-click="mainCtrl.clear()" class="btn btn-default"/>
  	</div>
  	<div style="display:none;">
