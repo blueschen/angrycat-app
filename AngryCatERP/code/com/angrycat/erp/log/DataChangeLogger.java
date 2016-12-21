@@ -6,6 +6,7 @@ import java.sql.Timestamp;
 import java.text.DateFormat;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Stream;
 
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.builder.EqualsBuilder;
@@ -17,8 +18,10 @@ import org.springframework.stereotype.Component;
 
 import com.angrycat.erp.common.CommonUtil;
 import com.angrycat.erp.common.DatetimeUtil;
+import com.angrycat.erp.format.ComplexDetailPropertyFormat;
 import com.angrycat.erp.format.FormatList;
 import com.angrycat.erp.format.FormatListFactory;
+import com.angrycat.erp.format.FormattedValue;
 import com.angrycat.erp.model.DataChangeLog;
 import com.angrycat.erp.model.DataChangeLogDetail;
 import com.angrycat.erp.security.User;
@@ -69,13 +72,34 @@ public class DataChangeLogger implements Serializable{
 		log.setUserName(user.getInfo().getName());
 		log.setNote(note);
 		log.setAction(action.name());
-		formatList.stream().forEach(of->{
-			String oldVal = oldObject != null ? removeReturn(of.getValue(oldObject)) : null;
-			String newVal = newObject != null ? removeReturn(of.getValue(newObject)) : null;
+		
+		Stream<FormattedValue> f1 = formatList.stream().filter(f->!ComplexDetailPropertyFormat.class.isInstance(f)).map(f->{
+			String oldVal = oldObject != null ? removeReturn(f.getValue(oldObject)) : null;
+			String newVal = newObject != null ? removeReturn(f.getValue(newObject)) : null;
+			String name = f.getName();
+			return new FormattedValue(oldVal, newVal, name);
+		});
+		Stream<FormattedValue> f2 = formatList.stream().filter(f->ComplexDetailPropertyFormat.class.isInstance(f)).flatMap(f->{
+			ComplexDetailPropertyFormat cdpf = ComplexDetailPropertyFormat.class.cast(f);
+			cdpf.init(oldObject, newObject);
+			return cdpf.getValues().stream();
+		});
+		Stream<FormattedValue> merged = Stream.concat(f1, f2);
+		merged.forEach(fv->{
+			String oldVal = fv.getOldVal();
+			String newVal = fv.getNewVal();
+			String name = fv.getName();
 			if(!new EqualsBuilder().append(oldVal, newVal).isEquals()){
-				log.getDetails().add(new DataChangeLogDetail(of.getName(), toDefaultIfNull(oldVal), toDefaultIfNull(newVal)));
+				log.getDetails().add(new DataChangeLogDetail(name, toDefaultIfNull(oldVal), toDefaultIfNull(newVal)));
 			}
 		});
+//		formatList.stream().forEach(of->{
+//			String oldVal = oldObject != null ? removeReturn(of.getValue(oldObject)) : null;
+//			String newVal = newObject != null ? removeReturn(of.getValue(newObject)) : null;
+//			if(!new EqualsBuilder().append(oldVal, newVal).isEquals()){
+//				log.getDetails().add(new DataChangeLogDetail(of.getName(), toDefaultIfNull(oldVal), toDefaultIfNull(newVal)));
+//			}
+//		});
 		if(!log.getDetails().isEmpty()){
 			s.save(log);
 		}
@@ -110,7 +134,7 @@ public class DataChangeLogger implements Serializable{
 	}
 	
 	private String getFormattedString(Object obj, String prop){
-		Object target = CommonUtil.getProperty(obj, prop);
+		Object target = CommonUtil.getPropertyVal(obj, prop);
 		String field = null;
 		if(target != null){
 			Class<?> clz = target.getClass();
@@ -170,7 +194,7 @@ public class DataChangeLogger implements Serializable{
 	public void logAction(ActionType action, Object oldObject, Object newObject, Session s, FormatList formatList){
 		Object example = getObjectExisted(oldObject, newObject);
 		String id = sf.getObject().getClassMetadata(example.getClass()).getIdentifierPropertyName();
-		String idVal = (String)CommonUtil.getProperty(example, id);
+		String idVal = CommonUtil.getStringProperty(example, id);
 		log(idVal, example.getClass().getName(), oldObject, newObject, formatList, s, action);
 	}
 	private Object getObjectExisted(Object oldObject, Object newObject){
@@ -178,7 +202,7 @@ public class DataChangeLogger implements Serializable{
 		return existed;
 	}
 	
-	private static String removeReturn(String val){
+	public static String removeReturn(String val){
 		if(val == null || StringUtils.isBlank(val)){
 			return null;
 		}
