@@ -805,7 +805,7 @@
 					scrollable: true, // ref. http://docs.telerik.com/kendo-ui/controls/data-management/grid/appearance#make-the-grid-100-high-and-auto-resizable
 					pageable: {
 						refresh: true,
-						pageSizes: ["5","10","15","20","25","30","all"],
+						pageSizes: ["50","100","all"],
 						buttonCount: 13
 					},
 					sortable: {
