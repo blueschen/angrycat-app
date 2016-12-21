@@ -1,5 +1,8 @@
 package com.angrycat.erp.service;
 
+import static com.angrycat.erp.common.CommonUtil.getPropertyVal;
+import static com.angrycat.erp.common.CommonUtil.setProperty;
+
 import java.io.File;
 import java.sql.Date;
 import java.util.Arrays;
@@ -22,7 +25,6 @@ import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import com.angrycat.erp.common.CommonUtil;
 import com.angrycat.erp.component.SessionFactoryWrapper;
 import com.angrycat.erp.ds.TimeUID;
 import com.angrycat.erp.initialize.StartupWebAppInitializer;
@@ -123,7 +125,7 @@ public class RandomExamService {
 			int rand = ThreadLocalRandom.current().nextInt(count.intValue());
 			Product p = (Product)s.createQuery(queryProduct).setFirstResult(rand).setMaxResults(1).uniqueResult();
 			s.evict(p);
-			Object topVal = CommonUtil.getProperty(p, topicField);
+			Object topVal = getPropertyVal(p, topicField);
 			if(topVal == null){// 如果沒有題目
 				continue;
 			}
@@ -137,13 +139,13 @@ public class RandomExamService {
 				if(f.exists()){
 					String uid = TimeUID.generateByHand();
 					archives.put(uid, f);
-					CommonUtil.setProperty(p, topicField, uid);
+					setProperty(p, topicField, uid);
 				}else{
 					continue;
 				}
 			}
 			
-			Object questionVal = CommonUtil.getProperty(p, questionField);
+			Object questionVal = getPropertyVal(p, questionField);
 			if(questionVal == null){ // 如果沒答案
 				continue;
 			}
@@ -152,7 +154,7 @@ public class RandomExamService {
 				if(f.exists()){
 					String uid = TimeUID.generateByHand();
 					archives.put(uid, f);
-					CommonUtil.setProperty(p, questionField, uid);
+					setProperty(p, questionField, uid);
 				}else{
 					continue;
 				}
@@ -241,20 +243,20 @@ public class RandomExamService {
 				Product p = products.get(i);
 				ExamItem ei = new ExamItem();
 				ei.setCorrect(p.getId().equals(correct.getId())); // 設定正確答案
-				Object val = CommonUtil.getProperty(p, questionField);
+				Object val = getPropertyVal(p, questionField);
 				ei.setDescription(val.toString());
 				ei.setSequence(i+1); // 題項序號
 				return ei;
 			}).collect(Collectors.toList());
 		
-		Object val = CommonUtil.getProperty(correct, topicField);
+		Object val = getPropertyVal(correct, topicField);
 		String completeTopic = topic+val;	
 			
 		String desc = RANDON_QUESTION_TEMPLATE
 				.replaceFirst("\\(\\\\S\\+\\)", completeTopic)
 				.replace("(\\S+)", question);
 		
-		System.out.println("題目:" + desc + ", 答案:" + CommonUtil.getProperty(correct, questionField));
+//		System.out.println("題目:" + desc + ", 答案:" + getPropertyVal(correct, questionField));
 		
 		Exam exam = new Exam();
 		exam.setDescription(desc);
