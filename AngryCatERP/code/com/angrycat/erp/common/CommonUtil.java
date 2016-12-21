@@ -128,13 +128,17 @@ public final class CommonUtil {
 		});
 		System.out.println("count" + displayCountry.size());
 	}
-	public static Object getProperty(Object bean, String name){
-		Object propertyVal = null;
+	public static <T>T getPropertyVal(Object bean, String name){
+		T propertyVal = null;
 		try{
-			propertyVal = PropertyUtils.getProperty(bean, name);
+			propertyVal = (T)PropertyUtils.getProperty(bean, name);
 		}catch(Throwable e){
 			throw new RuntimeException(e);
 		}
+		return propertyVal;
+	}
+	public static String getStringProperty(Object bean, String name){
+		String propertyVal = getPropertyVal(bean, name);
 		return propertyVal;
 	}
 	public static void setProperty(Object bean, String name, Object val){
