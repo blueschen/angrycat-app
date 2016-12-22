@@ -35,7 +35,7 @@ public class MagentoProductServiceTests {
 	@Before
 	public void init(){
 		serv.setBaseUrl(MagentoProductService.SERVER_LOCAL_BASE_URL);
-		serv.debug = true;
+		serv.setDebug(true);
 	}
 	private List<Product> mockProducts(){
 		List<Product> products = new ArrayList<>();
@@ -48,13 +48,13 @@ public class MagentoProductServiceTests {
 //		p2.setModelId("acer001");
 //		p2.setTotalStockQty(3);
 //		products.add(p2);
-//		Product p3 = new Product();
-//		p3.setModelId("apple001");
-//		p3.setTotalStockQty(16);
-//		products.add(p3);
+		Product p3 = new Product();
+		p3.setModelId("apple001");
+		p3.setTotalStockQty(16);
+		products.add(p3);
 		Product p4 = new Product();
 		p4.setModelId("galaxy001");
-		p4.setTotalStockQty(-1);
+		p4.setTotalStockQty(1);
 		products.add(p4);
 //		Product p5 = new Product();
 //		p5.setModelId("TT072(AT)");
@@ -157,14 +157,17 @@ public class MagentoProductServiceTests {
 	@Test
 	public void updateStockIfMagentoIsMore(){
 		List<Product> products = mockProducts();
-		List<String> skus = products.stream().map(p->p.getModelId()).collect(Collectors.toList());
 		JsonNodeWrapper jnw = serv.updateStockIfMagentoIsMore(products);
 		jnw.getFound().forEach(n->{
-			skus.stream().forEach(s->{
-				JsonNode valNode = n.findValue(s);
-				boolean ret = valNode.booleanValue();
-				System.out.println(s + ":" + ret);
-			});
+			JsonNodeWrapper.printObjectNodeValues(n);
+		});
+	}
+	@Test
+	public void updateStockIfDifferentFromMagento(){
+		List<Product> products = mockProducts();
+		JsonNodeWrapper jnw = serv.updateStockIfDifferentFromMagento(products);
+		jnw.getFound().forEach(n->{
+			JsonNodeWrapper.printObjectNodeValues(n);
 		});
 	}
 	@Test
