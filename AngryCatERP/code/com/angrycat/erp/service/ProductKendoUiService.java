@@ -4,7 +4,6 @@ import static com.angrycat.erp.common.EmailContact.JERRY;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 import java.util.function.BiFunction;
 import java.util.stream.Collectors;
@@ -32,39 +31,41 @@ public class ProductKendoUiService extends KendoUiService<Product, Product> {
 	private MailSender mailSender;
 	@Autowired
 	private SimpleMailMessage templateMessage;
-	
+	@Override
+	List<?> deleteByIds(List<String> ids, Session s){
+		List<Product> results = (List<Product>)super.deleteByIds(ids, s);
+		// TODO 與Magento庫存非同步連動: 待其他功能完成後，再測試
+		// 應該不會發生刪除產品的情況，但為了一致性及方便，還是有設計連動Magento庫存的功能，但在這種情況下，只會把庫存改為0，庫存狀態改為缺貨，不會刪除商品資料
+//		results.stream().forEach(p->p.setTotalStockQty(0));
+//		asyncUpdateMagentoStock(results);
+		return results;
+	}
 	@Override
 	@Transactional
 	public List<?> deleteByIds(List<String> ids){
-		List<Product> results = (List<Product>)super.deleteByIds(ids);
-		// TODO 與Magento庫存非同步連動: 待其他功能完成後，再測試
-//		Map<String, Object> params = 
-//			results
-//				.stream()
-//				.map(r->{r.setTotalStockQty(0); return r;}) // 把所有庫存歸0
-//				.collect(Collectors.toMap(p->p.getModelId(), p->p.getTotalStockQty()));
-//		asyncUpdateMagentoStock(params);
+		Session s = sfw.currentSession();
+		List<?> results = deleteByIds(ids, s);
 		return results;
-	}
-	
+	}	
+	@Override
+	public List<Product> batchSaveOrMerge(List<Product> targets, BiFunction<Product, Session, Product> before, Session s){
+		List<Product> results = super.batchSaveOrMerge(targets, before, s);
+		// TODO 與Magento庫存非同步連動: 待其他功能完成後，再測試
+//		asyncUpdateMagentoStock(targets);
+		return results;
+	}	
 	@Override
 	@Transactional
 	public List<Product> batchSaveOrMerge(List<Product> targets, BiFunction<Product, Session, Product> before){
 		Session s = sfw.currentSession();
-		List<Product> results = super.batchSaveOrMerge(targets, before, s);
-		// TODO 與Magento庫存非同步連動: 待其他功能完成後，再測試
-//		Map<String, Object> params = 
-//			results
-//				.stream()
-//				.collect(Collectors.toMap(p->p.getModelId(), p->p.getTotalStockQty()));
-//		asyncUpdateMagentoStock(params);
+		List<Product> results = batchSaveOrMerge(targets, before, s);
 		return results;
 	}
-	private void asyncUpdateMagentoStock(Map<String, Object> params){
-		CompletableFuture.supplyAsync(()->magentoProductService.updateInventoryByProductId(params))
+	private void asyncUpdateMagentoStock(List<Product> targets){
+		CompletableFuture.supplyAsync(()->magentoProductService.updateStockIfDifferentFromMagento(targets))
 			.exceptionally((ex)-> {
 				String msg = "Contents:\n"; 
-				msg += params.keySet().stream().map(k->k+":"+params.get(k)).collect(Collectors.joining("\n"));
+				msg += targets.stream().map(p->p.getModelId()+":"+p.getTotalStockQty()).collect(Collectors.joining("\n"));
 				SimpleMailMessage simpleMailMessage = new SimpleMailMessage(templateMessage);
 				simpleMailMessage.setTo(JERRY);
 				simpleMailMessage.setText(msg);
