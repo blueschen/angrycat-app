@@ -64,7 +64,7 @@ public class MagentoProductService extends MagentoBaseService {
 	public List<StockInfo> filterByComparingStock(List<Product> products, BiPredicate<Integer, Integer> compareStock){
 		Map<String, Product> map = products.stream().collect(Collectors.toMap(Product::getModelId, Function.identity()));
 		JsonNodeWrapper jnw = listInventoryById(map.keySet().toArray(new String[map.size()]));
-		if(debug){
+		if(isDebug()){
 			System.out.println("listInventoryById magento found count: " + jnw.getFound().size());
 		}
 		List<StockInfo> infos = jnw
@@ -102,6 +102,33 @@ public class MagentoProductService extends MagentoBaseService {
 		return result;
 	}
 	/**
+	 * 根據比較條件更新Magenot庫存:<br>
+	 * 先去查詢Magenot商品，<br>
+	 * 針對符合篩選條件的項目，<br>
+	 * 以庫存表更新Magento
+	 * @param products
+	 * @param compareStock
+	 * @return
+	 */
+	private JsonNodeWrapper updateStockAfterCompare(List<Product> products, BiPredicate<Integer, Integer> compareStock){
+		Map<String, Object> params = 
+				filterByComparingStock(products, compareStock)
+				.stream().collect(Collectors.toMap(StockInfo::getSku, StockInfo::getTotalStockQty));
+			JsonNodeWrapper result = updateInventoryByProductId(params);
+			return result;
+	}
+	/**
+	 * 如果Magento跟庫存表不一樣，<br>
+	 * 用庫存表的庫存更改他，<br>
+	 * 讓Magenot庫存與庫存表一致<br>
+	 * @param products
+	 * @return
+	 */
+	public JsonNodeWrapper updateStockIfDifferentFromMagento(List<Product> products){
+		JsonNodeWrapper result = updateStockAfterCompare(products, (magentoStock, totalStock)-> magentoStock != totalStock);
+		return result;
+	}
+	/**
 	 * 如果Magento庫存較多，<br>
 	 * 用庫存表的庫存更改他，<br>
 	 * 讓Magenot庫存與庫存表一致<br>
@@ -109,10 +136,7 @@ public class MagentoProductService extends MagentoBaseService {
 	 * @return
 	 */
 	public JsonNodeWrapper updateStockIfMagentoIsMore(List<Product> products){
-		Map<String, Object> params = 
-			filterByComparingStock(products, (magentoStock, totalStock)-> magentoStock > totalStock)
-			.stream().collect(Collectors.toMap(StockInfo::getSku, StockInfo::getTotalStockQty));
-		JsonNodeWrapper result = updateInventoryByProductId(params);
+		JsonNodeWrapper result = updateStockAfterCompare(products, (magentoStock, totalStock)-> magentoStock > totalStock);
 		return result;
 	}
 	/**
