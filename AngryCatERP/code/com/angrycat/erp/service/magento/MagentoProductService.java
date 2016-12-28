@@ -61,23 +61,28 @@ public class MagentoProductService extends MagentoBaseService {
 	 * @param compareStock: the first argument is stock quantity from Magento; the second from the memory
 	 * @return
 	 */
-	public List<StockInfo> filterByComparingStock(List<Product> products, BiPredicate<Integer, Integer> compareStock){
+	public Map<String, StockInfo> filterByComparingStock(List<Product> products, BiPredicate<Integer, Integer> compareStock){
 		Map<String, Product> map = products.stream().collect(Collectors.toMap(Product::getModelId, Function.identity()));
 		JsonNodeWrapper jnw = listInventoryById(map.keySet().toArray(new String[map.size()]));
 		if(isDebug()){
 			System.out.println("listInventoryById magento found count: " + jnw.getFound().size());
 		}
-		List<StockInfo> infos = jnw
-			.toList(n->{
-				int qty = Double.valueOf(n.findValue("qty").textValue()).intValue();
-				String modelId = n.findValue("sku").textValue();
+		Map<String, StockInfo> infos = jnw
+			.toMap(k->{
+				String modelId = k.findValue("sku").textValue();
+				return modelId;
+			},
+			v->{
+				int qty = Double.valueOf(v.findValue("qty").textValue()).intValue();
+				String modelId = v.findValue("sku").textValue();
 				Product p = map.get(modelId);
 				StockInfo si = new StockInfo(modelId, qty, p.getTotalStockQty());
 				return si;
 			})
+			.entrySet()
 			.stream()
-			.filter(si->compareStock.test(si.getMagentoStockQty(), si.getTotalStockQty()))
-			.collect(Collectors.toList());
+			.filter(entry->compareStock.test(entry.getValue().getMagentoStockQty(), entry.getValue().getTotalStockQty()))
+			.collect(Collectors.toMap(entry->entry.getKey(), entry->entry.getValue()));
 		return infos;
 	}
 	/**
@@ -113,7 +118,12 @@ public class MagentoProductService extends MagentoBaseService {
 	private JsonNodeWrapper updateStockAfterCompare(List<Product> products, BiPredicate<Integer, Integer> compareStock){
 		Map<String, Object> params = 
 				filterByComparingStock(products, compareStock)
-				.stream().collect(Collectors.toMap(StockInfo::getSku, StockInfo::getTotalStockQty));
+				.entrySet()
+				.stream()
+				.collect(
+					Collectors.toMap(
+						entry->entry.getValue().getSku(), 
+						entry->entry.getValue().getTotalStockQty()));
 			JsonNodeWrapper result = updateInventoryByProductId(params);
 			return result;
 	}
