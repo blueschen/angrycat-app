@@ -5,6 +5,7 @@ import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -84,13 +85,20 @@ public class MagentoProductServiceTests {
 		List<Product> products = q.genCondtitionsAfterExecuteQueryList().getResults();
 		System.out.println("db total count:" + products.size());
 		
-		List<StockInfo> infos = serv.filterByComparingStock(products, (magentoStock, totalStock)->true); // 將同時存在於Magento和庫存表的商品全部找出
-		List<StockInfo> magentoIsMore = infos.stream().filter(si->si.getMagentoStockQty() > si.getTotalStockQty()).collect(Collectors.toList());
-		List<StockInfo> totalIsMore = infos.stream().filter(si->si.getTotalStockQty() > si.getMagentoStockQty()).collect(Collectors.toList());
-		List<StockInfo> stockIsEquals = infos.stream().filter(si->si.getMagentoStockQty() == si.getTotalStockQty()).collect(Collectors.toList());
-		System.out.println("magentoIsMore count: " + magentoIsMore.size() + ", totalIsMore count: " + totalIsMore.size() + ", stockIsEquals count: " + stockIsEquals.size());
-		System.out.println("magentoIsMore:");
+		Map<String, StockInfo> infos = serv.filterByComparingStock(products, (magentoStock, totalStock)->true); // 將同時存在於Magento和庫存表的商品全部找出
+		List<StockInfo> magentoIsMore = infos.entrySet().stream().filter(entry->entry.getValue().getMagentoStockQty() > entry.getValue().getTotalStockQty()).map(entry->entry.getValue()).collect(Collectors.toList());
+		List<StockInfo> totalIsMore = infos.entrySet().stream().filter(entry->entry.getValue().getTotalStockQty() > entry.getValue().getMagentoStockQty()).map(entry->entry.getValue()).collect(Collectors.toList());
+		List<StockInfo> stockIsEquals = infos.entrySet().stream().filter(entry->entry.getValue().getMagentoStockQty() == entry.getValue().getTotalStockQty()).map(entry->entry.getValue()).collect(Collectors.toList());
+		System.out.println("magentoIsMore count: " + magentoIsMore.size());
 		magentoIsMore.stream().forEach(si->{
+			System.out.println("sku: " + si.getSku() + ", magento stock: " + si.getMagentoStockQty() + ", total stock: " + si.getTotalStockQty());
+		});
+		System.out.println("totalIsMore count: " + totalIsMore.size());
+		totalIsMore.stream().forEach(si->{
+			System.out.println("sku: " + si.getSku() + ", magento stock: " + si.getMagentoStockQty() + ", total stock: " + si.getTotalStockQty());
+		});
+		System.out.println("stockIsEquals count: " + stockIsEquals.size());
+		stockIsEquals.stream().forEach(si->{
 			System.out.println("sku: " + si.getSku() + ", magento stock: " + si.getMagentoStockQty() + ", total stock: " + si.getTotalStockQty());
 		});
 	}
@@ -116,8 +124,8 @@ public class MagentoProductServiceTests {
 	@Test
 	public void filterTotalStockIsMore(){
 		List<Product> products = mockProducts();
-		List<StockInfo> infos = serv.filterByComparingStock(products, (magentoStock, totalStock)->magentoStock < totalStock);
-		long count = infos.stream().filter(i->i.getTotalStockQty()<=i.getMagentoStockQty()).count();
+		List<StockInfo> infos = serv.filterByComparingStock(products, (magentoStock, totalStock)->magentoStock < totalStock).entrySet().stream().map(entry->entry.getValue()).collect(Collectors.toList());
+		long count = infos.stream().filter(i->i.getTotalStockQty() <= i.getMagentoStockQty()).count();
 		long expectedVal = 0;
 		assertEquals(expectedVal, count);
 		System.out.println("filterTotalStockIsMore: " + count);
@@ -125,8 +133,8 @@ public class MagentoProductServiceTests {
 	@Test
 	public void filterMagentoStockIsMore(){
 		List<Product> products = mockProducts();
-		List<StockInfo> infos = serv.filterByComparingStock(products, (magentoStock, totalStock)->magentoStock > totalStock);
-		long count = infos.stream().filter(i->i.getTotalStockQty()>=i.getMagentoStockQty()).count();
+		List<StockInfo> infos = serv.filterByComparingStock(products, (magentoStock, totalStock)->magentoStock > totalStock).entrySet().stream().map(entry->entry.getValue()).collect(Collectors.toList());
+		long count = infos.stream().filter(i->i.getTotalStockQty() >= i.getMagentoStockQty()).count();
 		long expectedVal = 0;
 		assertEquals(expectedVal, count);
 		System.out.println("filterMagentoStockIsMore: " + count);
@@ -134,8 +142,8 @@ public class MagentoProductServiceTests {
 	@Test
 	public void filterStockIsEquals(){
 		List<Product> products = mockProducts();
-		List<StockInfo> infos = serv.filterByComparingStock(products, (magentoStock, totalStock)->magentoStock == totalStock);
-		long count = infos.stream().filter(i->i.getTotalStockQty()!=i.getMagentoStockQty()).count();
+		List<StockInfo> infos = serv.filterByComparingStock(products, (magentoStock, totalStock)->magentoStock == totalStock).entrySet().stream().map(entry->entry.getValue()).collect(Collectors.toList());
+		long count = infos.stream().filter(i->i.getTotalStockQty() != i.getMagentoStockQty()).count();
 		long expectedVal = 0;
 		assertEquals(expectedVal, count);
 		System.out.println("filterStockIsEquals: " + count);
