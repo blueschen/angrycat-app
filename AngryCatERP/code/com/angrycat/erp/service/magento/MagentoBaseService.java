@@ -29,8 +29,8 @@ public class MagentoBaseService implements Serializable{
 	BeanFactory beanFactory;
 	private boolean debug;
 	
-	static final String INTRANET_BASE_URL = "http://192.168.1.15/magento/index.php";
-	static final String LOCALHOST_BASE_URL = "http://localhost/magento/index.php";
+	public static final String INTRANET_BASE_URL = "http://192.168.1.15/magento/index.php";
+	public static final String LOCALHOST_BASE_URL = "http://localhost/magento/index.php";
 	public static final String SERVER_LOCAL_BASE_URL = "http://127.0.0.1/magento/index.php";
 	private String baseUrl = LOCALHOST_BASE_URL;
 	private String controller = "";
