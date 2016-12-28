@@ -128,11 +128,11 @@
 			<input type="hidden" ng-value="detail.id" ng-model="detail.id"/>
 			<input type="hidden" ng-value="detail.purchaseBillId" ng-model="detail.purchaseBillId"/>
 			<div class="form-group">
-				<label for="modelId{{$index}}" style="font-size:12px;">型號</label>
+				<label for="modelId{{$index}}">型號</label>
 				<input 
 					id="modelId{{$index}}" 
 					type="text" 
-					class="form-control" 
+					class="form-control"
 					ng-model="detail.modelId" 
 					ng-required="true" 
 					kendo-auto-complete 
@@ -143,20 +143,16 @@
 					k-select="selectAction"/>
 			</div>
 			<div class="form-group">
-				<label for="nameEng{{$index}}" style="font-size:12px;">英文名稱</label>
-				<input id="nameEng{{$index}}" type="text" class="form-control" ng-model="detail.nameEng"/>
+				<input id="nameEng{{$index}}" type="text" class="form-control" placeholder="英文名稱" ng-model="detail.nameEng"/>
 			</div>			
 			<div class="form-group">
-				<label for="name{{$index}}" style="font-size:12px;">名稱</label>
-				<input id="name{{$index}}" type="text" class="form-control" ng-model="detail.name"/>
+				<input id="name{{$index}}" type="text" class="form-control" placeholder="名稱" ng-model="detail.name"/>
 			</div>
 			<div class="form-group">
-				<label for="count{{$index}}" style="font-size:12px;">數量</label>
-				<input id="count{{$index}}" type="number" class="form-control" ng-model="detail.count" ng-required="true"/>
+				<input id="count{{$index}}" type="number" class="form-control" placeholder="數量" ng-model="detail.count" ng-required="true"/>
 			</div>
 			<div class="form-group">
-				<label for="note{{$index}}" style="font-size:12px;">備註</label>
-				<input id="note{{$index}}" type="text" class="form-control" ng-model="detail.note"/>
+				<input id="note{{$index}}" type="text" class="form-control" placeholder="備註" ng-model="detail.note"/>
 			</div>			
 			<div class="form-group">
 				<button type="button" class="btn btn-default" ng-click="mainCtrl.removeDetail(detail)"><span class="glyphicon glyphicon-remove"></span></button>
@@ -170,7 +166,7 @@
 		.constant('urlPrefix', '${urlPrefix}')
 		.constant('login', "${sessionScope['sessionUser']}" ? true : false)
 		.constant('targetData', ${purchaseBill == null ? "null" : purchaseBill})
-		.controller('MainCtrl', ['$scope', 'DateService', 'AjaxService', 'urlPrefix', 'login', 'targetData', function($scope, DateService, AjaxService, urlPrefix, login, targetData){
+		.controller('MainCtrl', ['$scope', 'DateService', 'AjaxService', 'urlPrefix', 'login', 'targetData', '$window', function($scope, DateService, AjaxService, urlPrefix, login, targetData, $window){
 			var self = this,
 				saveUrl = urlPrefix + '/save.json';
 			function assignModel(m){
@@ -217,11 +213,15 @@
 				details[idx].name = dataItem.name;
 				details[idx].nameEng = dataItem.nameEng;
 			};
+			function successHandler(response, msg){
+				assignModel(response.data);
+				alert(msg);
+				$window.location.href = urlPrefix + '/view/' + response.data.id ;// Google Chrome在離開頁面，以上一頁回返的時候，會cache住舊資料，用reload確保不會發生這種問題
+			}
 			self.save = function(){
 				AjaxService.post(saveUrl, self.purchaseBill)
 					.then(function(response){
-						assignModel(response.data);
-						alert('儲存成功!!');
+						successHandler(response, '儲存成功!!');
 					},
 					function(errResponse){
 						alert('儲存失敗，錯誤訊息: ' + JSON.stringify(errResponse));
@@ -235,8 +235,7 @@
 				}
 				AjaxService.post(urlPrefix + '/toStock.json', self.purchaseBill)
 					.then(function(response){
-						assignModel(response.data);
-						alert('歸檔成功!!');
+						successHandler(response, '歸檔成功!!');
 					},
 					function(errResponse){
 						alert('歸檔失敗，錯誤訊息: ' + JSON.stringify(errResponse));
