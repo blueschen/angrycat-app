@@ -3,7 +3,11 @@ package com.angrycat.erp.service;
 import static com.angrycat.erp.common.EmailContact.JERRY;
 
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 import java.util.function.BiFunction;
 import java.util.stream.Collectors;
@@ -20,6 +24,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import com.angrycat.erp.model.Product;
 import com.angrycat.erp.service.magento.MagentoProductService;
+import com.angrycat.erp.service.magento.MagentoProductService.StockInfo;
 @Service
 @Scope("prototype")
 @Qualifier("productKendoUiService")
@@ -68,12 +73,65 @@ public class ProductKendoUiService extends KendoUiService<Product, Product> {
 				msg += targets.stream().map(p->p.getModelId()+":"+p.getTotalStockQty()).collect(Collectors.joining("\n"));
 				SimpleMailMessage simpleMailMessage = new SimpleMailMessage(templateMessage);
 				simpleMailMessage.setTo(JERRY);
-				simpleMailMessage.setText(msg);
-				simpleMailMessage.setSubject("Update Magento Errors");
+				simpleMailMessage.setText(msg + "error:\n" + ex);
+				simpleMailMessage.setSubject("asyncUpdateMagentoStock Errors");
 				mailSender.send(simpleMailMessage);
 				return null;
 			});
 			
+	}
+	public void adjustMagentoStockConformed(){
+		try{
+			List<Product> all = genCondtitionsAfterExecuteQueryList().getResults();
+			magentoProductService.updateStockIfMagentoIsMore(all);
+		}catch(Throwable e){
+			SimpleMailMessage simpleMailMessage = new SimpleMailMessage(templateMessage);
+			simpleMailMessage.setTo(JERRY);
+			simpleMailMessage.setText(e.toString()); // TODO stacktrace formatted
+			simpleMailMessage.setSubject("asyncUpdateMagentoStock Errors Errors");
+		}
+	}
+	public ProductStockReport generateStockReport(){
+		ProductStockReport report = new ProductStockReport();
+		try{
+			Map<String, Integer> magentoStocks = magentoProductService.listAllInventory()
+				.toMap(
+					k->k.findValue("sku").textValue(), 
+					v->Double.valueOf(v.findValue("qty").textValue()).intValue());
+			Set<String> magentoSkus = magentoStocks.keySet();
+			
+			List<Product> all = genCondtitionsAfterExecuteQueryList().getResults();
+			Map<String, Integer> totalStocks = all.stream().collect(Collectors.toMap(Product::getModelId, Product::getTotalStockQty));
+			
+			Set<String> totalModelIds = totalStocks.keySet();
+			Set<String> intersection = new HashSet<>(magentoSkus);
+			intersection.retainAll(totalModelIds);
+			
+			List<StockInfo> intersects = 
+			intersection.stream().map(modelId->{
+				int magentoStock = magentoStocks.get(modelId);
+				int totalStock = totalStocks.get(modelId);
+				return new StockInfo(modelId, magentoStock, totalStock);
+			}).collect(Collectors.toList());
+			
+			Set<String> totalDiff = new HashSet<>(totalModelIds);
+			totalDiff.removeAll(intersection);
+			
+			Set<String> magentoDiff = new HashSet<>(magentoSkus);
+			magentoDiff.removeAll(intersection);
+			
+			report.setTotalCount(all.size());
+			report.setMagentoCount(magentoSkus.size());
+			report.setIntersection(intersects);
+			report.setTotalDiff(totalDiff);
+			report.setMagentoDiff(magentoDiff);
+		}catch(Throwable e){
+			SimpleMailMessage simpleMailMessage = new SimpleMailMessage(templateMessage);
+			simpleMailMessage.setTo(JERRY);
+			simpleMailMessage.setText(e.toString()); // TODO stacktrace formatted
+			simpleMailMessage.setSubject("asyncUpdateMagentoStock Errors Errors");
+		}
+		return report;
 	}
 	/**
 	 * 測試非同步
@@ -94,6 +152,9 @@ public class ProductKendoUiService extends KendoUiService<Product, Product> {
 		});
 		System.out.println("main thread keeps executing");
 	}
+	MagentoProductService getMagentoProductService(){
+		return magentoProductService;
+	}
 	public static String genTotalStockChangeNote(String action, String title, int stockChanged){
 		if(stockChanged == 0){
 			return null;
@@ -109,5 +170,97 @@ public class ProductKendoUiService extends KendoUiService<Product, Product> {
 		}
 		String note = "產生自:"+StringUtils.join(template, "_");
 		return note;
+	}
+	public class ProductStockReport{
+		private int totalCount;
+		private int magentoCount;
+		private List<StockInfo> intersection = Collections.emptyList();
+		private List<StockInfo> totalMore = Collections.emptyList();
+		private List<StockInfo> magentoMore = Collections.emptyList();
+		private List<StockInfo> twoEquals = Collections.emptyList();
+		private Set<String> totalDiff = Collections.emptySet();
+		private Set<String> magentoDiff = Collections.emptySet();
+		public int getTotalCount() {
+			return totalCount;
+		}
+		public void setTotalCount(int totalCount) {
+			this.totalCount = totalCount;
+		}
+		public int getMagentoCount() {
+			return magentoCount;
+		}
+		public void setMagentoCount(int magentoCount) {
+			this.magentoCount = magentoCount;
+		}
+		public List<StockInfo> getIntersection() {
+			return intersection;
+		}
+		public void setIntersection(List<StockInfo> intersection) {
+			this.intersection = intersection;
+			
+			totalMore = intersection.stream().filter(si->si.getTotalStockQty() > si.getMagentoStockQty()).collect(Collectors.toList());
+			magentoMore = intersection.stream().filter(si->si.getTotalStockQty() < si.getMagentoStockQty()).collect(Collectors.toList());
+			twoEquals = intersection.stream().filter(si->si.getTotalStockQty() == si.getMagentoStockQty()).collect(Collectors.toList());
+		}
+		public Set<String> getTotalDiff() {
+			return totalDiff;
+		}
+		public void setTotalDiff(Set<String> totalDiff) {
+			this.totalDiff = totalDiff;
+		}
+		public Set<String> getMagentoDiff() {
+			return magentoDiff;
+		}
+		public void setMagentoDiff(Set<String> magentoDiff) {
+			this.magentoDiff = magentoDiff;
+		}
+		public List<StockInfo> getTotalMore() {
+			return totalMore;
+		}
+		public List<StockInfo> getMagentoMore() {
+			return magentoMore;
+		}
+		public List<StockInfo> getTwoEquals() {
+			return twoEquals;
+		}
+		public void printToConsole(){
+			StringBuffer sb = new StringBuffer();
+			sb.append("庫存表商品數: " + totalCount + "\n");
+			sb.append("Magento商品數: " + magentoCount + "\n");
+			sb.append("兩者商品皆存在數:" + intersection.size() + "\n");
+			
+			sb.append("庫存表庫存較多:" + totalMore.size() + "\n");
+			if(!totalMore.isEmpty()){
+				sb.append("型號----庫存表----Magento----\n");
+				totalMore.stream().forEach(si->{
+					sb.append(si.getSku() + "----" + si.getTotalStockQty() + "----" + si.getMagentoStockQty() + "----\n");
+				});
+			}
+			
+			sb.append("Magento庫存較多:" + magentoMore.size() + "\n");
+			if(!magentoMore.isEmpty()){
+				sb.append("型號----庫存表----Magento----\n");
+				magentoMore.stream().forEach(si->{
+					sb.append(si.getSku() + "----" + si.getTotalStockQty() + "----" + si.getMagentoStockQty() + "----\n");
+				});
+			}
+			
+			sb.append("兩者庫存相等:" + twoEquals.size() + "\n");
+			if(!twoEquals.isEmpty()){
+				sb.append("型號----庫存表----Magento----\n");
+				twoEquals.stream().forEach(si->{
+					sb.append(si.getSku() + "----" + si.getTotalStockQty() + "----" + si.getMagentoStockQty() + "----\n");
+				});
+			}
+
+			sb.append("庫存表存在，Magento沒有的型號有"+ totalDiff.size() +"筆: " + totalDiff + "\n");
+			sb.append("Magento存在，庫存表沒有的型號有"+ magentoDiff.size() +"筆: " + magentoDiff);
+			System.out.println(sb.toString());
+		}
+		// TODO
+		public String toHtml(){
+			
+			return "NOT implemented";
+		}
 	}
 }
