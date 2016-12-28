@@ -3,6 +3,7 @@ package com.angrycat.erp.component;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Map;
 import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.function.Predicate;
@@ -60,7 +61,10 @@ public class JsonNodeWrapper {
 	}
 	public <T>List<T> toList(Function<JsonNode, T> exe){
 		return found.stream().map(exe).collect(Collectors.toList());
-	} 
+	}
+	public <K, V>Map<K, V> toMap(Function<JsonNode, K> key, Function<JsonNode, V> val){
+		return found.stream().collect(Collectors.toMap(key, val));
+	}
 	public void consume(Consumer<JsonNode> consumer){
 		found.stream().forEachOrdered(consumer);
 	}
