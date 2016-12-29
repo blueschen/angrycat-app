@@ -44,4 +44,12 @@ public class CollectionTests {
 		m2.put("C", "3");
 		System.out.println(m2.values().getClass());
 	}
+	@Test
+	public void retainAll(){
+		List<String> l1 = new ArrayList<>(Arrays.asList("a","b","c","d"));
+		List<String> l2 = new ArrayList<>(Arrays.asList("b","c","d", "e", "f"));
+		l1.retainAll(l2);
+		System.out.println(l1);
+		System.out.println(l2);
+	}
 }
