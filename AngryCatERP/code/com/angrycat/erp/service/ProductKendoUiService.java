@@ -12,6 +12,8 @@ import java.util.concurrent.CompletableFuture;
 import java.util.function.BiFunction;
 import java.util.stream.Collectors;
 
+import javax.mail.internet.MimeMessage;
+
 import org.apache.commons.lang3.StringUtils;
 import org.hibernate.Session;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -19,6 +21,9 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Scope;
 import org.springframework.mail.MailSender;
 import org.springframework.mail.SimpleMailMessage;
+import org.springframework.mail.javamail.JavaMailSenderImpl;
+import org.springframework.mail.javamail.MimeMessageHelper;
+import org.springframework.mail.javamail.MimeMessagePreparator;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -70,12 +75,8 @@ public class ProductKendoUiService extends KendoUiService<Product, Product> {
 		CompletableFuture.supplyAsync(()->magentoProductService.updateStockIfDifferentFromMagento(targets))
 			.exceptionally((ex)-> {
 				String msg = "Contents:\n"; 
-				msg += targets.stream().map(p->p.getModelId()+":"+p.getTotalStockQty()).collect(Collectors.joining("\n"));
-				SimpleMailMessage simpleMailMessage = new SimpleMailMessage(templateMessage);
-				simpleMailMessage.setTo(JERRY);
-				simpleMailMessage.setText(msg + "error:\n" + ex);
-				simpleMailMessage.setSubject("asyncUpdateMagentoStock Errors");
-				mailSender.send(simpleMailMessage);
+				msg += targets.stream().map(p->p.getModelId()+":"+p.getTotalStockQty()).collect(Collectors.joining("\n"));				
+				sendToAdmin("asyncUpdateMagentoStock Errors", msg + "error:\n" + ex);
 				return null;
 			});
 			
@@ -85,10 +86,8 @@ public class ProductKendoUiService extends KendoUiService<Product, Product> {
 			List<Product> all = genCondtitionsAfterExecuteQueryList().getResults();
 			magentoProductService.updateStockIfMagentoIsMore(all);
 		}catch(Throwable e){
-			SimpleMailMessage simpleMailMessage = new SimpleMailMessage(templateMessage);
-			simpleMailMessage.setTo(JERRY);
-			simpleMailMessage.setText(e.toString()); // TODO stacktrace formatted
-			simpleMailMessage.setSubject("asyncUpdateMagentoStock Errors Errors");
+			 // TODO stacktrace formatted
+			sendToAdmin("asyncUpdateMagentoStock Errors Errors", e.toString());
 		}
 	}
 	public ProductStockReport generateStockReport(){
@@ -126,10 +125,8 @@ public class ProductKendoUiService extends KendoUiService<Product, Product> {
 			report.setTotalDiff(totalDiff);
 			report.setMagentoDiff(magentoDiff);
 		}catch(Throwable e){
-			SimpleMailMessage simpleMailMessage = new SimpleMailMessage(templateMessage);
-			simpleMailMessage.setTo(JERRY);
-			simpleMailMessage.setText(e.toString()); // TODO stacktrace formatted
-			simpleMailMessage.setSubject("asyncUpdateMagentoStock Errors Errors");
+			 // TODO stacktrace formatted
+			sendToAdmin("asyncUpdateMagentoStock Errors Errors", e.toString());
 		}
 		return report;
 	}
@@ -257,10 +254,74 @@ public class ProductKendoUiService extends KendoUiService<Product, Product> {
 			sb.append("Magento存在，庫存表沒有的型號有"+ magentoDiff.size() +"筆: " + magentoDiff);
 			System.out.println(sb.toString());
 		}
-		// TODO
-		public String toHtml(){
-			
-			return "NOT implemented";
+		private String getCompareHTML(String title, List<StockInfo> infos){
+			String headerTmp = "<h1><span>%s(%o筆)</span></h1>";
+			String header = String.format(headerTmp, title, infos.size());
+			if(infos.size() == 0){
+				return header;
+			}
+			String trTmp = "<tr><td>%s</td><td>%o</td><td>%o</td></tr>";
+			String tr = infos.stream()
+				.map(si->String.format(trTmp, si.getSku(), si.getMagentoStockQty(), si.getTotalStockQty()))
+				.collect(Collectors.joining());
+			String tableTmp = "%s<table border='0' valign='top' ><tr><th style='width: 35%%;'>型號</th><th style='width: 35%%;'>購物網站</th><th style='width: 30%%;'>庫存表</th></tr>%s</table>";
+			String table = String.format(tableTmp, header, tr);
+			return table;
 		}
+		private String getOtherHTML(String title, int count){
+			String otherTmp = "<h3><span>%s: %o</span></h3>";
+			return String.format(otherTmp, title, count);
+		}
+		private String getDiffHTML(String title, Set<String> diff){
+			String diffHeader = "<h3><span>%s有%o筆</span></h3>";
+			String diffTr = "<tr><td>%s</td></tr>";
+			String diffTable = "%s<table border='0' valign='top'><tr><th>型號</th></tr>%s</table>";
+			
+			String header = String.format(diffHeader, title, diff.size());
+			String tr = diff.stream().map(s->String.format(diffTr, s)).collect(Collectors.joining());
+			String table = String.format(diffTable, header, tr);
+			return table;
+		}
+		public String toHtml(){
+			StringBuffer sb = new StringBuffer();
+		
+			sb.append(getOtherHTML("庫存表商品數", totalCount));
+			sb.append(getOtherHTML("購物網站商品數", magentoCount));
+			sb.append(getOtherHTML("兩者商品皆存在數", intersection.size()));
+			
+			sb.append(getCompareHTML("庫存表庫存較多", totalMore));
+			sb.append(getCompareHTML("購物網站庫存較多", magentoMore));
+			sb.append(getCompareHTML("兩者庫存相等", twoEquals));
+					
+			sb.append(getDiffHTML("庫存表存在，購物網站沒有的型號", totalDiff));
+			sb.append(getDiffHTML("購物網站存在，庫存表沒有的型號", magentoDiff));
+			
+			return sb.toString();
+		}
+	}
+	void sendToAdmin(String subject, String content){
+		SimpleMailMessage simpleMailMessage = new SimpleMailMessage(templateMessage);
+		simpleMailMessage.setTo(JERRY);
+		simpleMailMessage.setText(content);
+		simpleMailMessage.setSubject(subject);
+		mailSender.send(simpleMailMessage);
+	}
+	// ref. http://websystique.com/spring/spring-4-email-with-attachment-tutorial/
+	void sendHTMLToAdmin(String subject, String content){
+		JavaMailSenderImpl sender = new JavaMailSenderImpl();
+		sender.setHost("msa.hinet.net");
+		sender.setPort(25);
+		
+		MimeMessagePreparator preparator = new MimeMessagePreparator(){
+			public void prepare(MimeMessage mimeMessage) throws Exception{
+				MimeMessageHelper helper = new MimeMessageHelper(mimeMessage, true, "UTF-8");
+				
+				helper.setSubject(subject);
+				helper.setFrom(JERRY);
+				helper.setTo(JERRY);
+				helper.setText(content, true);
+			}
+		};
+		sender.send(preparator);
 	}
 }
