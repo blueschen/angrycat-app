@@ -23,4 +23,11 @@ public class ProductKendoUiServiceTests {
 		ProductStockReport report = productKendoUiService.generateStockReport();
 		report.printToConsole();
 	}
+	@Test
+	public void sendStockReportHTML(){
+		productKendoUiService.getMagentoProductService().setBaseUrl(MagentoBaseService.LOCALHOST_BASE_URL);
+		productKendoUiService.getMagentoProductService().setDebug(true);
+		ProductStockReport report = productKendoUiService.generateStockReport();
+		productKendoUiService.sendHTMLToAdmin("測試:sendStockReportHTML", report.toHtml());
+	}
 }
