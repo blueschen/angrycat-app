@@ -1,7 +1,5 @@
 package com.angrycat.erp.service;
 
-import static com.angrycat.erp.common.EmailContact.JERRY;
-
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashSet;
@@ -12,18 +10,11 @@ import java.util.concurrent.CompletableFuture;
 import java.util.function.BiFunction;
 import java.util.stream.Collectors;
 
-import javax.mail.internet.MimeMessage;
-
 import org.apache.commons.lang3.StringUtils;
 import org.hibernate.Session;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Scope;
-import org.springframework.mail.SimpleMailMessage;
-import org.springframework.mail.javamail.JavaMailSender;
-import org.springframework.mail.javamail.JavaMailSenderImpl;
-import org.springframework.mail.javamail.MimeMessageHelper;
-import org.springframework.mail.javamail.MimeMessagePreparator;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -69,17 +60,28 @@ public class ProductKendoUiService extends KendoUiService<Product, Product> {
 		List<Product> results = batchSaveOrMerge(targets, before, s);
 		return results;
 	}
-	private void asyncUpdateMagentoStock(List<Product> targets){
+	/**
+	 * 編輯時將修改Magenot庫存<br>
+	 * 如果兩者庫存有差異<br>
+	 * 讓庫存與庫存表一致
+	 * @param targets
+	 */
+	void asyncUpdateMagentoStock(List<Product> targets){
 		CompletableFuture.supplyAsync(()->magentoProductService.updateStockIfDifferentFromMagento(targets))
 			.exceptionally((ex)-> {
 				String msg = "Contents:\n"; 
-				msg += targets.stream().map(p->p.getModelId()+":"+p.getTotalStockQty()).collect(Collectors.joining("\n"));				
-				sendToAdmin("asyncUpdateMagentoStock Errors", msg + "error:\n" + ex);
+				msg += targets.stream().map(p->p.getModelId()+":"+p.getTotalStockChangeNote()).collect(Collectors.joining("\n"));				
+				sendToAdmin("asyncUpdateMagentoStock Errors", msg + "error:\n" + ex); // TODO stacktrace formatted
 				return null;
 			});
-			
+		System.out.println("asyncUpdateMagentoStock end...");	
 	}
-	public void adjustMagentoStockConformed(){
+	/**
+	 * 用庫存表所有商品去找<br>
+	 * 如果兩邊都有該商品且Magento庫存比較多<br>
+	 * 就讓Magento庫存與庫存表一致
+	 */
+	public void updateStockIfMagentoIsMore(){
 		try{
 			List<Product> all = genCondtitionsAfterExecuteQueryList().getResults();
 			magentoProductService.updateStockIfMagentoIsMore(all);
@@ -88,6 +90,10 @@ public class ProductKendoUiService extends KendoUiService<Product, Product> {
 			sendToAdmin("asyncUpdateMagentoStock Errors Errors", e.toString());
 		}
 	}
+	/**
+	 * 產生庫存的診斷報告
+	 * @return
+	 */
 	public ProductStockReport generateStockReport(){
 		ProductStockReport report = new ProductStockReport();
 		try{
