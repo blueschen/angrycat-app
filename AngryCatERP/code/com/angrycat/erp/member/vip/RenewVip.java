@@ -101,7 +101,12 @@ public class RenewVip {
 		
 		renewVip(queryHql, params);
 	}
-	
+	@Deprecated
+	/**
+	 * 會員改為終身制，所以不需要從程式端增加一年VIP資格
+	 * @param queryHql
+	 * @param params
+	 */
 	private void renewVip(String queryHql, Map<String, Object> params){
 		// 續會一年
 		sfw.executeSession(s->{
