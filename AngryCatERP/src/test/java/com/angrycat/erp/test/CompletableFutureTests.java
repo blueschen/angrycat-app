@@ -27,4 +27,17 @@ public class CompletableFutureTests {
 	private void printMsg3(String msg){
 		System.out.println("this is printMsg3...received msg: " + msg);
 	}
+	
+	@Test
+	public void processException(){
+		CompletableFuture.supplyAsync(()->genException())
+			.exceptionally((r)->{
+				System.out.println(r);
+				return null;
+			});
+		System.out.println("process end...");
+	}
+	private String genException(){
+		throw new RuntimeException("This is manually exception");
+	}
 }
