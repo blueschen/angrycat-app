@@ -19,8 +19,8 @@ import org.hibernate.Session;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Scope;
-import org.springframework.mail.MailSender;
 import org.springframework.mail.SimpleMailMessage;
+import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.mail.javamail.JavaMailSenderImpl;
 import org.springframework.mail.javamail.MimeMessageHelper;
 import org.springframework.mail.javamail.MimeMessagePreparator;
@@ -38,9 +38,7 @@ public class ProductKendoUiService extends KendoUiService<Product, Product> {
 	@Autowired
 	private MagentoProductService magentoProductService;
 	@Autowired
-	private MailSender mailSender;
-	@Autowired
-	private SimpleMailMessage templateMessage;
+	private MailService mailService;
 	@Override
 	List<?> deleteByIds(List<String> ids, Session s){
 		List<Product> results = (List<Product>)super.deleteByIds(ids, s);
@@ -300,28 +298,13 @@ public class ProductKendoUiService extends KendoUiService<Product, Product> {
 		}
 	}
 	void sendToAdmin(String subject, String content){
-		SimpleMailMessage simpleMailMessage = new SimpleMailMessage(templateMessage);
-		simpleMailMessage.setTo(JERRY);
-		simpleMailMessage.setText(content);
-		simpleMailMessage.setSubject(subject);
-		mailSender.send(simpleMailMessage);
+		mailService.subject(subject)
+			.content(content)
+			.sendSimple();
 	}
-	// ref. http://websystique.com/spring/spring-4-email-with-attachment-tutorial/
-	void sendHTMLToAdmin(String subject, String content){
-		JavaMailSenderImpl sender = new JavaMailSenderImpl();
-		sender.setHost("msa.hinet.net");
-		sender.setPort(25);
-		
-		MimeMessagePreparator preparator = new MimeMessagePreparator(){
-			public void prepare(MimeMessage mimeMessage) throws Exception{
-				MimeMessageHelper helper = new MimeMessageHelper(mimeMessage, true, "UTF-8");
-				
-				helper.setSubject(subject);
-				helper.setFrom(JERRY);
-				helper.setTo(JERRY);
-				helper.setText(content, true);
-			}
-		};
-		sender.send(preparator);
+	void sendHTMLToAdmin(String subject, String content){		
+		mailService.subject(subject)
+			.content(content)
+			.sendHTML();
 	}
 }
