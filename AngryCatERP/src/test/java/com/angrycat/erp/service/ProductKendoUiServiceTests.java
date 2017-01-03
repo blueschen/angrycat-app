@@ -30,4 +30,12 @@ public class ProductKendoUiServiceTests {
 		ProductStockReport report = productKendoUiService.generateStockReport();
 		productKendoUiService.sendHTMLToAdmin("測試:sendStockReportHTML", report.toHtml());
 	}
+	@Test
+	public void sendToAdmin(){
+		productKendoUiService.sendToAdmin("ProductKendoUiService.sendToAdmin", "測試內容");
+	}
+	@Test
+	public void sendHTMLToAdmin(){
+		productKendoUiService.sendHTMLToAdmin("ProductKendoUiService.sendHTMLToAdmin", "<span style='color:red;'>Happy New Year</span>");
+	}
 }
