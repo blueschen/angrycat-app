@@ -8,6 +8,7 @@ import com.angrycat.erp.model.Member;
 import com.angrycat.erp.model.Product;
 import com.angrycat.erp.model.PurchaseBill;
 import com.angrycat.erp.model.SalesDetail;
+import com.angrycat.erp.model.TransferReply;
 import com.angrycat.erp.model.VipDiscountDetail;
 
 
@@ -31,8 +32,7 @@ public class FormatListFactory {
 		list.add(cdpf);
 		
 		return list;
-	}
-	
+	}	
 	private static FormatList ofPurchaseBillDetails(int detailCount){
 		FormatList list = ofPurchaseBillBase("yyyy-MM-dd");
 		for(int i = 0; i < detailCount; i++){
@@ -45,8 +45,7 @@ public class FormatListFactory {
 			list.add(new DetailPropertyFormat(subject + "備註", field+"note"));
 		}
 		return list;
-	}
-	
+	}	
 	private static FormatList ofPurchaseBillBase(String dateFormat){
 		FormatList f = new FormatList();
 		f.setDocTitle("no");
@@ -62,8 +61,7 @@ public class FormatListFactory {
 		f.add(new PropertyFormat("備註", "note"));
 		
 		return f;
-	}
-	
+	}	
 	private static FormatList ofProductBase(String dateFormat){
 		FormatList f = new FormatList();
 		f.setDocTitle("modelId");
@@ -79,13 +77,38 @@ public class FormatListFactory {
 		f.add(new PropertyFormat("總庫存修改備註", "totalStockChangeNote"));
 		
 		return f;
-	}
-	
+	}	
 	public static FormatList ofProducForExcelExport(){
 		FormatList f = ofProductBase("yyyy-MM-dd");
 		return f;
 	}
-	
+	private static FormatList ofTransferReplyBase(String dateFormat){
+		FormatList f = new FormatList();
+		f.setDocTitle("id");
+		
+		f.add(new PropertyFormat("FB顯示名稱", "fbNickname"));
+		f.add(new PropertyFormat("真實姓名", "name"));
+		f.add(new PropertyFormat("手機號碼", "mobile"));
+		f.add(new PropertyFormat("備用聯絡電話", "tel"));
+		f.add(new PropertyFormat("郵遞區號", "postalCode"));
+		f.add(new PropertyFormat("掛號收件地址", "address"));
+		PropertyFormat createDate = new PropertyFormat("填單時間", "createDate");
+		createDate.setDateFormat(dateFormat);
+		f.add(createDate);
+		PropertyFormat transferDate = new PropertyFormat("匯款日期", "transferDate");
+		transferDate.setDateFormat(dateFormat);
+		f.add(transferDate);
+		f.add(new PropertyFormat("匯款帳號後5碼", "transferAccountCheck"));
+		f.add(new PropertyFormat("匯款金額", "transferAmount"));
+		f.add(new PropertyFormat("購買明細", "productDetails"));
+		f.add(new PropertyFormat("其他備註", "note"));
+		
+		return f;
+	}
+	public static FormatList ofTransferReplyForExcelExport(){
+		FormatList f = ofTransferReplyBase("yyyy-MM-dd HH:mm:ss");
+		return f;
+	}
 	private static FormatList ofSalesBase(String dateFormat){
 		FormatList f = new FormatList();
 		f.setDocTitle("rowId");
@@ -240,6 +263,8 @@ public class FormatListFactory {
 			formats = ofExamItems(size);
 		}else if(clz == PurchaseBill.class){
 			formats = ofPurchaseBillDetails(PurchaseBill.class.cast(obj).getPurchaseBillDetails().size());
+		}else if(clz == TransferReply.class){
+			formats = ofTransferReplyForExcelExport();
 		}
 		return formats;
 	}
@@ -280,6 +305,8 @@ public class FormatListFactory {
 			formats = ofExamItems(maxSize);
 		}else if(clz == PurchaseBill.class){
 			formats = ofPurchaseBillDetails();
+		}else if(clz == TransferReply.class){
+			formats = ofTransferReplyForExcelExport();
 		}
 		return formats;
 	}
