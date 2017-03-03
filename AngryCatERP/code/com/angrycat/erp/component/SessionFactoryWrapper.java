@@ -29,7 +29,9 @@ public class SessionFactoryWrapper {
 	public LocalSessionFactoryBean getLocalSessionFactoryBean(){
 		return lsfb;
 	}
-	
+	public void setLocalSessionFactoryBean(LocalSessionFactoryBean lsfb){
+		this.lsfb = lsfb;
+	}
 	public SessionFactory getSessionFactory(){
 		return lsfb.getObject();
 	}
