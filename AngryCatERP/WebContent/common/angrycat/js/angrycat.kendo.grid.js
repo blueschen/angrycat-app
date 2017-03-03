@@ -49,7 +49,7 @@
 					minusFilterDateTimezoneOffset(f, modelFields);
 				}
 			}
-			if(filter.field && "date" == modelFields[filter.field].type && filter.value && (filter.value instanceof Date)){
+			if(filter.field && modelFields[filter.field] && "date" == modelFields[filter.field].type && filter.value && (filter.value instanceof Date)){
 				filter.value = minusTimezoneOffset(filter.value);
 			}
 		}
