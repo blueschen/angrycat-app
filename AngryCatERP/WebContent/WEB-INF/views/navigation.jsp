@@ -64,6 +64,9 @@
 					<li ${moduleName == "purchasebill" ? "class='active'" : ""}>
 						<a href="${pageContext.request.contextPath}/purchasebill/list">進貨</a>
 					</li>
+					<li ${moduleName == "transferreply" ? "class='active'" : ""}>
+						<a href="${pageContext.request.contextPath}/transferreply/list">潘朵拉匯款回條</a>
+					</li>
 				</ul>
 				<ul class="nav navbar-nav navbar-right">
 					<li>
