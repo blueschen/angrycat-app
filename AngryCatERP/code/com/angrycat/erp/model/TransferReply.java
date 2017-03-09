@@ -27,6 +27,7 @@ public class TransferReply {
 	private String note;
 //	@JsonFormat(shape=JsonFormat.Shape.STRING, pattern="yyyy-MM-dd'T'HH:mm:ss.SSSZ")
 	private Date createDate = new Date(System.currentTimeMillis());
+	private String salesNo;
 	@Id
 	@Column(name="id")
 	@GenericGenerator(name = "angrycat_transferreply_id", strategy = "com.angrycat.erp.ds.TimeUID")
@@ -127,5 +128,12 @@ public class TransferReply {
 	}
 	public void setCreateDate(Date createDate) {
 		this.createDate = createDate;
+	}
+	@Column(name="salesNo", columnDefinition="訂單單號")
+	public String getSalesNo() {
+		return salesNo;
+	}
+	public void setSalesNo(String salesNo) {
+		this.salesNo = salesNo;
 	}
 }
