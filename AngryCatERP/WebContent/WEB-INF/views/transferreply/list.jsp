@@ -92,6 +92,7 @@
 						["postalCode",			"郵遞區號",			150,			"string",	"contains"],
 						["address",				"掛號收件地址",		150,			"string",	"contains"],
 						["createDate",			"填單時間",			150,			"date",		"gte"],
+						["salesNo",				"訂單編號",			150,			"string",	"contains"],
 						["transferDate",		"匯款日期",			150,			"date",		"gte"],
 						["transferAccountCheck","匯款帳號後5碼",		150,			"string",	"contains"],
 						["transferAmount",		"匯款金額",			150,			"number",	"gte"],
