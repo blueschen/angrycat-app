@@ -556,7 +556,9 @@
 					fieldName = field[0],
 					type = field[3],
 					width = field[2],
-					editor = field[7];
+					editor = field[7],
+					columnTemplate = field[8];
+				columnTemplate = columnTemplate ? columnTemplate : defaultTemplate.replace(/{field}/g, fieldName);
 				var column = {
 						field: fieldName,
 						width: width+"px",
@@ -567,7 +569,7 @@
 								template: type === "string" ? defaultFilterTemplate : (type === "number" ? numberFilterTemplate : (type == "date" ? dateFilterTemplate : null)) // 字串型別欄位，才要更動filter cell template，這是為了防止內建change事件觸發查詢的動作
 							}
 						},
-						template: defaultTemplate.replace(/{field}/g, fieldName)
+						template: columnTemplate
 					};
 				if(editor){
 					column["editor"] = editor;
