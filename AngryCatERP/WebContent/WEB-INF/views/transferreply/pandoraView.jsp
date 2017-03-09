@@ -243,6 +243,25 @@
  		</div>
  	</div>
  	<div class="form-group">
+  		<div class="col-sm-offset-1 col-sm-8" ng-class="{'has-error': transferReplyForm.salesNo.$error.required}">
+			<label class="col-sm-3 control-label" for="salesNo">
+ 				訂單編號<span style="color:red;">*</span>
+ 			</label>
+ 			<div class="col-sm-7">
+ 				<input
+ 					type="text"
+ 					ng-model="mainCtrl.transferReply.salesNo"
+ 					id="salesNo"
+ 					name="salesNo"
+ 					class="form-control"
+ 					ng-required="true"
+ 					data-trigger="focus"
+ 					placement="auto top"
+ 					bs-tooltip="{title: '如有需要填寫多個訂單編號，請以逗點分隔'}"/>
+ 			</div>
+ 		</div>	
+ 	</div> 	
+ 	<div class="form-group">
  		<div class="col-sm-offset-1 col-sm-8" ng-class="{'has-error': transferReplyForm.productDetails.$error.required}">
 			<label class="col-sm-3 control-label" for="productDetails">
  				購買明細<span style="color:red;">*</span>
