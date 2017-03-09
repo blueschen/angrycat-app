@@ -186,4 +186,8 @@ public abstract class KendoUiGridController<T, R> implements Serializable{
 	List<String> getParameterCatNames(){
 		return Collections.emptyList();
 	}
+	
+	SessionFactoryWrapper getSessionFactoryWrapper(){
+		return this.sfw;
+	}
 }
