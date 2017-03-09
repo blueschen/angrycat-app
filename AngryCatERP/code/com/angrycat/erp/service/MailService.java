@@ -25,6 +25,7 @@ public class MailService {
 	private String subject = "測試標題";
 	private String content = "測試內容";
 	
+	private String from = JERRY;
  	private String[] to = DEFAULT_TO;
  	private String[] cc;
 	
@@ -34,6 +35,10 @@ public class MailService {
  	}
  	public MailService content(String content){
  		this.content = content;
+ 		return this;
+ 	}
+ 	public MailService from(String from){
+ 		this.from = from;
  		return this;
  	}
  	public MailService to(String...to){
@@ -46,6 +51,7 @@ public class MailService {
  	}
 	public void sendSimple(){
 		SimpleMailMessage simpleMailMessage = new SimpleMailMessage(templateMessage);
+		simpleMailMessage.setFrom(from);
 		simpleMailMessage.setTo(to);
 		if(cc != null && cc.length > 0){
 			simpleMailMessage.setCc(cc);
