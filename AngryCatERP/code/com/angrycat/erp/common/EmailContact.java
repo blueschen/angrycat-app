@@ -11,4 +11,5 @@ public class EmailContact {
 	public static final String JOYCE = "joycechang@ohmbeads.com.tw";
 	public static final String JERRY = "jerrylin@ohmbeads.com.tw";
 	public static final String SLOW = "slowlywu@ohmbeads.com.tw";
+	public static final String INFO = "info@ohmbeads.com.tw";
 }
