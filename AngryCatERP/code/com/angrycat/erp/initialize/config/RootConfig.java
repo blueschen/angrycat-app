@@ -28,6 +28,9 @@ import org.springframework.transaction.PlatformTransactionManager;
 import org.springframework.transaction.annotation.EnableTransactionManagement;
 
 import com.angrycat.erp.common.CommonUtil;
+import com.angrycat.erp.genserial.DefaultSerialGenerator;
+import com.angrycat.erp.genserial.GenSerialUtil;
+import com.angrycat.erp.model.AmericanGroupBuyOrderForm;
 import com.angrycat.erp.sql.SqlRoot;
 import com.mchange.v2.c3p0.ComboPooledDataSource;
 
@@ -60,6 +63,8 @@ public class RootConfig {
 			System.setProperty(CATALINA_HOME, LOCAL_TOMCAT_PATH);
 //			System.setProperty("catalina.home", NAS_TOMCAT_TEST1_PATH);
 		}
+		// 新增流水號產生器: 美國團訂單
+		GenSerialUtil.addGenerator(new DefaultSerialGenerator(AmericanGroupBuyOrderForm.SALESNO_GENERATOR_ID, sessionFactory(dataSource()).getObject()));
 	}
 	
 	@Bean(destroyMethod="close")
