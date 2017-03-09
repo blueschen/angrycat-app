@@ -14,7 +14,7 @@ public class GenSerialUtil {
 		}
 		generators.put(generator.getId(), generator);
 	}
-	public static synchronized String getNext(String id)throws Throwable{
+	public static synchronized String getNext(String id){
 		SerialGenerator<String, ?> generator = generators.get(id);
 		if(generator == null){
 			throw new RuntimeException("SerialGenerator id not found[" + id + "]");
