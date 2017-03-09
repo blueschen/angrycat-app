@@ -8,12 +8,12 @@ public abstract class SerialGenerator<PK extends Serializable & Comparable<PK>, 
 	public abstract String getNext();
 	public abstract String getNext(S s);
 	
-	protected String incrementNo(String no){
+	public static String incrementNo(String no){
 		long num = Long.parseLong(no) + 1l;
 		int len = no.length();
 		return formatNo(num, len);
 	}
-	protected String formatNo(long num, int len){
+	public static String formatNo(long num, int len){
 		NumberFormat nf = NumberFormat.getIntegerInstance();
 		nf.setMaximumIntegerDigits(len);
 		nf.setMinimumIntegerDigits(len);
