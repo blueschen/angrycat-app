@@ -2,6 +2,7 @@ package com.angrycat.erp.format;
 
 import java.util.List;
 
+import com.angrycat.erp.model.AmericanGroupBuyOrderForm;
 import com.angrycat.erp.model.Exam;
 import com.angrycat.erp.model.ExamItem;
 import com.angrycat.erp.model.Member;
@@ -95,6 +96,7 @@ public class FormatListFactory {
 		PropertyFormat createDate = new PropertyFormat("填單時間", "createDate");
 		createDate.setDateFormat(dateFormat);
 		f.add(createDate);
+		f.add(new PropertyFormat("訂單編號", "salesNo"));
 		PropertyFormat transferDate = new PropertyFormat("匯款日期", "transferDate");
 		transferDate.setDateFormat(dateFormat);
 		f.add(transferDate);
@@ -107,6 +109,37 @@ public class FormatListFactory {
 	}
 	public static FormatList ofTransferReplyForExcelExport(){
 		FormatList f = ofTransferReplyBase("yyyy-MM-dd HH:mm:ss");
+		return f;
+	}
+	private static FormatList ofAmericanGroupBuyOrderFormBase(String dateFormat){
+		FormatList f = new FormatList();
+		f.setDocTitle("id");
+		
+		f.add(new PropertyFormat("活動名稱", "activity"));
+		f.add(new PropertyFormat("FB顯示名稱", "fbNickname"));
+		f.add(new PropertyFormat("手機號碼", "mobile"));
+		f.add(new PropertyFormat("Email", "email"));
+				
+		f.add(new PropertyFormat("訂單類型", "salesType"));
+		f.add(new PropertyFormat("產品名稱", "productName"));
+		f.add(new PropertyFormat("型號", "modelId"));
+		f.add(new PropertyFormat("價格(USD)", "productAmtUSD"));
+		f.add(new PropertyFormat("尺寸", "size"));
+		
+		f.add(new PropertyFormat("訂單編號", "salesNo"));
+		f.add(new PropertyFormat("代購總金額(NTD)", "totalAmtNTD"));
+		
+		f.add(new BooleanPropertyFormat("是否已對帳", "billChecked", new String[]{"是", "否"}));
+		f.add(new PropertyFormat("對帳備註", "billCheckNote"));
+		
+		PropertyFormat createDate = new PropertyFormat("填單時間", "createTime");
+		createDate.setDateFormat(dateFormat);
+		f.add(createDate);
+		
+		return f;
+	}
+	public static FormatList ofAmericanGroupBuyOrderFormForExcelExport(){
+		FormatList f = ofAmericanGroupBuyOrderFormBase("yyyy-MM-dd HH:mm:ss");
 		return f;
 	}
 	private static FormatList ofSalesBase(String dateFormat){
@@ -265,6 +298,8 @@ public class FormatListFactory {
 			formats = ofPurchaseBillDetails(PurchaseBill.class.cast(obj).getPurchaseBillDetails().size());
 		}else if(clz == TransferReply.class){
 			formats = ofTransferReplyForExcelExport();
+		}else if(clz == AmericanGroupBuyOrderForm.class){
+			formats = ofAmericanGroupBuyOrderFormForExcelExport();
 		}
 		return formats;
 	}
@@ -307,6 +342,8 @@ public class FormatListFactory {
 			formats = ofPurchaseBillDetails();
 		}else if(clz == TransferReply.class){
 			formats = ofTransferReplyForExcelExport();
+		}else if(clz == AmericanGroupBuyOrderForm.class){
+			formats = ofAmericanGroupBuyOrderFormForExcelExport();
 		}
 		return formats;
 	}
