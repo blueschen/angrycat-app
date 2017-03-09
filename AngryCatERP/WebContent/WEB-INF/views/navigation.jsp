@@ -23,12 +23,26 @@
 					<li>
 						<a href="${pageContext.request.contextPath}/member/add">會員新增</a>
 					</li>
-					<li ${moduleName == "datachangelog" ? "class='active'" : ""}>
-						<a href="${pageContext.request.contextPath}/datachangelog/list">異動紀錄查詢</a>
-					</li>
-					<li ${moduleName == "datadeletelog" ? "class='active'" : ""}>
-						<a href="${pageContext.request.contextPath}/datadeletelog/list">已刪除資料異動紀錄查詢</a>
-					</li>
+					<li class="dropdown">
+						<!-- 直接使用angular-strap的指令bs-dropdown -->
+          				<a href="#" 
+          					class="dropdown-toggle" 
+          					data-toggle="dropdown" 
+          					role="button" 
+          					aria-haspopup="true" 
+          					aria-expanded="false"
+          					bs-dropdown>異動記錄 <span class="caret"></span>
+          				</a>
+          				<ul class="dropdown-menu">
+            				<li ${moduleName == "datachangelog" ? "class='active'" : ""}>
+            					<a href="${pageContext.request.contextPath}/datachangelog/list">異動紀錄查詢</a>
+            				</li>
+            				<li role="separator" class="divider"></li>
+            				<li ${moduleName == "datadeletelog" ? "class='active'" : ""}>
+            					<a href="${pageContext.request.contextPath}/datadeletelog/list">已刪除資料異動紀錄查詢</a>
+            				</li>
+          				</ul>
+        			</li>
 					<!-- 
 					<li ${moduleName == "salesdetail" ? "class='active'" : ""}>
 						<a href="${pageContext.request.contextPath}/salesdetail/list">銷售明細查詢</a>
@@ -64,9 +78,26 @@
 					<li ${moduleName == "purchasebill" ? "class='active'" : ""}>
 						<a href="${pageContext.request.contextPath}/purchasebill/list">進貨</a>
 					</li>
-					<li ${moduleName == "transferreply" ? "class='active'" : ""}>
-						<a href="${pageContext.request.contextPath}/transferreply/list">潘朵拉匯款回條</a>
-					</li>
+					<li class="dropdown">
+						<!-- 直接使用angular-strap的指令bs-dropdown -->
+          				<a href="#" 
+          					class="dropdown-toggle" 
+          					data-toggle="dropdown" 
+          					role="button" 
+          					aria-haspopup="true" 
+          					aria-expanded="false"
+          					bs-dropdown>潘朵拉 <span class="caret"></span>
+          				</a>
+          				<ul class="dropdown-menu">
+            				<li ${moduleName == "transferreply" ? "class='active'" : ""}>
+            					<a href="${pageContext.request.contextPath}/transferreply/list">匯款回條</a>
+            				</li>
+            				<li role="separator" class="divider"></li>
+            				<li ${moduleName == "americangroupbuyorderform" ? "class='active'" : ""}>
+            					<a href="${pageContext.request.contextPath}/americangroupbuyorderform/list">美國團訂單</a>
+            				</li>
+          				</ul>
+        			</li>
 				</ul>
 				<ul class="nav navbar-nav navbar-right">
 					<li>
