@@ -623,6 +623,8 @@ public class KendoUiService<T, R> implements Serializable{
 				}else{
 					throw new UnknownFormatConversionException("type: " + type + " NOT defined yet");
 				}
+			}else{
+				casted = obj;
 			}
 		}catch(Throwable e){
 			throw new RuntimeException(e);
