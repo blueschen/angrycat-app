@@ -82,10 +82,17 @@ public class SecurityFilter implements Filter {
 		allowPathEqual.add("/member/save.json");
 		// 為了讓一般人可以自行填入Pandora匯款回條，將Pandora匯款回條新增頁面的操作獨立出來
 		allowPathEqual.add("/transferreply/addPandora");
+		allowPathEqual.add("/transferreply/addAmericanGroupBuy");
 		allowPathEqual.add("/transferreply/batchSaveOrMerge.json");
+		// 美國團訂單
+		allowPathEqual.add("/americangroupbuyorderform/add");
+		allowPathEqual.add("/americangroupbuyorderform/batchSaveOrMerge.json");
+		allowPathEqual.add("/americangroupbuyorderform/deleteByIds.json");
 		// 會員頁面需要檢核手機和室內電話擇一必填
 		allowPathStart.add("/member/mobileDuplicated");
 		allowPathStart.add("/member/telDuplicated");
+		// 潘朵拉匯款回條要檢核訂單編號是否存在
+		allowPathStart.add("/transferreply/salesNoNotExisted");
 	}
 	
 	private boolean allow(HttpServletRequest request){
