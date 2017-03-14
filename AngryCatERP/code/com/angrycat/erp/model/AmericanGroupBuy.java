@@ -20,13 +20,13 @@ public class AmericanGroupBuy {
 	private String no;
 	private Date deadline;
 	
-	private BigDecimal subAmtUSDThresholdForGift;
+	private BigDecimal qualifyTotalAmtThreshold;
 	private BigDecimal giftValAmtUSD;
 	private BigDecimal multiplier;
 	private BigDecimal rate;
-	private BigDecimal discountUSDThreshold;
-	private BigDecimal discountUSD;
 	private BigDecimal serviceChargeNTD;
+	
+	private BigDecimal waitTotalAmtThreshold;
 	
 	@Id
 	@Column(name="id")
@@ -59,13 +59,6 @@ public class AmericanGroupBuy {
 	public void setDeadline(Date deadline) {
 		this.deadline = deadline;
 	}
-	@Column(name="subAmtUSDThresholdForGift", columnDefinition="換贈品正取累積金額(美金)")
-	public BigDecimal getSubAmtUSDThresholdForGift() {
-		return subAmtUSDThresholdForGift;
-	}
-	public void setSubAmtUSDThresholdForGift(BigDecimal subAmtUSDThresholdForGift) {
-		this.subAmtUSDThresholdForGift = subAmtUSDThresholdForGift;
-	}
 	@Column(name="giftValAmtUSD", columnDefinition="贈品價值金額(美金)")
 	public BigDecimal getGiftValAmtUSD() {
 		return giftValAmtUSD;
@@ -87,13 +80,6 @@ public class AmericanGroupBuy {
 	public void setRate(BigDecimal rate) {
 		this.rate = rate;
 	}
-	@Column(name="discountUSD", columnDefinition="折扣金額(美金)")
-	public BigDecimal getDiscountUSD() {
-		return discountUSD;
-	}
-	public void setDiscountUSD(BigDecimal discountUSD) {
-		this.discountUSD = discountUSD;
-	}
 	@Column(name="serviceChargeNTD", columnDefinition="代購服務費(台幣)")
 	public BigDecimal getServiceChargeNTD() {
 		return serviceChargeNTD;
@@ -101,12 +87,19 @@ public class AmericanGroupBuy {
 	public void setServiceChargeNTD(BigDecimal serviceChargeNTD) {
 		this.serviceChargeNTD = serviceChargeNTD;
 	}
-	@Column(name="discountUSDThreshold", columnDefinition="折扣門檻(美金)")
-	public BigDecimal getDiscountUSDThreshold() {
-		return discountUSDThreshold;
+	@Column(name="qualifyTotalAmtThreshold", columnDefinition="正取總額門檻(美金)")
+	public BigDecimal getQualifyTotalAmtThreshold() {
+		return qualifyTotalAmtThreshold;
 	}
-	public void setDiscountUSDThreshold(BigDecimal discountUSDThreshold) {
-		this.discountUSDThreshold = discountUSDThreshold;
+	public void setQualifyTotalAmtThreshold(BigDecimal qualifyTotalAmtThreshold) {
+		this.qualifyTotalAmtThreshold = qualifyTotalAmtThreshold;
+	}
+	@Column(name="waitTotalAmtThreshold", columnDefinition="備取總額門檻(美金)")
+	public BigDecimal getWaitTotalAmtThreshold() {
+		return waitTotalAmtThreshold;
+	}
+	public void setWaitTotalAmtThreshold(BigDecimal waitTotalAmtThreshold) {
+		this.waitTotalAmtThreshold = waitTotalAmtThreshold;
 	}
 	/**
 	 * 訂單是否被關閉<br>
