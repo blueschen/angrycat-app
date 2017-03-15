@@ -11,21 +11,20 @@ import com.angrycat.erp.service.TimeService;
 
 public class AmericanGroupBuyTest extends BaseTestCase {
 	public static final String NO201703 = "AGB201703";
-	
 	public static AmericanGroupBuy new201703Instance(){
 		AmericanGroupBuy agb = new AmericanGroupBuy();
 		agb.setActivity("2017-03美國團");
 		agb.setNo("AGB201703");
-		agb.setDeadline(Date.valueOf(LocalDate.of(2017, 3, 7)));
-		agb.setSubAmtUSDThresholdForGift(new BigDecimal("125"));
+		agb.setDeadline(Date.valueOf(LocalDate.of(2017, 3, 31)));
+		agb.setQualifyTotalAmtThreshold(new BigDecimal("125"));
+		agb.setWaitTotalAmtThreshold(new BigDecimal("80"));
 		agb.setGiftValAmtUSD(new BigDecimal("65"));
 		agb.setMultiplier(new BigDecimal("1.1"));
 		agb.setRate(new BigDecimal("33"));
-		agb.setDiscountUSD(new BigDecimal("50"));
-		agb.setDiscountUSDThreshold(new BigDecimal("150"));
 		agb.setServiceChargeNTD(new BigDecimal("800"));
 		return agb;
 	}
+	// 如果要調整資料庫主機位置，在BaseTestCase做變更
 	@Test
 	public void insert(){
 		executor.executeTransaction(s->{
@@ -38,6 +37,7 @@ public class AmericanGroupBuyTest extends BaseTestCase {
 			}
 		});
 	}
+	// 如果要調整資料庫主機位置，在BaseTestCase做變更
 	@Test
 	public void insertSalesNoGenerator(){
 		executor.executeTransaction(s->{
