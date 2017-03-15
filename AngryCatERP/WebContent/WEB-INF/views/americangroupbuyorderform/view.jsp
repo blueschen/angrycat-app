@@ -13,7 +13,7 @@
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
 	<meta content="width=device-width, initial-scale=1.0" name="viewport">
 	
-	<title>{{mainCtrl.americanGroupBuy.activity}}</title>
+	<title>美國團</title>
 
 	<link rel="stylesheet" href='<c:url value="/vendor/bootstrap/3.3.5/css/bootstrap.css"/>'/>
 	<link rel="stylesheet" href='<c:url value="/vendor/bootstrap/3.3.5/css/bootstrap-theme.css"/>'/>
@@ -33,27 +33,7 @@
       <script src="https://oss.maxcdn.com/html5shiv/3.7.2/html5shiv.min.js"></script>
       <script src="https://oss.maxcdn.com/respond/1.4.2/respond.min.js"></script>
     <![endif]-->
-	<script type="text/javascript">
-	// ref. http://www.nigraphic.com/blog/java-script/how-open-new-window-popup-center-screen
-	// 把popup開在螢幕中間
-	function PopupCenterDual(url, title, w, h) {
-		// Fixes dual-screen position Most browsers Firefox
-		var dualScreenLeft = window.screenLeft != undefined ? window.screenLeft : screen.left;
-		var dualScreenTop = window.screenTop != undefined ? window.screenTop : screen.top;
 
-		width = window.innerWidth ? window.innerWidth : document.documentElement.clientWidth ? document.documentElement.clientWidth : screen.width;
-		height = window.innerHeight ? window.innerHeight : document.documentElement.clientHeight ? document.documentElement.clientHeight : screen.height;
-
-		var left = ((width / 2) - (w / 2)) + dualScreenLeft;
-		var top = ((height / 2) - (h / 2)) + dualScreenTop;
-		var newWindow = window.open(url, title, 'scrollbars=yes, width=' + w + ', height=' + h + ', top=' + top + ', left=' + left);
-
-		// Puts focus on the newWindow
-		if (window.focus) {
-			newWindow.focus();
-		}
-	}
-	</script>
 	<style type="text/css">
 	.form-horizontal .control-label.text-left{
     	text-align: left;
@@ -61,9 +41,27 @@
 	.alert{
 		padding: 5px;
 	}
+	/*fix angularstrap modal background not transparent*/
+	.modal-backdrop{
+		opacity: .5;
+	}
+	/*default position is top-center, using this adjust to center responsively
+	.modal-dialog {
+    	position: absolute;
+    	left: 0;
+    	right: 0;
+    	top: 0;
+    	bottom: 0;
+    	margin: auto;
+    	height:300px;
+	}*/
+	.no-gutter > [class*='col-'] {
+    	padding-right:0;
+    	padding-left:0;
+	}
 	</style>
 </head>
-<body ng-controller="MainCtrl as mainCtrl">
+<body ng-controller="MainCtrl as mainCtrl" ng-cloak><!-- preventing angularjs template code displaying with ngCloak  -->
 <div class="container">
 	<div ng-if="!mainCtrl.isOrderFormDisabled()">
 		<h2  class="text-center">{{mainCtrl.americanGroupBuy.activity}}</h2>
@@ -81,96 +79,130 @@
 		<h2  class="text-center">美國團試算(實際價格請以活動期間公布為主)</h2>
 	</div>
 </div>
-<hr>
 <div class="container">
-<form class="form-horizontal" name="americanGroupBuyOrderFormForm" ng-if="mainCtrl.americanGroupBuy.id">
+	<div class="row">
+		<h2>活動規則說明</h2>
+		<p>請以最新公告者為準</p>
+		<p>規則規則...</p>
+		<div class="checkbox col-sm-3">
+    		<label>
+      			<input type="checkbox" ng-model="mainCtrl.accepted"> 我已閱讀並完全了解以上注意事項
+    		</label>
+		</div>
+		
+		
+	</div>
+<form class="form-horizontal" name="americanGroupBuyOrderFormForm" ng-if="mainCtrl.accepted && mainCtrl.americanGroupBuy.id" novalidate='novalidate'>
 
 	
  	<div class="form-group">
  		<div  class="col-sm-offset-1 col-sm-8">
- 			<button type="button" class="btn btn-default" ng-click="mainCtrl.addQualify()" id="addQualify">
- 				增加一筆正取商品
- 			</button>
+ 			<label>正取商品</label>
+ 			<label>(正取總額需滿{{mainCtrl.americanGroupBuy.qualifyTotalAmtThreshold}} USD 
+ 				<span style="color:red;" ng-if="!mainCtrl.isQualifyTotalAmtAchieveThreshold()">
+ 					尚差{{mainCtrl.americanGroupBuy.qualifyTotalAmtThreshold - mainCtrl.calculateQualifyTotalAmt()}}
+ 				</span>)
+ 			</label>
  		</div>
  	</div>
- 	<div id="qualifies" ng-repeat="qualify in mainCtrl.qualifies" class="form-group">
- 		<div  class="col-sm-offset-1 col-sm-8">
-  			<div class="col-sm-1">
-  				<span>{{$index+1}}</span>
-  			</div> 		
- 			<div class="col-sm-4">
- 				<input id="qualify_productName{{$index}}" 
+ 	<div id="qualifies" ng-repeat="qualify in mainCtrl.qualifies" class="form-inline">
+ 		<div class="col-sm-offset-1 col-sm-10">
+ 			<label class="col-sm-1"><span class="badge">{{$index+1}}</span></label>
+ 			<label ng-class="{'has-error': americanGroupBuyOrderFormForm.qualify_productName{{$index}}.$error.required}">
+  			 	<input id="qualify_productName{{$index}}"
+  			 		name="qualify_productName{{$index}}"
 					type="text" 
 					class="form-control"
-					ng-model="qualify.productName" 
+					ng-model="qualify.productName"
+					placeholder="英文名字"
+					ng-disabled="mainCtrl.fieldsDisabled"
 					ng-required="true"
-					placeholder="英文名字">
- 			</div> 		
- 			<div class="col-sm-3">
- 				<input id="qualify_modelId{{$index}}" 
+					>
+			</label>
+			<label ng-class="{'has-error': americanGroupBuyOrderFormForm.qualify_modelId{{$index}}.$error.required}">
+				<input id="qualify_modelId{{$index}}"
+					name="qualify_modelId{{$index}}"
 					type="text" 
 					class="form-control"
-					ng-model="qualify.modelId" 
-					ng-required="true"
-					placeholder="編號">
- 			</div>
- 			<div class="col-sm-3">
- 				<input id="qualify_productAmtUSD{{$index}}" 
+					ng-model="qualify.modelId"
+					placeholder="編號"
+					ng-disabled="mainCtrl.fieldsDisabled"
+					ng-required="true">
+			</label>
+			<label ng-class="{'has-error': americanGroupBuyOrderFormForm.qualify_productAmtUSD{{$index}}.$error.required}">
+				<input id="qualify_productAmtUSD{{$index}}"
+					name="qualify_productAmtUSD{{$index}}"
 					type="number" 
 					class="form-control"
-					ng-model="qualify.productAmtUSD" 
-					ng-required="true"
+					ng-model="qualify.productAmtUSD"
 					placeholder="美金定價"
-					ng-blur="mainCtrl.calculateResult()">
+					ng-blur="mainCtrl.calculateResult()"
+					ng-disabled="mainCtrl.fieldsDisabled"
+					ng-required="true">
+			</label>														
+ 			<div class="btn-group" role="group" aria-label="Qualify Remove Button">
+ 				<button type="button" class="btn btn-default" ng-click="mainCtrl.removeDetail(qualify)" ng-if="!mainCtrl.fieldsDisabled"><span>移除</span></button>
  			</div>
- 			<div class="col-sm-1">
- 				<button type="button" class="btn btn-default" ng-click="mainCtrl.removeDetail(qualify)"><span class="glyphicon glyphicon-remove"></span></button>
+ 			<div class="btn-group" role="group" aria-label="Qualify Add Button">
+ 				<button type="button" class="btn btn-default" ng-click="mainCtrl.addQualify()" ng-if="!mainCtrl.fieldsDisabled" ng-show="mainCtrl.showQualifyAddBtn(qualify)"><span>新增正取</span></button>
  			</div>
  		</div>
  	</div>
  	<div class="form-group">
- 		<div  class="col-sm-offset-1 col-sm-8">
- 			<button type="button" class="btn btn-default" ng-click="mainCtrl.addWait()">
- 				增加一筆備取商品
- 			</button>
+ 		<div class="col-sm-offset-1 col-sm-8">
+ 			<label>備取商品</label>
+ 			<label>(備取總額需滿{{mainCtrl.americanGroupBuy.waitTotalAmtThreshold}} USD 
+ 				<span style="color:red;" ng-if="!mainCtrl.isWaitTotalAmtAchieveThreshold()">
+ 					尚差{{mainCtrl.americanGroupBuy.waitTotalAmtThreshold - mainCtrl.calculateWaitTotalAmt()}}
+ 				</span>)
+ 			</label>
  		</div>
  	</div>
- 	<div id="waits" ng-repeat="wait in mainCtrl.waits" class="form-group">
-  		<div class="col-sm-offset-1 col-sm-8">
-  			<div class="col-sm-1">
-  				<span>{{$index+1}}</span>
-  			</div>
- 			<div class="col-sm-4">
- 				<input id="wait_productName{{$index}}" 
+ 	<div id="waits" ng-repeat="wait in mainCtrl.waits" class="form-inline">
+  		<div class="col-sm-offset-1 col-sm-10">
+  			<label class="col-sm-1">
+  				<span class="badge">{{$index+1}}</span>
+  			</label>
+  			<label ng-class="{'has-error': americanGroupBuyOrderFormForm.wait_productName{{$index}}.$error.required}">
+				<input id="wait_productName{{$index}}"
+					name="wait_productName{{$index}}"
 					type="text" 
 					class="form-control"
-					ng-model="wait.productName" 
-					ng-required="true"
-					placeholder="英文名字">
- 			</div> 		
- 			<div class="col-sm-3">
- 				<input id="wait_modelId{{$index}}" 
+					ng-model="wait.productName"
+					placeholder="英文名字"
+					ng-disabled="mainCtrl.fieldsDisabled"
+					ng-required="true">
+			</label>
+			<label ng-class="{'has-error': americanGroupBuyOrderFormForm.wait_modelId{{$index}}.$error.required}">
+				<input id="wait_modelId{{$index}}"
+					name="wait_modelId{{$index}}"
 					type="text" 
 					class="form-control"
-					ng-model="wait.modelId" 
-					ng-required="true"
-					placeholder="編號">
- 			</div>
- 			<div class="col-sm-3">
- 				<input id="wait_productAmtUSD{{$index}}" 
+					ng-model="wait.modelId"
+					placeholder="編號"
+					ng-disabled="mainCtrl.fieldsDisabled"
+					ng-required="true">
+			</label>
+			<label ng-class="{'has-error': americanGroupBuyOrderFormForm.wait_productAmtUSD{{$index}}.$error.required}">
+				<input id="wait_productAmtUSD{{$index}}"
+					name="wait_productAmtUSD{{$index}}"
 					type="number" 
 					class="form-control"
-					ng-model="wait.productAmtUSD" 
-					ng-required="true"
-					placeholder="美金定價">
+					ng-model="wait.productAmtUSD"
+					placeholder="美金定價"
+					ng-disabled="mainCtrl.fieldsDisabled"
+					ng-required="true">
+			</label>									  			
+ 			<div class="btn-group" role="group" aria-label="Wait Remove Button">
+ 				<button type="button" class="btn btn-default" ng-click="mainCtrl.removeDetail(wait)" ng-if="!mainCtrl.fieldsDisabled"><span>移除</span></button>
  			</div>
- 			 <div class="col-sm-1">
- 				<button type="button" class="btn btn-default" ng-click="mainCtrl.removeDetail(wait)"><span class="glyphicon glyphicon-remove"></span></button>
- 			</div> 			
+ 			<div class="btn-group" role="group" aria-label="Wait Add Button">
+ 				<button type="button" class="btn btn-default" ng-click="mainCtrl.addWait()" ng-if="!mainCtrl.fieldsDisabled" ng-show="mainCtrl.showWaitAddBtn(wait)"><span>新增備取</span></button>
+ 			</div>		
  		</div>	
  	</div> 	
-	<div class="form-group" ng-if="mainCtrl.calCulateQualifyTotalAmt() >= mainCtrl.americanGroupBuy.subAmtUSDThresholdForGift">
-		<div class="col-sm-offset-1 col-sm-7">
+	<div class="form-group" ng-if="mainCtrl.isQualifyTotalAmtAchieveThreshold()">
+		<div class="col-sm-offset-1 col-sm-8">
 			<label for="giftItem">選擇贈品</label>
 			<select
 				ng-model="mainCtrl.selectedGift.productName"
@@ -179,15 +211,13 @@
 				ng-change="mainCtrl.changeGiftName(mainCtrl.selectedGift.productName)"
 				id="giftItem"
 				name="giftItem"
+				ng-disabled="mainCtrl.fieldsDisabled"
 			>
 			</select>
 		</div>
-		<div class="col-sm-2">
-			<span>加購{{mainCtrl.selectedGift.productAmtUSD ? mainCtrl.selectedGift.productAmtUSD : 0}} USD</span>
-		</div>
 	</div>
-	<div class="form-group" ng-if="mainCtrl.selectedGift.productName && mainCtrl.calCulateQualifyTotalAmt() >= mainCtrl.americanGroupBuy.subAmtUSDThresholdForGift">
-		<div class="col-sm-offset-1 col-sm-7">
+	<div class="form-group" ng-if="mainCtrl.selectedGift.productName && mainCtrl.giftSizes && mainCtrl.giftSizes.length > 0 && mainCtrl.isQualifyTotalAmtAchieveThreshold()">
+		<div class="col-sm-offset-1 col-sm-8">
 			<label for="giftSize">選擇尺寸</label>
 			<select
 				ng-model="mainCtrl.selectedGift.size"
@@ -195,54 +225,52 @@
 				class="form-control"
 				id="giftSize"
 				name="giftSize"
+				ng-disabled="mainCtrl.fieldsDisabled"
 			>
 			</select>
 		</div>
 	</div>
 	<div class="form-group">
- 		<div class="col-sm-offset-1 col-sm-8">
-			<label class="col-sm-3 control-label" for="subAmtUSD">
- 				小計USD:
+ 		<div class="col-sm-offset-1 col-sm-4">
+			<label class="col-sm-6 control-label" for="qualifyTotalAmt">
+ 				正取總額USD:
  			</label>
- 			<div class="col-sm-4" id="subAmtUSD">
- 				<span>{{mainCtrl.calculation.subAmtUSD}}</span>
- 			</div>
+ 			<label class="control-label pull-right" id="qualifyTotalAmt">{{mainCtrl.calculateQualifyTotalAmt()}}</label>
  		</div>
  	</div>
- 		<div class="form-group">
- 		<div class="col-sm-offset-1 col-sm-8"
- 			data-trigger="hover"
- 			placement="auto top"
- 			bs-tooltip="{title: '美金{{mainCtrl.americanGroupBuy.discountUSDThreshold}}以上總金額折扣{{mainCtrl.americanGroupBuy.discountUSD}}USD'}">
-			<label class="col-sm-3 control-label" for="discountUSD">
- 				折扣USD:
+	<div class="form-group">
+ 		<div class="col-sm-offset-1 col-sm-4">
+			<label class="col-sm-6 control-label" for="selectedGiftAmtUSD">
+ 				選取贈品加價USD:
  			</label>
- 			<div class="col-sm-4" id="discountUSD">
- 				<span>{{mainCtrl.calCulateQualifyTotalAmt() >= mainCtrl.americanGroupBuy.discountUSDThreshold ? mainCtrl.americanGroupBuy.discountUSD : 0}}</span>
- 			</div>
- 		</div>
- 	</div>
- 		<div class="form-group">
- 		<div class="col-sm-offset-1 col-sm-8">
-			<label class="col-sm-3 control-label" for="serviceChargeNTD">
- 				代購服務費NTD:
- 			</label>
- 			<div class="col-sm-4" id="serviceChargeNTD">
- 				<span>{{mainCtrl.americanGroupBuy.serviceChargeNTD}}</span>
- 			</div>
+ 			<label class="control-label pull-right" id="selectedGiftAmtUSD">{{mainCtrl.selectedGift.productAmtUSD}}</label>
  		</div>
  	</div>
  	<div class="form-group">
- 		<div class="col-sm-offset-1 col-sm-8"
+ 		<div class="col-sm-offset-1 col-sm-4">
+			<label class="col-sm-6 control-label" for="subAmtUSD">
+ 				小計USD:
+ 			</label>
+ 			<label class="control-label pull-right" id="subAmtUSD">{{mainCtrl.calculation.subAmtUSD}}</label>
+ 		</div>
+ 	</div>
+ 	<div class="form-group">
+ 		<div class="col-sm-offset-1 col-sm-4">
+			<label class="col-sm-6 control-label" for="serviceChargeNTD">
+ 				代購服務費NTD:
+ 			</label>
+ 			<label class="control-label pull-right" id="serviceChargeNTD">{{mainCtrl.americanGroupBuy.serviceChargeNTD}}</label>
+ 		</div>
+ 	</div>
+ 	<div class="form-group">
+ 		<div class="col-sm-offset-1 col-sm-4"
  		data-trigger="hover"
  		placement="auto top"
- 		bs-tooltip="{title: '代購總金額NTD = (小計USD - 折扣USD) * {{mainCtrl.americanGroupBuy.multiplier}} * {{mainCtrl.americanGroupBuy.rate}} + 代購服務費NTD'}">
-			<label class="col-sm-3 control-label" for="totalAmtNTD">
+ 		bs-tooltip="{title: '代購總金額NTD = 小計USD * 州稅{{mainCtrl.americanGroupBuy.multiplier}} * 美金匯率{{mainCtrl.americanGroupBuy.rate}} + 代購服務費{{mainCtrl.americanGroupBuy.serviceChargeNTD}}NTD無條件進位'}">
+			<label class="col-sm-6 control-label" for="totalAmtNTD">
  				代購總金額NTD:
  			</label>
- 			<div class="col-sm-4" id="totalAmtNTD">
- 				<span>{{mainCtrl.calculation.totalAmtNTD}}</span>
- 			</div>
+ 			<label class="control-label pull-right" id="totalAmtNTD">{{mainCtrl.calculation.totalAmtNTD}}</label>
  		</div>
  	</div>
  	
@@ -251,19 +279,17 @@
  	
  	
 	<div class="form-group">
- 		<div class="col-sm-offset-1 col-sm-8">
-			<label class="col-sm-3 control-label" for="salesNo">
+ 		<div class="col-sm-offset-1 col-sm-4">
+			<label class="col-sm-6 control-label" for="salesNo">
  				訂單號碼
  			</label>
- 			<div class="col-sm-4" id="salesNo">
- 				<span>{{mainCtrl.salesNo}}</span>
- 			</div>
+ 			<label class="control-label pull-right" id="salesNo"style="color:red;">{{mainCtrl.salesNo}}</label>
  		</div>
  	</div>
 	<div class="row" style="height: 60px;">
 		<div class="checkbox col-sm-3">
     		<label>
-      			<input type="checkbox" ng-model="mainCtrl.trying" ng-change="mainCtrl.tryLastFilled();"> 嘗試帶入最後填寫的基本資料
+      			<input type="checkbox" ng-model="mainCtrl.trying" ng-change="mainCtrl.tryLastFilled();"> 嘗試帶入前次填寫的基本資料
     		</label>
 		</div>
 		<div class="alerts-container col-sm-6"></div>
@@ -273,14 +299,15 @@
 			<label class="col-sm-3 control-label" for="fbNickname">
  				FB顯示名稱<span style="color:red;">*</span>
  			</label>
- 			<div class="col-sm-4">
+ 			<div class="col-sm-9">
  				<input type="text"
  					ng-model="mainCtrl.contact.fbNickname" 
  					id="fbNickname"
  					name="fbNickname"
  					class="form-control"
  					ng-required="true"
- 					placeholder="請寫全名 Ex. Ifly Wang"/>
+ 					placeholder="請寫全名 Ex. Ifly Wang"
+ 					ng-disabled="mainCtrl.fieldsDisabled"/>
  			</div>
  		</div>
  	</div>	
@@ -310,29 +337,31 @@
 			<label class="col-sm-3 control-label" for="mobile">
  				手機號碼<span style="color:red;">*</span>
  			</label>
- 			<div class="col-sm-4">
+ 			<div class="col-sm-9">
  				<input type="text"
 					ng-model="mainCtrl.contact.mobile"
 					id="mobile"
 					name="mobile"
 					class="form-control"
 					ng-required="true"
-					placeholder="Ex. 09xx-xxx-xxx"/>
+					placeholder="Ex. 09xx-xxx-xxx"
+					ng-disabled="mainCtrl.fieldsDisabled"/>
  			</div>
  		</div>
  	</div>
  	<div class="form-group">
- 		<div class="col-sm-offset-1 col-sm-8" ng-class="{'has-error': americanGroupBuyOrderFormForm.email.$error.required}">
+ 		<div class="col-sm-offset-1 col-sm-8" ng-class="{'has-error': americanGroupBuyOrderFormForm.email.$error.required || americanGroupBuyOrderFormForm.email.$error.email}">
 			<label class="col-sm-3 control-label" for="email">
  				Email<span style="color:red;">*</span>
  			</label>
- 			<div class="col-sm-4">
- 				<input type="text"
+ 			<div class="col-sm-9">
+ 				<input type="email"
 					ng-model="mainCtrl.contact.email"
 					id="email"
 					name="email"
 					class="form-control"
-					ng-required="true">
+					ng-required="true"
+					ng-disabled="mainCtrl.fieldsDisabled">
  			</div>
  		</div>
  	</div>
@@ -464,13 +493,38 @@
  		</div>
  	</div>
  	 -->
- 	<div class="row">
- 		<div class="col-sm-offset-3 col-sm-1">
- 			<input type="submit" value="提交" ng-click="mainCtrl.save()" ng-disabled="americanGroupBuyOrderFormForm.$invalid || !mainCtrl.qualifies || mainCtrl.qualifies.length == 0" class="btn btn-primary" id="submitResults"/>
+ 	<div class="row text-center">
+ 		<div class="btn-group" role="group" aria-label="Submit Button">
+ 			<input type="submit" 
+ 				value="提交"
+				ng-click="mainCtrl.save()"
+				ng-disabled="!mainCtrl.isSubmitPrepared(americanGroupBuyOrderFormForm) || mainCtrl.fieldsDisabled" 
+				class="btn btn-primary" 
+				id="submitResults"/>
+ 		</div>
+ 		<div class="btn-group" role="group" aria-label="New Order Button">
+ 			<input type="submit" value="建立新訂單" ng-click="mainCtrl.clearAdd()" ng-disabled="!mainCtrl.fieldsDisabled" class="btn btn-primary" id="clearAdd"/>
+ 		</div>
+ 		<div class="btn-group" role="group" aria-label="Close Page Button">
  			<input type="button" value="關閉" onclick="document.location.href='${urlPrefix}/list'" class="btn btn-default" ng-if="mainCtrl.login"/>
  		</div>
  	</div>
- 	
+ 	<div class="row" ng-if="mainCtrl.salesNo">
+ 		<br>
+ 		<br>
+ 		<h4><b>訂單建立成功</b></h4>
+ 		<h5>這樣就完成表單咯~ 接下來請完成訂金匯款並填寫匯款回條</h5>
+ 		<h5><b>郵局700</b></h5>
+ 		<h5><b>帳號:0002123-0169388</b></h5>
+ 		<h5><b>戶名:王逸凡</b></h5>
+ 		<br>
+ 		<a href="{{mainCtrl.replyUri}}?fbNickname={{mainCtrl.contact.fbNickname}}&mobile={{mainCtrl.contact.mobile}}&salesNo={{mainCtrl.salesNo}}" target="_blank" class="btn btn-primary">開啟匯款回條</a>
+ 		<br>
+ 		<p>所有資料都可以在社團置頂文找到，有任何問題再跟我們聯絡喲</p>
+ 		<p>然後要強烈建議加小幫手好友才不會漏訊息哦</p>
+ 		<a href="https://www.facebook.com/amiao.wang.9?pnref=story" target="_blank" class="btn btn-primary">聯絡阿喵小幫手</a>
+ 		<a href="https://www.facebook.com/wang.miko.71?pnref=story" target="_blank" class="btn btn-primary">聯絡Miko小幫手</a>
+ 	</div> 	
  	</div>
 </form>
 
@@ -481,16 +535,23 @@
 		.constant('login', "${sessionScope['sessionUser']}" ? true : false)
 		.constant('americanGroupBuy', ${americanGroupBuy == null ? "null" : americanGroupBuy})
 		.constant('isOrderFormDisabled', ${isOrderFormDisabled == null ? "true" : isOrderFormDisabled})
+		.constant('replyUri', '${replyUri == null ? "#" : replyUri}')
 		.constant('moduleName', '${moduleName == null ? "null" : moduleName}')
-		.controller('MainCtrl', ['$scope', 'DateService', 'AjaxService', 'urlPrefix', 'login', 'americanGroupBuy', '$cookies', 'moduleName', '$alert', 'isOrderFormDisabled', function($scope, DateService, AjaxService, urlPrefix, login, americanGroupBuy, $cookies, moduleName, $alert, isOrderFormDisabled){
+		.controller('MainCtrl', ['$scope', 'DateService', 'AjaxService', 'urlPrefix', 'login', 'americanGroupBuy', '$cookies', 'moduleName', '$alert', 'isOrderFormDisabled', 'replyUri', '$modal', function($scope, DateService, AjaxService, urlPrefix, login, americanGroupBuy, $cookies, moduleName, $alert, isOrderFormDisabled, replyUri, $modal){
 			var self = this,
 				saveUrl = urlPrefix + '/batchSaveOrMerge.json',
 				deleteUrl = urlPrefix + '/deleteByIds.json';
+			self.replyUri = replyUri;
 			self.addQualify = function(){
 				if(!self.qualifies){
 					self.qualifies = [];
 				}
 				self.qualifies.push({salesType: '正取'});
+			};
+			self.showQualifyAddBtn = function(qualify){
+				var idx = self.qualifies.indexOf(qualify),
+					lastIdx = self.qualifies.length - 1;
+				return idx == lastIdx;
 			};
 			self.addWait = function(){
 				if(!self.waits){
@@ -498,6 +559,36 @@
 				}
 				self.waits.push({salesType: '備取'});
 			};
+			self.showWaitAddBtn = function(wait){
+				var idx = self.waits.indexOf(wait),
+					lastIdx = self.waits.length - 1;
+				return idx == lastIdx;
+			};
+			if(americanGroupBuy){
+				self.americanGroupBuy = americanGroupBuy;
+			}else{
+				self.americanGroupBuy = {};
+				//assignVal();
+			}
+			// subAmtUSD: 正取小計(美金) / totalAmtNTD:代購總金額(台幣)
+			var cal = {subAmtUSD: 0, totalAmtNTD: 0};
+			self.calculation = cal;
+			var DEFAULT_COUNT = 1;
+			function repeatCall(func, count){
+				for(var i = 0; i < count; i++){
+					func();
+				}
+			}
+			function toDefault(){
+				self.qualifies = [];
+				self.waits = [];
+				repeatCall(self.addQualify, DEFAULT_COUNT);
+				repeatCall(self.addWait, DEFAULT_COUNT);
+				cal.subAmtUSD = 0;
+				cal.totalAmtNTD = 0;
+				self.selectedGift = {salesType: '贈品', productAmtUSD: 0};
+			}
+			toDefault();
 			self.deleteOrderForm = function(orderForm){
 				if(!orderForm.id){
 					return;
@@ -529,23 +620,14 @@
 				}
 				return options;
 			}
-			if(americanGroupBuy){
-				self.americanGroupBuy = americanGroupBuy;
-			}else{
-				self.americanGroupBuy = {};
-				//assignVal();
-			}
 			self.isOrderFormDisabled = function (){
 				return isOrderFormDisabled;
 			};
-			// subAmtUSD: 正取小計(美金) / totalAmtNTD:代購總金額(台幣)
-			var cal = {subAmtUSD: 0, totalAmtNTD: 0};
-			self.calculation = cal;
 			function isNumeric(input){
 				return !isNaN(parseInt(input, 10));
 			}
 			// 計算正取總額
-			self.calCulateQualifyTotalAmt = function(){
+			self.calculateQualifyTotalAmt = function(){
 				var totalAmt = 0;
 				if(!self.qualifies){
 					return totalAmt;
@@ -554,13 +636,37 @@
 					var qualify = self.qualifies[i],
 						productAmtUSD = qualify.productAmtUSD;
 					if(!isNumeric(productAmtUSD)){
-						totalAmt = 0;
-						break;
+						productAmtUSD = 0;
 					}
 					totalAmt += parseFloat(productAmtUSD);
 				}
 				return totalAmt;
 			};
+			self.isQualifyTotalAmtAchieveThreshold = function(){
+				var b = self.calculateQualifyTotalAmt() >= americanGroupBuy.qualifyTotalAmtThreshold;
+				return b;
+			};
+			// 計算備取總額
+			self.calculateWaitTotalAmt = function(){
+				var totalAmt = 0;
+				if(!self.waits){
+					return totalAmt;
+				}
+				for(var i = 0; i < self.waits.length; i++){
+					var wait = self.waits[i],
+						productAmtUSD = wait.productAmtUSD;
+					if(!isNumeric(productAmtUSD)){
+						productAmtUSD = 0;
+					}
+					totalAmt += parseFloat(productAmtUSD);
+				}
+				return totalAmt;
+			};
+			self.isWaitTotalAmtAchieveThreshold = function(){
+				var b = self.calculateWaitTotalAmt() >= americanGroupBuy.waitTotalAmtThreshold;
+				return b;
+			};
+			
 			// 計算小計美金總額(正取+贈品補差額)
 			self.calCulateSubAmtUSD = function(){
 				if(!self.qualifies){
@@ -572,22 +678,19 @@
 					cal.subAmtUSD += parseFloat(self.selectedGift.productAmtUSD); 
 				}
 				// 再計算正取總額
-				cal.subAmtUSD += self.calCulateQualifyTotalAmt();
+				cal.subAmtUSD += self.calculateQualifyTotalAmt();
 				return cal.subAmtUSD;
 			};
 			// 計算代購台幣總金額
 			self.calCulateTotalAmtNTD = function(subAmtUSD){
-				var subTotal = subAmtUSD;
-				subTotal = subTotal ? subTotal : self.calCulateSubAmtUSD();
-				var result = self.calCulateQualifyTotalAmt() >= americanGroupBuy.discountUSDThreshold ? (subTotal - parseFloat(americanGroupBuy.discountUSD)) : subTotal; // 減掉美金折扣
+				var result = subAmtUSD ? subAmtUSD : self.calCulateSubAmtUSD();
 				cal.totalAmtNTD = result * parseFloat(americanGroupBuy.multiplier) * parseFloat(americanGroupBuy.rate) + parseFloat(americanGroupBuy.serviceChargeNTD);
 				cal.totalAmtNTD = Math.ceil(cal.totalAmtNTD);
 				return cal.totalAmtNTD;
 			};
 			// 計算正取美金總額及代購台幣總金額
 			self.calculateResult = function(){
-				var qualifyTotalAmt = self.calCulateQualifyTotalAmt();
-				if(qualifyTotalAmt < americanGroupBuy.subAmtUSDThresholdForGift){
+				if(!self.isQualifyTotalAmtAchieveThreshold()){
 					if(self.selectedGift.id){
 						self.deleteOrderForm(self.selectedGift);
 					}
@@ -652,7 +755,6 @@
 			     'M',
 			     'L'
 			];
-			self.selectedGift = {salesType: '贈品', productAmtUSD: 0};
 			self.changeGiftName = function(selectedGiftName){
 				var price = giftPrice[selectedGiftName];
 				price = parseFloat(price) - parseFloat(self.americanGroupBuy.giftValAmtUSD);
@@ -668,6 +770,7 @@
 				}else{
 					self.giftSizes = [];
 				}
+				self.selectedGift.size = null;
 			};
 			function submitResults(btnVal, btnCss){
 				var jqlite = angular.element(document.getElementById('submitResults'));
@@ -683,19 +786,12 @@
 				}, 3000);
 			}
 			function alertSaveSuccess(msg){
-				var alertService = 
-					$alert({
-						title: '儲存成功',
-						type: 'success', 
-						show: true,
-						duration: 3,
-						container: '.alerts-container',
-						placement: 'top'});
-				alertService.init();
 				if(msg){
 					console.log(msg);	
 				}
-				submitResults('儲存成功', 'btn btn-success');
+				var myModal = $modal({content: '訂單已成功送出!\n(可再填寫新訂單)', placement: 'center'});
+				var jqlite = angular.element(document.getElementById('submitResults'));			
+				jqlite.attr('value', '提交新訂單');
 			}
 			function alertDeleteSuccess(msg){
 				var alertService = 
@@ -808,12 +904,35 @@
 				}
 				for(var i = 0; i < items.length; i++){
 					var item = items[i];
-					item = copyTo(item, self.contact, ['fbNickname', 'mobile', 'email']);
-					item = copyTo(item, self.calculation, ['totalAmtNTD']);
-					r.push(item);
+					if(!item.productName || !isNumeric(item.productAmtUSD)){
+						continue;
+					}
+					var newItem = {};
+					newItem = copyTo(newItem, item, ['salesType', 'modelId', 'productName', 'productAmtUSD', 'size']);
+					newItem = copyTo(newItem, self.contact, ['fbNickname', 'mobile', 'email']);
+					newItem = copyTo(newItem, self.calculation, ['totalAmtNTD']);
+					r.push(newItem);
 				}
 				return r;
 			}
+			self.isSubmitPrepared = function(targetForm){
+				var formValid = !targetForm.$invalid,
+					qualifyValid = self.qualifies.length > 0,
+					qualifyTotalAmtAchieveThreshold = self.isQualifyTotalAmtAchieveThreshold(),
+					waitTotalAmtAchieveThreshold = self.isWaitTotalAmtAchieveThreshold();
+				return formValid && qualifyValid && qualifyTotalAmtAchieveThreshold && waitTotalAmtAchieveThreshold;
+			};
+			self.fieldsDisabled = false;
+			self.clearAdd = function(){
+				self.fieldsDisabled = false;
+				self.salesNo = null;
+				toDefault();
+				$modal({content: '已開啟新訂單'});
+			};
+			self.copyAdd = function(){
+				self.fieldsDisabled = false;
+				self.salesNo = null;
+			};
 			self.save = function(){
 				if(!self.qualifies || self.qualifies.length == 0){
 					return;
@@ -829,6 +948,7 @@
 					var selectedGift = self.selectedGift;
 					r = r.concat(genProductData([selectedGift]));
 				}
+				
 				AjaxService.post(saveUrl, r)
 					.then(function(response){
 						var d = response.data;
@@ -837,8 +957,8 @@
 						}else{
 							return;
 						}
-						// TODO 是否不允許送出後改單，這樣設計會簡化很多
-						// 考量到客戶重新修改資料，所以要把回傳資料指給頁面的model
+						// 提交後應disabled整個form
+						/*
 						if(qualifies.length > 0){
 							self.qualifies = d.splice(0, qualifies.length);
 						}
@@ -848,8 +968,11 @@
 						if(d.length == 1){
 							self.selectedGift = d[0];
 						}
+						*/
 						saveFilled();
 						alertSaveSuccess();
+						document.getElementById('submitResults').value = '提交新訂單';
+						self.fieldsDisabled = true;
 					},
 					function(errResponse){
 						alertSaveFail(JSON.stringify(errResponse));
