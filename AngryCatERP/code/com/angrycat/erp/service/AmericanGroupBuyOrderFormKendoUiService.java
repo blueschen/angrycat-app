@@ -3,6 +3,7 @@ package com.angrycat.erp.service;
 import static com.angrycat.erp.common.EmailContact.JERRY;
 
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -19,6 +20,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.bind.annotation.ResponseBody;
 
 import com.angrycat.erp.genserial.GenSerialUtil;
 import com.angrycat.erp.model.AmericanGroupBuy;
@@ -82,7 +84,7 @@ public class AmericanGroupBuyOrderFormKendoUiService extends
 		}else{
 			Session s = sfw.currentSession();
 			String nextNo = GenSerialUtil.getNext(AmericanGroupBuyOrderForm.SALESNO_GENERATOR_ID);
-			String newSalesNo =  americanGroupBuy.getNo() + nextNo + "-" + RandomStringUtils.randomAlphabetic(5);
+			String newSalesNo =  americanGroupBuy.getNo() + nextNo + "-" + RandomStringUtils.randomAlphabetic(2);
 			targets.forEach(t->t.setSalesNo(newSalesNo));
 		}
 		return super.batchSaveOrMerge(targets, before);
@@ -118,7 +120,7 @@ public class AmericanGroupBuyOrderFormKendoUiService extends
 		}
 		return sb;
 	}
-	public String genMailContent(List<AmericanGroupBuyOrderForm> results){
+	public String genMailContent(List<AmericanGroupBuyOrderForm> results, String replyUri){
 		if(americanGroupBuy == null || results.isEmpty()){
 			return "";
 		}
@@ -136,25 +138,27 @@ public class AmericanGroupBuyOrderFormKendoUiService extends
 		Map<String, String> calculation = new LinkedHashMap<>();
 		calculation.put("訂單號碼", results.get(0).getSalesNo());
 		calculation.put("小計USD", cal.getSubAmtUSD().toString());
-		calculation.put("折扣USD", cal.getDiscountUSD().toString());
 		calculation.put("代購服務費NTD", cal.getServiceChargeNTD().toString());
 		calculation.put("代購總金額NTD", results.get(0).getTotalAmtNTD()+""); // 理論上後端計算應與前端一致，但為求謹慎，此處以前端回傳結果為準 TODO 為了安全性，是否要以後端計算為準
 		
 		content = appendGridRow(content, calculation);
+		if(StringUtils.isNotBlank(replyUri)){
+			content.append("<a href='" + replyUri + "' target='_blank'>匯款回條</a>");
+		}
 		return content.toString();
 	}
-	public void sendEmail(List<AmericanGroupBuyOrderForm> results){
+	public void sendEmail(List<AmericanGroupBuyOrderForm> results, String replyUri){
 		String to = results.get(0).getEmail();
-		sendEmail(to, results);
+		sendEmail(to, results, replyUri);
 	}
-	public void sendEmail(String to, List<AmericanGroupBuyOrderForm> results){
-		if(StringUtils.isBlank(to)){
+	public void sendEmail(String to, List<AmericanGroupBuyOrderForm> results, String replyUri){
+		if(StringUtils.isBlank(to) || results.isEmpty()){
 			return;
 		}
-		String activity = americanGroupBuy.getActivity();
-		String content = genMailContent(results);
+		String salesNo = results.get(0).getSalesNo();
+		String content = genMailContent(results, replyUri);
 		mailService
-			.subject(activity + "訂單")
+			.subject("美國團新訂單#" + salesNo)
 			.to(to)
 			.content(content)
 			.sendHTML();
@@ -164,5 +168,25 @@ public class AmericanGroupBuyOrderFormKendoUiService extends
 //				// TODO
 //				return null;
 //			});
+	}
+	public @ResponseBody Map<String, Boolean> salesNoNotExisted(String salesNo){
+		salesNo = salesNo.replaceAll(" ", "");
+		System.out.println("salesNo is " + salesNo);
+		String[] salesNos = salesNo.split(",");
+		Map<String, Boolean> results = new HashMap<>();
+		sfw.executeSession(s->{
+			boolean isValid = true;
+			String q = "SELECT COUNT(m.id) FROM " + AmericanGroupBuyOrderForm.class.getName() + " m WHERE m.salesNo = :salesNo";
+			for(String no : salesNos){
+				long count = (long)s.createQuery(q).setString("salesNo", no).uniqueResult();
+				System.out.println("no is " + no + ", count is " + count);
+				if(count == 0){
+					isValid = false;
+					break;
+				}
+			}
+			results.put("isValid", isValid);
+		});
+		return results;
 	}
 }
