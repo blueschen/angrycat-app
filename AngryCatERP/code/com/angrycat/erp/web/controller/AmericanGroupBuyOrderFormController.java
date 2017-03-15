@@ -5,6 +5,7 @@ import static com.angrycat.erp.common.EmailContact.JERRY;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
 
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Controller;
@@ -13,6 +14,8 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.ResponseBody;
+import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
+import org.springframework.web.util.UriComponents;
 
 import com.angrycat.erp.common.CommonUtil;
 import com.angrycat.erp.excel.AmericanGroupBuyOrderFormExcelExporter;
@@ -30,7 +33,9 @@ public class AmericanGroupBuyOrderFormController extends
 	private AmericanGroupBuyOrderFormKendoUiService americanGroupBuyOrderFormKendoUiService;
 	@Autowired
 	private AmericanGroupBuyOrderFormExcelExporter excelExporter;
-		
+	
+	private String replyUri;
+	
 	@SuppressWarnings("unchecked")
 	@Override
 	AmericanGroupBuyOrderFormExcelExporter getExcelExporter() {
@@ -44,6 +49,7 @@ public class AmericanGroupBuyOrderFormController extends
 		if(americanGroupBuy != null){
 			model.addAttribute("americanGroupBuy", CommonUtil.parseToJson(americanGroupBuy));
 			model.addAttribute("isOrderFormDisabled", americanGroupBuy.isOrderFormDisabled());
+			model.addAttribute("replyUri", getReplyUri());
 		}
 		return moduleName + "/view";
 	}
@@ -57,14 +63,28 @@ public class AmericanGroupBuyOrderFormController extends
 			return models;
 		}
 		List<AmericanGroupBuyOrderForm> results = americanGroupBuyOrderFormKendoUiService.batchSaveOrMerge(models, beforeSaveOrMerge());
+
+		String replyUri = getReplyUri();
 		CompletableFuture.runAsync(()->{
-			americanGroupBuyOrderFormKendoUiService.sendEmail(models);
+			americanGroupBuyOrderFormKendoUiService.sendEmail(models, replyUri);
 		}).exceptionally((e)->{
 			americanGroupBuyOrderFormKendoUiService.getMailService().to(JERRY).content("寄送美國團訂單失敗:\n"+e).sendSimple();
 			return null;
 		});
 
 		return results;
+	}
+	private String getReplyUri(){
+		if(StringUtils.isBlank(replyUri)){
+			// 匯款回條網址
+			UriComponents ucb = 
+				ServletUriComponentsBuilder
+					.fromCurrentContextPath()
+					.pathSegment("transferreply/addAmericanGroupBuy")
+					.build();
+			replyUri = ucb.toUriString();
+		}
+		return replyUri;
 	}
 
 }
