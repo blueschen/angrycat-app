@@ -2,6 +2,8 @@ package com.angrycat.erp.service;
 
 import java.util.List;
 
+import javax.mail.internet.InternetAddress;
+
 import org.jboss.logging.Logger;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -57,12 +59,23 @@ public class AmericanGroupBuyOrderFormKendoUiServiceTests {
 	@Test
 	public void sendMail(){
 		List<AmericanGroupBuyOrderForm> orders = mock();
-		serv.sendEmail(orders);
+		serv.sendEmail(orders, null);
 	}
 	@Test
 	public void genMailContent(){
 		List<AmericanGroupBuyOrderForm> orders = mock();
-		String content = serv.genMailContent(orders);
+		String content = serv.genMailContent(orders, null);
 		LOG.info(content);
+	}
+	@Test
+	public void validateEmailAddress(){
+		String email = "qq@ddd.com.tw";
+		try{// 這個方法是驗證信箱格式
+			InternetAddress ia = new InternetAddress(email); 
+			ia.validate();
+		}catch(Throwable e){
+			System.out.println(e);
+			System.out.println(email + "不是有效信箱");
+		}
 	}
 }
