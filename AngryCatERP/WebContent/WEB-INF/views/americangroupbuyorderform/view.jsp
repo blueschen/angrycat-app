@@ -100,7 +100,7 @@
  			<label>正取商品</label>
  			<label>(正取總額需滿{{mainCtrl.americanGroupBuy.qualifyTotalAmtThreshold}} USD 
  				<span style="color:red;" ng-if="!mainCtrl.isQualifyTotalAmtAchieveThreshold()">
- 					尚差{{mainCtrl.americanGroupBuy.qualifyTotalAmtThreshold - mainCtrl.calculateQualifyTotalAmt()}}
+ 					尚差{{mainCtrl.subtract(mainCtrl.americanGroupBuy.qualifyTotalAmtThreshold, mainCtrl.calculateQualifyTotalAmt())}}
  				</span>)
  			</label>
  		</div>
@@ -153,7 +153,7 @@
  			<label>備取商品</label>
  			<label>(備取總額需滿{{mainCtrl.americanGroupBuy.waitTotalAmtThreshold}} USD 
  				<span style="color:red;" ng-if="!mainCtrl.isWaitTotalAmtAchieveThreshold()">
- 					尚差{{mainCtrl.americanGroupBuy.waitTotalAmtThreshold - mainCtrl.calculateWaitTotalAmt()}}
+ 					尚差{{mainCtrl.subtract(mainCtrl.americanGroupBuy.waitTotalAmtThreshold, mainCtrl.calculateWaitTotalAmt())}}
  				</span>)
  			</label>
  		</div>
@@ -530,6 +530,58 @@
 
 </div>
 <script type="text/javascript">
+function BigDecimal(init){
+	var r = parseToNum(init),
+	 	initPoint = decimalPoint(r);
+	function parseToNum(input){
+		var type = typeof input;
+		if(type === 'number'){
+			return input;
+		}else if(type === 'string'){
+			return parseFloat(input);
+		}
+		throw new Error('input\'s type is ' + type + ', val is ' + input + ', not valid number');
+	}
+	function decimalPoint(input){
+		var s = input.toString();
+		if(s.indexOf('.') == -1){
+			return 0;
+		}
+		var point = s.split('.')[1].length;
+		return point;
+	}
+	this.add = function(added){
+		var point = decimalPoint(added),
+			addMaxPoint = Math.max(initPoint, point),
+			result = r;
+		result += added;
+		result = parseFloat(result.toFixed(addMaxPoint));
+		return new BigDecimal(result);
+	};
+	this.subtract = function(minuend){
+		var point = decimalPoint(minuend),
+			subtractMaxPoint = Math.max(initPoint, point),
+			result = r;
+		result -= minuend;
+		result = parseFloat(result.toFixed(subtractMaxPoint));
+		return new BigDecimal(result);
+	};
+	this.multiply = function(multiplier){
+		var point = decimalPoint(multiplier),
+			result = r;
+		result *= multiplier;
+		result = parseFloat(result.toFixed(initPoint + point));
+		return new BigDecimal(result);
+	};
+	this.getNumber = function(){
+		return r;
+	};
+	this.toString = function(){
+		return r.toString();
+	};
+}
+</script>
+<script type="text/javascript">
 	angular.module('angryCatAmericanGroupBuyOrderFormViewApp', ['erp.date.service', 'erp.ajax.service', 'mgcrea.ngStrap', 'ngCookies', 'ngAnimate'])
 		.constant('urlPrefix', '${urlPrefix}')
 		.constant('login', "${sessionScope['sessionUser']}" ? true : false)
@@ -568,7 +620,6 @@
 				self.americanGroupBuy = americanGroupBuy;
 			}else{
 				self.americanGroupBuy = {};
-				//assignVal();
 			}
 			// subAmtUSD: 正取小計(美金) / totalAmtNTD:代購總金額(台幣)
 			var cal = {subAmtUSD: 0, totalAmtNTD: 0};
@@ -626,20 +677,31 @@
 			function isNumeric(input){
 				return !isNaN(parseInt(input, 10));
 			}
-			// 計算正取總額
-			self.calculateQualifyTotalAmt = function(){
-				var totalAmt = 0;
-				if(!self.qualifies){
-					return totalAmt;
+			self.subtract = function(subtracted, subtract){
+				if((typeof subtracted) === 'number' && (typeof subtract) !== 'number'){
+					return subtracted;
 				}
-				for(var i = 0; i < self.qualifies.length; i++){
-					var qualify = self.qualifies[i],
-						productAmtUSD = qualify.productAmtUSD;
+				var diff = new BigDecimal(subtracted).subtract(subtract).getNumber();
+				return diff;
+			};
+			self.calculateTotalAmt = function(nums){
+				if(!nums){
+					return 0;
+				}
+				var totalAmt = new BigDecimal(0);
+				for(var i = 0; i < nums.length; i++){
+					var item = nums[i],
+						productAmtUSD = item.productAmtUSD; // typeof productAmtUSD == 'number'
 					if(!isNumeric(productAmtUSD)){
 						productAmtUSD = 0;
 					}
-					totalAmt += parseFloat(productAmtUSD);
+					totalAmt = totalAmt.add(productAmtUSD);
 				}
+				return totalAmt.getNumber();				
+			}
+			// 計算正取總額
+			self.calculateQualifyTotalAmt = function(){
+				var totalAmt = self.calculateTotalAmt(self.qualifies);
 				return totalAmt;
 			};
 			self.isQualifyTotalAmtAchieveThreshold = function(){
@@ -648,18 +710,7 @@
 			};
 			// 計算備取總額
 			self.calculateWaitTotalAmt = function(){
-				var totalAmt = 0;
-				if(!self.waits){
-					return totalAmt;
-				}
-				for(var i = 0; i < self.waits.length; i++){
-					var wait = self.waits[i],
-						productAmtUSD = wait.productAmtUSD;
-					if(!isNumeric(productAmtUSD)){
-						productAmtUSD = 0;
-					}
-					totalAmt += parseFloat(productAmtUSD);
-				}
+				var totalAmt = self.calculateTotalAmt(self.waits);
 				return totalAmt;
 			};
 			self.isWaitTotalAmtAchieveThreshold = function(){
@@ -668,23 +719,25 @@
 			};
 			
 			// 計算小計美金總額(正取+贈品補差額)
-			self.calCulateSubAmtUSD = function(){
-				if(!self.qualifies){
-					return 0;
-				}
-				cal.subAmtUSD = 0;
+			self.calculateSubAmtUSD = function(){
+				var subAmtUSD = new BigDecimal(0);
 				// 先計算贈品加購價
 				if(self.selectedGift.productAmtUSD > 0){
-					cal.subAmtUSD += parseFloat(self.selectedGift.productAmtUSD); 
+					subAmtUSD = subAmtUSD.add(self.selectedGift.productAmtUSD);
 				}
 				// 再計算正取總額
-				cal.subAmtUSD += self.calculateQualifyTotalAmt();
+				subAmtUSD = subAmtUSD.add(self.calculateQualifyTotalAmt());
+				cal.subAmtUSD = subAmtUSD.getNumber();
 				return cal.subAmtUSD;
 			};
 			// 計算代購台幣總金額
-			self.calCulateTotalAmtNTD = function(subAmtUSD){
-				var result = subAmtUSD ? subAmtUSD : self.calCulateSubAmtUSD();
-				cal.totalAmtNTD = result * parseFloat(americanGroupBuy.multiplier) * parseFloat(americanGroupBuy.rate) + parseFloat(americanGroupBuy.serviceChargeNTD);
+			self.calculateTotalAmtNTD = function(subAmtUSD){
+				subAmtUSD = subAmtUSD ? subAmtUSD : self.calculateSubAmtUSD();
+				var stateTax = americanGroupBuy.multiplier,
+					rate = americanGroupBuy.rate,
+					serviceChargeNTD = americanGroupBuy.serviceChargeNTD;
+				// cal.totalAmtNTD = subAmtUSD * stateTax * rate + serviceChargeNTD;
+				cal.totalAmtNTD = new BigDecimal(subAmtUSD).multiply(stateTax).multiply(rate).add(serviceChargeNTD).getNumber();
 				cal.totalAmtNTD = Math.ceil(cal.totalAmtNTD);
 				return cal.totalAmtNTD;
 			};
@@ -698,8 +751,8 @@
 						self.selectedGift = {salesType: '贈品', productAmtUSD: 0};	
 					}
 				}
-				var subAmtUSD = self.calCulateSubAmtUSD();
-				self.calCulateTotalAmtNTD(subAmtUSD);
+				var subAmtUSD = self.calculateSubAmtUSD();
+				self.calculateTotalAmtNTD(subAmtUSD);
 			};
 			
 			// 選擇贈品規則: 正取選擇總金額滿125美金，可選擇一款65美金的手鍊或手環
@@ -757,12 +810,12 @@
 			];
 			self.changeGiftName = function(selectedGiftName){
 				var price = giftPrice[selectedGiftName];
-				price = parseFloat(price) - parseFloat(self.americanGroupBuy.giftValAmtUSD);
+				price = new BigDecimal(price).subtract(self.americanGroupBuy.giftValAmtUSD).getNumber();
 				if(price < 0){
 					price = 0;
 				}
 				self.selectedGift.productAmtUSD = price;
-				self.calCulateTotalAmtNTD();
+				self.calculateTotalAmtNTD();
 				// 產生尺寸清單
 				var size = sizes[selectedGiftName];
 				if(size && size.length){
