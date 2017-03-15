@@ -66,7 +66,7 @@
 <body ng-controller="MainCtrl as mainCtrl">
 <div class="container">
 	<div>
-		<h2  class="text-center">阿喵愛生氣Pandora代購 - 匯款回條</h2>
+		<h2  class="text-center">阿喵愛生氣Pandora{{mainCtrl.isAmericanGroupBuy ? '美國團' : ''}}代購 - 匯款回條</h2>
 		<p class="text-center">
 		[社團公告] 因Pandora業務逐漸轉移至OHM, 另外國際運費及美金匯率不斷升高的關係，為繼續維持實惠的價格，我們不再請美國郵寄簡易包裝紙盒回來，因原本就有用氣泡袋包裝防寄送時踫撞，所以從今天開始購買手鏈/手環會提供絨布袋，但是墜子就不再附簡易包裝紙盒咯，出貨會用氣泡袋包好，謝謝大家~
 		</p>
@@ -242,12 +242,13 @@
  			</div>
  		</div>
  	</div>
+ 	<div ng-if="mainCtrl.isAmericanGroupBuy">
  	<div class="form-group">
-  		<div class="col-sm-offset-1 col-sm-8" ng-class="{'has-error': transferReplyForm.salesNo.$error.required}">
+  		<div class="col-sm-offset-1 col-sm-8" ng-class="{'has-error': transferReplyForm.salesNo.$error.required || transferReplyForm.salesNo.$error.salesNoNotExisted}">
 			<label class="col-sm-3 control-label" for="salesNo">
  				訂單編號<span style="color:red;">*</span>
  			</label>
- 			<div class="col-sm-7">
+ 			<div class="col-sm-6">
  				<input
  					type="text"
  					ng-model="mainCtrl.transferReply.salesNo"
@@ -257,10 +258,17 @@
  					ng-required="true"
  					data-trigger="focus"
  					placement="auto top"
- 					bs-tooltip="{title: '如有需要填寫多個訂單編號，請以逗點分隔'}"/>
+ 					bs-tooltip="{title: '如有需要填寫多個訂單編號，請以逗點分隔'}"
+ 					ng-blur="mainCtrl.checkSalesNoExisted()"/>
+ 			</div>
+ 			<div class="col-sm-3">
+ 				<span style="color:red;" ng-show="transferReplyForm.salesNo.$error.salesNoNotExisted">
+ 					訂單編號不存在
+ 				</span>
  			</div>
  		</div>	
- 	</div> 	
+ 	</div>
+ 	</div>	
  	<div class="form-group">
  		<div class="col-sm-offset-1 col-sm-8" ng-class="{'has-error': transferReplyForm.productDetails.$error.required}">
 			<label class="col-sm-3 control-label" for="productDetails">
@@ -309,11 +317,14 @@
 		.constant('urlPrefix', '${urlPrefix}')
 		.constant('login', "${sessionScope['sessionUser']}" ? true : false)
 		.constant('targetData', ${transferReply == null ? "null" : transferReply})
+		.constant('user', ${user == null ? "null" : user})
 		.constant('moduleName', '${moduleName == null ? "null" : moduleName}')
-		.controller('MainCtrl', ['$scope', 'DateService', 'AjaxService', 'urlPrefix', 'login', 'targetData', '$cookies', 'moduleName', '$alert', function($scope, DateService, AjaxService, urlPrefix, login, targetData, $cookies, moduleName, $alert){
+		.constant('isAmericanGroupBuy', ${isAmericanGroupBuy == null ? "false" : isAmericanGroupBuy})
+		.controller('MainCtrl', ['$scope', 'DateService', 'AjaxService', 'urlPrefix', 'login', 'targetData', '$cookies', 'moduleName', '$alert', 'isAmericanGroupBuy', 'user', function($scope, DateService, AjaxService, urlPrefix, login, targetData, $cookies, moduleName, $alert, isAmericanGroupBuy, user){
 			var self = this,
 				saveUrl = urlPrefix + '/batchSaveOrMerge.json',
 				cookieFilled = moduleName + '_filled';
+			self.isAmericanGroupBuy = isAmericanGroupBuy;
 			function submitResults(btnVal, btnCss){
 				var jqlite = angular.element(document.getElementById('submitResults'));
 				var oriVal = jqlite.attr('value'),
@@ -419,6 +430,9 @@
 				self.transferReply = targetData;
 			}else{
 				self.transferReply = {};
+				if(user){
+					angular.copy(user, self.transferReply);
+				}
 				//assignVal();
 			}
 			self.save = function(){
@@ -441,6 +455,20 @@
 				if(self.trying){
 					assignVal();
 				}
+			};
+			self.checkSalesNoExisted = function(){
+				console.log('checkSalesNoExisted..');
+				if(!self.transferReply.salesNo){
+					return;
+				}
+				var validationName = 'salesNoNotExisted';
+				AjaxService.get(urlPrefix + '/'+validationName+'/' + self.transferReply.salesNo)
+					.then(function(response){
+						$scope.transferReplyForm.salesNo.$setValidity(validationName, response.data.isValid ? true : false);
+					},function(responseErr){
+						$scope.transferReplyForm.salesNo.$setValidity(validationName, false);
+						alert('後端檢核過程發生錯誤，檢核名稱為: ' + validationName);
+					});
 			};
 		}]);
 </script>
