@@ -138,4 +138,18 @@ public class AmericanGroupBuyCalculationServiceTest extends BaseTestCase {
 		expected = "30";
 		assertEquals(expected, d.toString());
 	}
+	@Test
+	public void floatAddition(){
+		float d1 = 1.11f;
+		float d2 = 2.12f;
+		System.out.println(d1 + d2); // 3.23
+		
+		d1 = 3.2300000000000004f;
+		d2 = 1.335f;
+		System.out.println(d1 + d2); // 4.565
+		
+		d1 = 0.1f;
+		d2 = 0.2f;
+		System.out.println(d1 + d2); // 0.3
+	}
 }
