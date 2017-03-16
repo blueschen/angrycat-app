@@ -97,7 +97,7 @@
 	
  	<div class="form-group">
  		<div  class="col-sm-offset-1 col-sm-8">
- 			<label>正取商品</label>
+ 			<label>正取商品<span style="color:red;">*</span></label>
  			<label>(正取總額需滿{{mainCtrl.americanGroupBuy.qualifyTotalAmtThreshold}} USD 
  				<span style="color:red;" ng-if="!mainCtrl.isQualifyTotalAmtAchieveThreshold()">
  					尚差{{mainCtrl.subtract(mainCtrl.americanGroupBuy.qualifyTotalAmtThreshold, mainCtrl.calculateQualifyTotalAmt())}}
@@ -150,7 +150,7 @@
  	</div>
  	<div class="form-group">
  		<div class="col-sm-offset-1 col-sm-8">
- 			<label>備取商品</label>
+ 			<label>備取商品<span style="color:red;">*</span></label>
  			<label>(備取總額需滿{{mainCtrl.americanGroupBuy.waitTotalAmtThreshold}} USD 
  				<span style="color:red;" ng-if="!mainCtrl.isWaitTotalAmtAchieveThreshold()">
  					尚差{{mainCtrl.subtract(mainCtrl.americanGroupBuy.waitTotalAmtThreshold, mainCtrl.calculateWaitTotalAmt())}}
@@ -217,8 +217,8 @@
 		</div>
 	</div>
 	<div class="form-group" ng-if="mainCtrl.selectedGift.productName && mainCtrl.giftSizes && mainCtrl.giftSizes.length > 0 && mainCtrl.isQualifyTotalAmtAchieveThreshold()">
-		<div class="col-sm-offset-1 col-sm-8">
-			<label for="giftSize">選擇尺寸</label>
+		<div class="col-sm-offset-1 col-sm-8" ng-class="{'has-error': americanGroupBuyOrderFormForm.giftSize.$error.required}">
+			<label for="giftSize">選擇尺寸<span style="color:red;">*</span></label>
 			<select
 				ng-model="mainCtrl.selectedGift.size"
 				ng-options="g.value as g.label for g in mainCtrl.giftSizes"
@@ -226,6 +226,7 @@
 				id="giftSize"
 				name="giftSize"
 				ng-disabled="mainCtrl.fieldsDisabled"
+				ng-required="true"
 			>
 			</select>
 		</div>
@@ -530,6 +531,7 @@
 
 </div>
 <script type="text/javascript">
+// ref. https://read01.com/NoeJa.html
 function BigDecimal(init){
 	var r = parseToNum(init),
 	 	initPoint = decimalPoint(r);
@@ -553,25 +555,34 @@ function BigDecimal(init){
 	this.add = function(added){
 		var point = decimalPoint(added),
 			addMaxPoint = Math.max(initPoint, point),
-			result = r;
-		result += added;
-		result = parseFloat(result.toFixed(addMaxPoint));
+			m = Math.pow(10, addMaxPoint);
+		var result = (r * m + added * m) / m;
+		//result = parseFloat(result.toFixed(addMaxPoint));
 		return new BigDecimal(result);
 	};
 	this.subtract = function(minuend){
 		var point = decimalPoint(minuend),
 			subtractMaxPoint = Math.max(initPoint, point),
-			result = r;
-		result -= minuend;
+			m = Math.pow(10, subtractMaxPoint);
+		var result = (r * m - minuend * m) / m;
 		result = parseFloat(result.toFixed(subtractMaxPoint));
 		return new BigDecimal(result);
 	};
 	this.multiply = function(multiplier){
 		var point = decimalPoint(multiplier),
-			result = r;
-		result *= multiplier;
-		result = parseFloat(result.toFixed(initPoint + point));
+			multiplyMaxPoint = initPoint + point,
+			s1 = r.toString().replace('.', ''),
+			s2 = multiplier.toString().replace('.', '');
+		var result = parseFloat(s1) * parseFloat(s2) / Math.pow(10, multiplyMaxPoint);
+		//result = parseFloat(result.toFixed(multiplyMaxPoint));
 		return new BigDecimal(result);
+	};
+	this.divide = function(divisor){
+		var point = decimalPoint(divisor),
+			s1 = r.toString().replace('.', ''),
+			s2 = divisor.toString().replace('.', '');
+		var result = (parseFloat(s1) / parseFloat(s2)) * Math.pow(10, point - initPoint);
+		return result;
 	};
 	this.getNumber = function(){
 		return r;
