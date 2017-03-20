@@ -103,6 +103,9 @@
  					尚差{{mainCtrl.subtract(mainCtrl.americanGroupBuy.qualifyTotalAmtThreshold, mainCtrl.calculateQualifyTotalAmt())}}
  				</span>)
  			</label>
+ 			<span style="color:red;" ng-show="mainCtrl.qualifyModelIdDuplicated">
+ 				{{mainCtrl.qualifyModelIdDuplicated}}
+ 			</span> 			
  		</div>
  	</div>
  	<div id="qualifies" ng-repeat="qualify in mainCtrl.qualifies" class="form-inline">
@@ -119,7 +122,7 @@
 					ng-required="true"
 					>
 			</label>
-			<label ng-class="{'has-error': americanGroupBuyOrderFormForm.qualify_modelId{{$index}}.$error.required}">
+			<label ng-class="{'has-error': americanGroupBuyOrderFormForm.qualify_modelId{{$index}}.$error.required || americanGroupBuyOrderFormForm.qualify_modelId{{$index}}.$error.qualifyModelIdDuplicated}">
 				<input id="qualify_modelId{{$index}}"
 					name="qualify_modelId{{$index}}"
 					type="text" 
@@ -127,7 +130,8 @@
 					ng-model="qualify.modelId"
 					placeholder="編號"
 					ng-disabled="mainCtrl.fieldsDisabled"
-					ng-required="true">
+					ng-required="true"
+					ng-blur="mainCtrl.checkModelIdDuplicated(americanGroupBuyOrderFormForm, 'qualify')">
 			</label>
 			<label ng-class="{'has-error': americanGroupBuyOrderFormForm.qualify_productAmtUSD{{$index}}.$error.required}">
 				<input id="qualify_productAmtUSD{{$index}}"
@@ -156,6 +160,9 @@
  					尚差{{mainCtrl.subtract(mainCtrl.americanGroupBuy.waitTotalAmtThreshold, mainCtrl.calculateWaitTotalAmt())}}
  				</span>)
  			</label>
+ 			<span style="color:red;" ng-show="mainCtrl.waitModelIdDuplicated">
+ 				{{mainCtrl.waitModelIdDuplicated}}
+ 			</span>
  		</div>
  	</div>
  	<div id="waits" ng-repeat="wait in mainCtrl.waits" class="form-inline">
@@ -173,7 +180,7 @@
 					ng-disabled="mainCtrl.fieldsDisabled"
 					ng-required="true">
 			</label>
-			<label ng-class="{'has-error': americanGroupBuyOrderFormForm.wait_modelId{{$index}}.$error.required}">
+			<label ng-class="{'has-error': americanGroupBuyOrderFormForm.wait_modelId{{$index}}.$error.required || americanGroupBuyOrderFormForm.wait_modelId{{$index}}.$error.waitModelIdDuplicated}">
 				<input id="wait_modelId{{$index}}"
 					name="wait_modelId{{$index}}"
 					type="text" 
@@ -181,7 +188,8 @@
 					ng-model="wait.modelId"
 					placeholder="編號"
 					ng-disabled="mainCtrl.fieldsDisabled"
-					ng-required="true">
+					ng-required="true"
+					ng-blur="mainCtrl.checkModelIdDuplicated(americanGroupBuyOrderFormForm, 'wait')">
 			</label>
 			<label ng-class="{'has-error': americanGroupBuyOrderFormForm.wait_productAmtUSD{{$index}}.$error.required}">
 				<input id="wait_productAmtUSD{{$index}}"
@@ -627,6 +635,69 @@ function BigDecimal(init){
 					lastIdx = self.waits.length - 1;
 				return idx == lastIdx;
 			};
+			self.checkWaitModelIdExistedInQualify = function(item, wait){
+				var modelId = wait.modelId;
+				if(!modelId){
+					item.$setValidity('waitModelIdExistedInQualify', true);
+					return;
+				}
+				for(var i = 0; i < self.qualifies.length; i++){
+					var qModelId = self.qualifies[i].modelId;
+					if(modelId == qModelId){
+						item.$setValidity('waitModelIdExistedInQualify', false);
+						self.duplicatedModelId = modelId;
+						return;
+					}
+				}
+				item.$setValidity('waitModelIdExistedInQualify', true);
+				self.duplicatedModelId = null;
+			};
+			self.checkModelIdDuplicated = function(form, srcName){
+				var isQualify = srcName == 'qualify',
+					destName = isQualify ? 'wait' : 'qualify';
+					src = isQualify ? self.qualifies : self.waits,
+					dest = isQualify ? self.waits : self.qualifies,
+					duplicated = [];
+				// 為了簡化後面的程序，先將所有編號檢核設為通過				
+				function setValidityAsTrue(container, moduleName){
+					var input = moduleName + '_modelId',
+						validate = moduleName + 'ModelIdDuplicated';
+					for(var i = 0; i < container.length; i++){
+						var inputTarget = form[input+i];
+						if(inputTarget){
+							inputTarget.$setValidity(validate, true);	
+						}
+					}
+					self[validate] = null;
+				}
+				setValidityAsTrue(src, srcName);
+				setValidityAsTrue(dest, destName);
+				
+				var destModelIds = []; // 收集所有拿來比對的編號
+				for(var i = 0; i < dest.length; i++){
+					var modelId = dest[i].modelId;
+					if(modelId){
+						destModelIds.push(modelId);
+					}
+				}
+				
+				var inputField = srcName + '_modelId',
+					validation = srcName + 'ModelIdDuplicated';
+				for(var i = 0; i < src.length; i++){
+					var modelId = src[i].modelId,
+						item = form[inputField+i];
+					if(!modelId || !item){
+						continue;
+					}
+					if(destModelIds.indexOf(modelId) >= 0){
+						duplicated.push(modelId);
+						item.$setValidity(validation, false);
+					}
+				}
+				if(duplicated.length != 0){
+					self[validation] = '備取編號: ' + duplicated.join(', ') + '與正取重複，請另填備取或正取商品';
+				}
+			};			
 			if(americanGroupBuy){
 				self.americanGroupBuy = americanGroupBuy;
 			}else{
