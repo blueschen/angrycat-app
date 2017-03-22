@@ -111,17 +111,6 @@
  	<div id="qualifies" ng-repeat="qualify in mainCtrl.qualifies" class="form-inline">
  		<div class="col-sm-offset-1 col-sm-10">
  			<label class="col-sm-1"><span class="badge">{{$index+1}}</span></label>
- 			<label ng-class="{'has-error': americanGroupBuyOrderFormForm.qualify_productName{{$index}}.$error.required}">
-  			 	<input id="qualify_productName{{$index}}"
-  			 		name="qualify_productName{{$index}}"
-					type="text" 
-					class="form-control"
-					ng-model="qualify.productName"
-					placeholder="英文名字"
-					ng-disabled="mainCtrl.fieldsDisabled"
-					ng-required="true"
-					>
-			</label>
 			<label ng-class="{'has-error': americanGroupBuyOrderFormForm.qualify_modelId{{$index}}.$error.required || americanGroupBuyOrderFormForm.qualify_modelId{{$index}}.$error.qualifyModelIdDuplicated}">
 				<input id="qualify_modelId{{$index}}"
 					name="qualify_modelId{{$index}}"
@@ -133,6 +122,16 @@
 					ng-required="true"
 					ng-blur="mainCtrl.checkModelIdDuplicated(americanGroupBuyOrderFormForm, 'qualify')">
 			</label>
+ 			<label ng-class="{'has-error': americanGroupBuyOrderFormForm.qualify_productName{{$index}}.$error.required}">
+  			 	<input id="qualify_productName{{$index}}"
+  			 		name="qualify_productName{{$index}}"
+					type="text" 
+					class="form-control"
+					ng-model="qualify.productName"
+					placeholder="英文名字"
+					ng-disabled="mainCtrl.fieldsDisabled"
+					ng-required="true">
+			</label>			
 			<label ng-class="{'has-error': americanGroupBuyOrderFormForm.qualify_productAmtUSD{{$index}}.$error.required}">
 				<input id="qualify_productAmtUSD{{$index}}"
 					name="qualify_productAmtUSD{{$index}}"
@@ -170,16 +169,6 @@
   			<label class="col-sm-1">
   				<span class="badge">{{$index+1}}</span>
   			</label>
-  			<label ng-class="{'has-error': americanGroupBuyOrderFormForm.wait_productName{{$index}}.$error.required}">
-				<input id="wait_productName{{$index}}"
-					name="wait_productName{{$index}}"
-					type="text" 
-					class="form-control"
-					ng-model="wait.productName"
-					placeholder="英文名字"
-					ng-disabled="mainCtrl.fieldsDisabled"
-					ng-required="true">
-			</label>
 			<label ng-class="{'has-error': americanGroupBuyOrderFormForm.wait_modelId{{$index}}.$error.required || americanGroupBuyOrderFormForm.wait_modelId{{$index}}.$error.waitModelIdDuplicated}">
 				<input id="wait_modelId{{$index}}"
 					name="wait_modelId{{$index}}"
@@ -191,6 +180,16 @@
 					ng-required="true"
 					ng-blur="mainCtrl.checkModelIdDuplicated(americanGroupBuyOrderFormForm, 'wait')">
 			</label>
+  			<label ng-class="{'has-error': americanGroupBuyOrderFormForm.wait_productName{{$index}}.$error.required}">
+				<input id="wait_productName{{$index}}"
+					name="wait_productName{{$index}}"
+					type="text" 
+					class="form-control"
+					ng-model="wait.productName"
+					placeholder="英文名字"
+					ng-disabled="mainCtrl.fieldsDisabled"
+					ng-required="true">
+			</label>			
 			<label ng-class="{'has-error': americanGroupBuyOrderFormForm.wait_productAmtUSD{{$index}}.$error.required}">
 				<input id="wait_productAmtUSD{{$index}}"
 					name="wait_productAmtUSD{{$index}}"
@@ -211,7 +210,7 @@
  	</div> 	
 	<div class="form-group" ng-if="mainCtrl.isQualifyTotalAmtAchieveThreshold()">
 		<div class="col-sm-offset-1 col-sm-8">
-			<label for="giftItem">選擇贈品</label>
+			<label for="giftItem">選擇贈品<span ng-if="mainCtrl.selectedGift.modelId">&nbsp;&nbsp;(編號:{{mainCtrl.selectedGift.modelId}})</span></label>
 			<select
 				ng-model="mainCtrl.selectedGift.productName"
 				ng-options="g.value as g.label for g in mainCtrl.gifts"
@@ -219,8 +218,7 @@
 				ng-change="mainCtrl.changeGiftName(mainCtrl.selectedGift.productName)"
 				id="giftItem"
 				name="giftItem"
-				ng-disabled="mainCtrl.fieldsDisabled"
-			>
+				ng-disabled="mainCtrl.fieldsDisabled">
 			</select>
 		</div>
 	</div>
@@ -635,23 +633,6 @@ function BigDecimal(init){
 					lastIdx = self.waits.length - 1;
 				return idx == lastIdx;
 			};
-			self.checkWaitModelIdExistedInQualify = function(item, wait){
-				var modelId = wait.modelId;
-				if(!modelId){
-					item.$setValidity('waitModelIdExistedInQualify', true);
-					return;
-				}
-				for(var i = 0; i < self.qualifies.length; i++){
-					var qModelId = self.qualifies[i].modelId;
-					if(modelId == qModelId){
-						item.$setValidity('waitModelIdExistedInQualify', false);
-						self.duplicatedModelId = modelId;
-						return;
-					}
-				}
-				item.$setValidity('waitModelIdExistedInQualify', true);
-				self.duplicatedModelId = null;
-			};
 			self.checkModelIdDuplicated = function(form, srcName){
 				var isQualify = srcName == 'qualify',
 					destName = isQualify ? 'wait' : 'qualify';
@@ -839,28 +820,30 @@ function BigDecimal(init){
 			
 			// 選擇贈品規則: 正取選擇總金額滿125美金，可選擇一款65美金的手鍊或手環
 			var giftPrice = {
-				'經典蛇鏈': 65,
-				'黑銀蛇鏈': 65,
-				'硬手環': 65,
-				'Essence手鏈': 65,
-				'Essence珠鏈': 65,
-				'Essence硬環(春季新品)': 65,
-				'愛心叩頭經典蛇鏈': 65,
-				'玫瑰金扣純銀蛇鏈(需補差額560NT)': 82,
-				'滿鑽釦頭蛇鏈(需補差額560NT)': 82,
-				'愛心滿鑽叩頭蛇鏈(需補差額560NT)': 82,
-				'2016新款迪士尼蛇鏈(需補差額740NT)': 88,
-				'皮繩或其他需求請先跟我們聯絡確認': 65
+				'經典款純銀蛇鍊':		{modelId: '590702HV',	amtUSD: 65},
+				'經典款黑銀蛇鍊': 		{modelId: '590702OX', 	amtUSD: 65},
+				'簡約圓釦頭蛇鍊': 		{modelId: '590728', 	amtUSD: 65},
+				'經典款純銀手環': 		{modelId: '590713', 	amtUSD: 65},
+				'純銀愛心釦頭蛇鍊': 	{modelId: '590719', 	amtUSD: 65},
+				'Essence 純銀蛇鍊': 	{modelId: '596000', 	amtUSD: 60},
+				'Essence 純銀珠鍊': 	{modelId: '596002', 	amtUSD: 60},
+				'Essence 純銀硬環': 	{modelId: '596006', 	amtUSD: 60},
+				'心鑽蛇鍊': 			{modelId: '590743CZ', 	amtUSD: 75},
+				'2017春季花朵蛇鍊': 	{modelId: '590744CZ', 	amtUSD: 80},
+				'方形滿鑽蛇鍊': 		{modelId: '590723CZ', 	amtUSD: 80},
+				'心滿鑽蛇鍊': 			{modelId: '590727CZ', 	amtUSD: 80},
+				'迪士尼米奇蛇鍊': 		{modelId: '590731CZ', 	amtUSD: 85},
+				'Pandora logo金銀雙色蛇鍊': {modelId: '590741CZ', amtUSD: 100},
 			};
-			var giftData = [];
+			var giftNames = [];
 			for(var p in giftPrice){
 				if(giftPrice.hasOwnProperty(p)){
-					giftData.push(p);
+					giftNames.push(p);
 				}
 			}
-			self.gifts = genOptions(giftData);
+			self.gifts = genOptions(giftNames);
 			var sizes = {
-				'經典蛇鏈': 
+				'經典款純銀蛇鍊': 
 					['17cm',
 					'18cm',
 					'19cm',
@@ -868,16 +851,23 @@ function BigDecimal(init){
 					'21cm',
 					'23cm']
 			};
-			sizes['黑銀蛇鏈'] = sizes['經典蛇鏈'];
-			sizes['玫瑰金釦純銀手鍊'] = sizes['經典蛇鏈'];
-			sizes['愛心叩頭經典蛇鏈'] = sizes['經典蛇鏈'];
-			sizes['滿鑽釦頭蛇鏈(需補差額560NT)'] = sizes['經典蛇鏈'];
-			sizes['硬手環'] = [
-				'硬環S (17cm)',
-				'硬環M (19cm)',
-				'硬環L (21cm)',
+			sizes['經典款黑銀蛇鍊'] = sizes['經典款純銀蛇鍊'];
+			sizes['簡約圓釦頭蛇鍊'] = sizes['經典款純銀蛇鍊'];
+			sizes['純銀愛心釦頭蛇鍊'] = sizes['經典款純銀蛇鍊'];
+			sizes['心鑽蛇鍊'] = sizes['經典款純銀蛇鍊'];
+			sizes['2017春季花朵蛇鍊'] = sizes['經典款純銀蛇鍊'];
+			sizes['方形滿鑽蛇鍊'] = sizes['經典款純銀蛇鍊'];
+			sizes['心滿鑽蛇鍊'] = sizes['經典款純銀蛇鍊'];
+			sizes['迪士尼米奇蛇鍊'] = sizes['經典款純銀蛇鍊'];
+			sizes['Pandora logo金銀雙色蛇鍊'] = sizes['經典款純銀蛇鍊'];
+			
+			sizes['經典款純銀手環'] = [
+				'S 17cm',
+				'M 19cm',
+				'L 21cm',
 			];
-			sizes['Essence手鏈'] = [
+			
+			sizes['Essence 純銀蛇鍊'] = [
 				'16cm',
 				'17cm',
 				'18cm',
@@ -885,22 +875,27 @@ function BigDecimal(init){
 				'20cm',
 				'21cm',
 			];
-			sizes['Essence手鏈'] = [
-			     'S',
-			     'M',
-			     'L'
+			sizes['Essence 純銀珠鍊'] = sizes['Essence 純銀蛇鍊'];
+			
+			sizes['Essence 純銀硬環'] = [
+				'S 16cm',
+			    'M 18cm',
+			    'L 20cm',
 			];
+			// 沒有尺寸: Essence珠鍊、愛心滿鑽釦頭蛇鍊、2016新款迪士尼蛇鍊
 			self.changeGiftName = function(selectedGiftName){
-				var price = giftPrice[selectedGiftName];
+				var selectedGift = giftPrice[selectedGiftName],
+					price = selectedGift.amtUSD;
 				price = new BigDecimal(price).subtract(self.americanGroupBuy.giftValAmtUSD).getNumber();
 				if(price < 0){
 					price = 0;
 				}
 				self.selectedGift.productAmtUSD = price;
+				self.selectedGift.modelId = selectedGift.modelId;
 				self.calculateTotalAmtNTD();
 				// 產生尺寸清單
 				var size = sizes[selectedGiftName];
-				if(size && size.length){
+				if(size && size.length && size.length > 0){
 					self.giftSizes = genOptions(size);	
 				}else{
 					self.giftSizes = [];
