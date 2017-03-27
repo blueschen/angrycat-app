@@ -8,7 +8,10 @@ import java.io.Serializable;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.nio.charset.StandardCharsets;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
+import org.jboss.logging.Logger;
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Scope;
@@ -16,19 +19,31 @@ import org.springframework.core.env.Environment;
 import org.springframework.stereotype.Service;
 
 import com.angrycat.erp.component.JsonNodeWrapper;
+import com.angrycat.erp.service.MailService;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 @Service
 @Scope("prototype")
+/**
+ * 對應Magento Web Service服務
+ * 通常的開發方式是:先開發自定義Magento Web API，再寫Java銜接
+ * 如果Magento已上線，又是新開發的模組，除了要上傳模組程式碼，在magento/app/etc/modules/Angrycat_All.xml下要新增模組定義；除此之外，要到magento後台系統/進階/進階去重新選擇(沒用到的模組)儲存一次，在這邊能夠看到新模組名稱，他才能被找到
+ * @author JerryLin
+ *
+ */
 public class MagentoBaseService implements Serializable{
 	private static final long serialVersionUID = 2360391978352669173L;
+	private static final Pattern FIND_ERR_MSG = Pattern.compile("report.php\\?id=(\\d+)");
+	private static final Logger LOG = Logger.getLogger(MagentoBaseService.class.getName());
 
 	@Autowired
 	private Environment env;
 	@Autowired
 	BeanFactory beanFactory;
+	@Autowired
+	private MailService mailService;
 	private boolean debug;
-	
+	public static final String INTERET_BASE_URL = "http://211.75.15.139/magento/index.php";
 	public static final String INTRANET_BASE_URL = "http://192.168.1.15/magento/index.php";
 	public static final String LOCALHOST_BASE_URL = "http://localhost/magento/index.php";
 	public static final String SERVER_LOCAL_BASE_URL = "http://127.0.0.1/magento/index.php";
@@ -59,7 +74,9 @@ public class MagentoBaseService implements Serializable{
 		String user = env.getProperty("magento.api.user");
 		String key = env.getProperty("magento.api.key");
 		String data = "apiUser=" + user + "&apiKey=" + key + "&";
-//		System.out.println("requestUrl:" + rquestUrl);
+		if(debug){
+			System.out.println("requestUrl:" + rquestUrl);
+		}
 		String result = "";
 		
 		try{
@@ -89,7 +106,11 @@ public class MagentoBaseService implements Serializable{
 				bos.flush();
 			}
 			int responseCode = connection.getResponseCode();
+			if(debug){
+				System.out.println("http responseCode is " + responseCode);
+			}
 			// 回應碼在(包含)200~(不包含)400之間，都算成功
+			// 503 Service Unavailable
 			isOk = (responseCode >= HttpURLConnection.HTTP_OK && responseCode < HttpURLConnection.HTTP_BAD_REQUEST);
 			try(BufferedReader br = new BufferedReader(new InputStreamReader((isOk ? connection.getInputStream() : connection.getErrorStream())));){
 				String lineResult = null;
@@ -98,17 +119,58 @@ public class MagentoBaseService implements Serializable{
 				}
 			}
 		}catch(Throwable e){
+			LOG.info(e.toString());
+			mailService.subject("MagentoBaseService.connect Err").content(e.toString()).sendSimple();
 			throw new RuntimeException(e);
 		}
+		String errMsg = getRetErrMsg(result);
+		if(debug){
+			System.out.println("result string is " + result);
+		}
+		if(errMsg != null){
+			if(debug){
+				System.out.println("errMsg is " + errMsg);
+			}
+			return errMsg;
+		}
 		return result;
+	}
+	JsonNodeWrapper renderJson(String json){
+		JsonNodeWrapper jnw = beanFactory.getBean(JsonNodeWrapper.class, json);
+		jnw.filterObjectNode();
+		return jnw;
 	}
 	public JsonNodeWrapper request(String url, Object...args){
 		String json = connect(url, args);
 		if(debug){
 			System.out.println("return data:\n" + json);
 		}
-		JsonNodeWrapper jnw = beanFactory.getBean(JsonNodeWrapper.class, json);
-		jnw.filterObjectNode();
+		JsonNodeWrapper jnw = renderJson(json);
 		return jnw;
+	}
+	
+	/**
+	 * Windows下Magenot可參考錯誤log位置:<br>
+	 * Apache24\logs
+	 * php\temp
+	 * Magento\var\log
+	 * Magento\var\report
+	 * @param retMsg
+	 * @return
+	 */
+	public String getRetErrMsg(String retMsg){
+		String errMsg = null;
+		if(!retMsg.contains("There has been an error processing your request")){
+			return errMsg;
+		}
+		Matcher m = FIND_ERR_MSG.matcher(retMsg);
+		while(m.find()){
+			String id = m.group(1);
+			errMsg = "Thrown Errs:\nit may be caused by 'not found', details referencing /var/report id: " + id;
+		}
+		if(errMsg == null){
+			errMsg = "Thrown Errs:\n" + retMsg;
+		}
+		return errMsg;
 	}
 }
