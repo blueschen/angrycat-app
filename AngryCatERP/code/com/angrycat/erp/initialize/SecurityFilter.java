@@ -83,6 +83,7 @@ public class SecurityFilter implements Filter {
 		// 為了讓一般人可以自行填入Pandora匯款回條，將Pandora匯款回條新增頁面的操作獨立出來
 		allowPathEqual.add("/transferreply/addPandora");
 		allowPathEqual.add("/transferreply/addAmericanGroupBuy");
+		allowPathEqual.add("/transferreply/addOHMStore");
 		allowPathEqual.add("/transferreply/batchSaveOrMerge.json");
 		// 美國團訂單
 		allowPathEqual.add("/americangroupbuyorderform/add");
