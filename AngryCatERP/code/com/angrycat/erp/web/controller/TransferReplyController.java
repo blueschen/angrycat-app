@@ -1,6 +1,7 @@
 package com.angrycat.erp.web.controller;
 
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.Map;
 
 import org.apache.commons.lang3.StringUtils;
@@ -20,6 +21,7 @@ import com.angrycat.erp.excel.ExcelExporter;
 import com.angrycat.erp.excel.TransferReplyExcelExporter;
 import com.angrycat.erp.model.TransferReply;
 import com.angrycat.erp.service.AmericanGroupBuyOrderFormKendoUiService;
+import com.angrycat.erp.service.magento.MagentoOrderService;
 
 @Controller
 @RequestMapping(value="/transferreply")
@@ -31,6 +33,8 @@ public class TransferReplyController extends
 	private TransferReplyExcelExporter excelExporter;
 	@Autowired @Lazy
 	private AmericanGroupBuyOrderFormKendoUiService serv;
+	@Autowired
+	private MagentoOrderService magentoOrderService;
 	
 	@SuppressWarnings("unchecked")
 	@Override
@@ -40,8 +44,7 @@ public class TransferReplyController extends
 	@RequestMapping(value="/addPandora",
 			method=RequestMethod.GET)
 	public String addPandora(Model model){
-		model.addAttribute("isAmericanGroupBuy", false);
-		return moduleName + "/pandoraView";
+		return moduleView();
 	}
 	@RequestMapping(value="/addAmericanGroupBuy",
 			method=RequestMethod.GET)
@@ -50,7 +53,10 @@ public class TransferReplyController extends
 		@RequestParam(required=false) String mobile,
 		@RequestParam(required=false) String salesNo,
 		Model model){
-		model.addAttribute("isAmericanGroupBuy", true);
+		Map<String, String> config = new LinkedHashMap<>();
+		config.put("brand", "Pandora");
+		config.put("activity", "美國團");
+		model.addAttribute("config", CommonUtil.parseToJson(config));
 		if(StringUtils.isNotBlank(fbNickname)
 		|| StringUtils.isNotBlank(salesNo)
 		|| StringUtils.isNotBlank(mobile)){
@@ -60,10 +66,32 @@ public class TransferReplyController extends
 			user.put("salesNo", salesNo);
 			model.addAttribute("user", CommonUtil.parseToJson(user));
 		}
-		return moduleName + "/pandoraView";
+		return moduleView();
 	}
-	@RequestMapping(value="/salesNoNotExisted/{salesNo}", method=RequestMethod.GET)
-	public @ResponseBody Map<String, Boolean> salesNoNotExisted(@PathVariable("salesNo") String salesNo){
+	@RequestMapping(value="/addOHMStore",
+			method=RequestMethod.GET)
+	public String addOHMStore(Model model){
+		Map<String, String> config = new LinkedHashMap<>();
+		config.put("brand", "OHM Beads");
+		config.put("transferTo", "中國信託");
+		config.put("salePoint", "OHM商店");
+		model.addAttribute("config", CommonUtil.parseToJson(config));
+		return moduleView();
+	}
+	public Map<String, Boolean> magentoSalesNoNotExisted(String salesNo){
+		Map<String, Boolean> results = new HashMap<>();
+		boolean existed = magentoOrderService.areOrdersExisted(salesNo);
+		results.put("isValid", existed);
+		return results;
+	}
+	@RequestMapping(value="/salesNoNotExisted/{salesNo}/{salePoint}", method=RequestMethod.GET)
+	public @ResponseBody Map<String, Boolean> salesNoNotExisted(@PathVariable("salesNo") String salesNo, @PathVariable("salePoint") String salePoint){
+		if("OHM商店".equals(salePoint)){
+			return magentoSalesNoNotExisted(salesNo);
+		}
 		return serv.salesNoNotExisted(salesNo);
+	}
+	private String moduleView(){
+		return moduleName + "/view";
 	}
 }
