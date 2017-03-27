@@ -169,7 +169,7 @@ public class AmericanGroupBuyOrderFormKendoUiService extends
 //				return null;
 //			});
 	}
-	public @ResponseBody Map<String, Boolean> salesNoNotExisted(String salesNo){
+	public Map<String, Boolean> salesNoNotExisted(String salesNo){
 		salesNo = salesNo.replaceAll(" ", "");
 		System.out.println("salesNo is " + salesNo);
 		String[] salesNos = salesNo.split(",");
