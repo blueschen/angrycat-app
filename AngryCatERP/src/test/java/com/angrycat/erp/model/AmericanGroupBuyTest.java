@@ -45,8 +45,8 @@ public class AmericanGroupBuyTest extends BaseTestCase {
 			if(ds == null){
 				ds = new DefaultSerial();
 				ds.setId(AmericanGroupBuyOrderForm.SALESNO_GENERATOR_ID);
-				ds.setNo("000000000");
-				ds.setResetNoTo(0);
+				ds.setNo("0000");
+				ds.setResetNoTo(1);
 				s.save(ds);
 				s.flush();
 			}
