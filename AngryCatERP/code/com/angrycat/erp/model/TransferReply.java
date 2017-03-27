@@ -13,21 +13,32 @@ import org.hibernate.annotations.GenericGenerator;
 @Table(name="transferreply")
 public class TransferReply {
 	private String id;
-	private String brand;
+	
+	private String transferType; // 配送商品|郵資|其他
+	private String transferTo;	// 郵局|中國信託
+	private String transferAccountCheck;
+	private Date transferDate;
+	private int transferAmount;
+	
 	private String fbNickname;
-	private String name;
 	private String mobile;
 	private String tel;
-	private String postalCode;
-	private String address;
-	private Date transferDate;
-	private String transferAccountCheck;
-	private int transferAmount;
+	
+	private String brand;	// Pandora|OHM Beads|Town Talk Polish|皆有|其他
+	private String activity; // 美國團|其他
+	private String salePoint; // FB社團|OHM商店|粉絲團
+	private String salesNo;
 	private String productDetails;
-	private String note;
+	
+	private String shipment; // 郵寄|全家|7-11
+	private String name;
+	private String postalCode;
+	private String address; // 若為店到店需要寫店名
+	
+	private String note;	
 //	@JsonFormat(shape=JsonFormat.Shape.STRING, pattern="yyyy-MM-dd'T'HH:mm:ss.SSSZ")
 	private Date createDate = new Date(System.currentTimeMillis());
-	private String salesNo;
+	
 	@Id
 	@Column(name="id")
 	@GenericGenerator(name = "angrycat_transferreply_id", strategy = "com.angrycat.erp.ds.TimeUID")
@@ -135,5 +146,40 @@ public class TransferReply {
 	}
 	public void setSalesNo(String salesNo) {
 		this.salesNo = salesNo;
+	}
+	@Column(name="salePoint", columnDefinition="銷售點")
+	public String getSalePoint() {
+		return salePoint;
+	}
+	public void setSalePoint(String salePoint) {
+		this.salePoint = salePoint;
+	}
+	@Column(name="shipment", columnDefinition="配送方式")
+	public String getShipment() {
+		return shipment;
+	}
+	public void setShipment(String shipment) {
+		this.shipment = shipment;
+	}
+	@Column(name="transferType", columnDefinition="匯款類型")
+	public String getTransferType() {
+		return transferType;
+	}
+	public void setTransferType(String transferType) {
+		this.transferType = transferType;
+	}
+	@Column(name="transferTo", columnDefinition="匯款至")
+	public String getTransferTo() {
+		return transferTo;
+	}
+	public void setTransferTo(String transferTo) {
+		this.transferTo = transferTo;
+	}
+	@Column(name="activity", columnDefinition="活動")
+	public String getActivity() {
+		return activity;
+	}
+	public void setActivity(String activity) {
+		this.activity = activity;
 	}
 }
