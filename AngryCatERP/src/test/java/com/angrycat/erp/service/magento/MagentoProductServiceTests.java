@@ -150,6 +150,7 @@ public class MagentoProductServiceTests {
 	}
 	@Test
 	public void listAllInventory(){
+		serv.setBaseUrl(MagentoProductService.INTRANET_BASE_URL);
 		JsonNodeWrapper jnw = serv.listAllInventory();
 		jnw.consume(n->{
 				JsonNodeWrapper.printObjectNodeValues(n);
@@ -214,5 +215,10 @@ public class MagentoProductServiceTests {
 		Object r = i;
 		assertTrue(r.getClass() == Integer.class);
 		assertFalse(r.getClass() == int.class);
+	}
+	@Test
+	public void listProductsBySku(){
+		String r = serv.listProductsBySku("KLLD");
+		System.out.println(r);
 	}
 }
