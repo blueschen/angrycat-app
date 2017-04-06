@@ -55,7 +55,7 @@ public class TransferReplyController extends
 		Model model){
 		Map<String, String> config = new LinkedHashMap<>();
 		config.put("brand", "Pandora");
-		config.put("activity", "美國團");
+//		config.put("activity", "美國團");
 		model.addAttribute("config", CommonUtil.parseToJson(config));
 		if(StringUtils.isNotBlank(fbNickname)
 		|| StringUtils.isNotBlank(salesNo)
