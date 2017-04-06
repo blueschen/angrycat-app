@@ -87,7 +87,11 @@ public class FormatListFactory {
 		FormatList f = new FormatList();
 		f.setDocTitle("id");
 		
-		f.add(new PropertyFormat("匯款項目", "transferType"));
+		f.add(new PropertyFormat("購買商品品牌", "brand"));
+		f.add(new PropertyFormat("訂購管道", "salePoint"));
+		f.add(new PropertyFormat("購買明細", "productDetails"));		
+		f.add(new PropertyFormat("寄送方式", "shipment"));
+		
 		f.add(new PropertyFormat("匯款至", "transferTo"));
 		f.add(new PropertyFormat("匯款帳號後5碼", "transferAccountCheck"));
 		PropertyFormat transferDate = new PropertyFormat("匯款日期", "transferDate");
@@ -98,14 +102,6 @@ public class FormatListFactory {
 		f.add(new PropertyFormat("FB顯示名稱", "fbNickname"));
 		f.add(new PropertyFormat("手機號碼", "mobile"));
 		f.add(new PropertyFormat("備用聯絡電話", "tel"));
-		
-		f.add(new PropertyFormat("品牌", "brand"));
-		f.add(new PropertyFormat("活動", "activity"));
-		f.add(new PropertyFormat("訂購管道", "salePoint"));
-		f.add(new PropertyFormat("訂單編號", "salesNo"));
-		f.add(new PropertyFormat("購買明細", "productDetails"));
-		
-		f.add(new PropertyFormat("寄送方式", "shipment"));
 		f.add(new PropertyFormat("收件人真實姓名", "name"));
 		f.add(new PropertyFormat("郵遞區號", "postalCode"));
 		f.add(new PropertyFormat("掛號收件地址", "address"));
@@ -118,7 +114,7 @@ public class FormatListFactory {
 		return f;
 	}
 	public static FormatList ofTransferReplyForExcelExport(){
-		FormatList f = ofTransferReplyBase("yyyy-MM-dd HH:mm:ss");
+		FormatList f = ofTransferReplyBase("yyyy-MM-dd");
 		return f;
 	}
 	private static FormatList ofAmericanGroupBuyOrderFormBase(String dateFormat){
