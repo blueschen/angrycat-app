@@ -13,7 +13,7 @@
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
 	<meta content="width=device-width, initial-scale=1.0" name="viewport">
 	
-	<title>阿喵愛生氣Pandora代購 - 匯款回條</title>
+	<title>安格卡特Angrycat匯款回條</title>
 
 	<link rel="stylesheet" href='<c:url value="/vendor/bootstrap/3.3.5/css/bootstrap.css"/>'/>
 	<link rel="stylesheet" href='<c:url value="/vendor/bootstrap/3.3.5/css/bootstrap-theme.css"/>'/>
@@ -61,21 +61,42 @@
 	.alert{
 		padding: 5px;
 	}
+	/*fix angularstrap modal background not transparent*/
+	.modal-backdrop{
+		opacity: .5;
+	}	
 	</style>
 </head>
 <body ng-controller="MainCtrl as mainCtrl" ng-cloak>
 <div class="container">
 	<div>
-		<h2  class="text-center">阿喵愛生氣 - 匯款回條</h2>
-		<p class="text-center">
-		[社團公告] 因Pandora業務逐漸轉移至OHM, 另外國際運費及美金匯率不斷升高的關係，為繼續維持實惠的價格，我們不再請美國郵寄簡易包裝紙盒回來，因原本就有用氣泡袋包裝防寄送時踫撞，所以從今天開始購買手鏈/手環會提供絨布袋，但是墜子就不再附簡易包裝紙盒咯，出貨會用氣泡袋包好，謝謝大家~
+		<h2  class="text-center">安格卡特Angrycat匯款回條</h2>
+		<p style="color:red;">請務必在匯款完畢之後再填寫以利核對款項</p>
+		<br>
+		<p>
+		<b>Pandora</b> 代購商品我們會用氣泡袋包裝之後出貨，手鏈以及手環會提供絨布袋或簡易包裝紙盒。
 		</p>
-		<p class="text-center">
-		Dear各位Pandora同好
+		<p>
+		<b>OHM Beads</b> 專櫃商品為完整盒裝，附商品保固卡。
 		</p>
-		<p class="text-center">
-		請大家在跟喵娘確認好訂單並匯款完畢之後在這裡填寫你的完整資料, 基本上現貨商品會在一個工作天之內寄出,如我有跟您事先說明是預購商品,則需要等待2-3周才會送達台北, 寄送期間還麻煩耐心等待,有任何問題可以在粉絲團或社團留言,或是直接與我line iflywang聯絡.
+		<p>
+		<b>其他商品如Agete則以社團公告爲主。</b>
 		</p>
+		<br>
+		<p>
+		我們統一週日至週四晚上9點對帳，現貨商品安排下一個工作天出貨，預定商品則需依照到貨時間等待2-3週不等時間寄送期間還麻煩耐心等待，有任何問題可以在粉絲團或社團留言，或是直接來信<b><a href="mailto:info@ohmbeads.com.tw" target="_blank">info@ohmbeads.com.tw</a></b>聯絡。		
+		</p>
+		<p>
+		我們提供兩組帳號方便大家同銀行轉帳節省轉帳費用，郵局無折存款請務必提供郵局局號：		
+		</p>
+		<h5><b>郵局700</b></h5>
+		<h5><b>戶名:王逸凡</b></h5>
+ 		<h5><b>帳號: 0002123-0169388</b></h5>
+ 		<br>
+		<h5><b>中國信托 822長安分行3153</b></h5>
+ 		<h5><b>戶名: 安格卡特國際貿易有限公司</b></h5>
+ 		<h5><b>帳號:495-54049133-1</b></h5>
+ 		 				
 		<div class="row">
 			<div class="col-sm-offset-5">
 				<a href="javascript:void(0);" onclick="PopupCenterDual('http://www.post.gov.tw/post/internet/Postal/index.jsp?ID=208', 'postPage', '800', '500');">郵遞區號查詢</a>
@@ -99,27 +120,82 @@
 		</div>
 		<div class="alerts-container col-sm-6"></div>
 	</div>
-	
-<div id="transferInfo">
+<div id="salesInfo">	
 	<div class="form-group">
-		<div class="col-sm-offset-1 col-sm-8" ng-class="{'has-error': transferReplyForm.transferType.$invalid || transferReplyForm.transferType.$error.required}">
-			<label for="transferType" class="col-sm-3 control-label">匯款項目<span style="color:red;">*</span></label>
+		<div class="col-sm-offset-1 col-sm-8" ng-class="{'has-error': transferReplyForm.brand.$invalid || transferReplyForm.brand.$error.required}">
+			<label for="brand" class="col-sm-3 control-label">購買商品品牌<span style="color:red;">*</span></label>
 			<div class="col-sm-4">
 				<select
-					ng-model="mainCtrl.transferType"
-					ng-options="g.value as g.label for g in mainCtrl.selectOpts.transferTypes"
+					ng-model="mainCtrl.brand"
+					ng-options="g.value as g.label for g in mainCtrl.selectOpts.brands"
 					class="form-control"
-					id="transferType"
-					name="transferType"
-					ng-change="mainCtrl.changeItem('transferType', mainCtrl.transferType)"
+					id="brand"
+					name="brand"
+					ng-change="mainCtrl.changeItem('brand', mainCtrl.brand)"
 					ng-required="true">
 				</select>
 			</div>
-			<div class="col-sm-3" ng-if="mainCtrl.transferType == '其他'" ng-class="{'has-error': transferReplyForm.transferTypeInput.$error.required}">
-				<input type="text" ng-model="mainCtrl.transferReply.transferType" class="form-control" ng-required="true" name="transferTypeInput">
+			<div class="col-sm-3" ng-if="mainCtrl.brand == '其他'" ng-class="{'has-error': transferReplyForm.brandInput.$error.required}">
+				<input type="text" ng-model="mainCtrl.transferReply.brand" class="form-control" ng-required="true" name="brandInput">
+			</div>			
+		</div>
+	</div>	
+	<div class="form-group">
+		<div class="col-sm-offset-1 col-sm-8" ng-class="{'has-error': transferReplyForm.salePoint.$invalid || transferReplyForm.salePoint.$error.required}">
+			<label for="salePoint" class="col-sm-3 control-label">訂購管道<span style="color:red;">*</span></label>
+			<div class="col-sm-4">
+				<select
+					ng-model="mainCtrl.salePoint"
+					ng-options="g.value as g.label for g in mainCtrl.selectOpts.salePoints"
+					class="form-control"
+					id="salePoint"
+					name="salePoint"
+					ng-change="mainCtrl.changeItem('salePoint', mainCtrl.salePoint)"
+					ng-required="true">
+				</select>
 			</div>
-		</div>		
+		</div>
 	</div>
+ 	<div class="form-group">
+ 		<div class="col-sm-offset-1 col-sm-8" ng-class="{'has-error': transferReplyForm.productDetails.$error.required}">
+			<label class="col-sm-3 control-label" for="productDetails">
+ 				購買明細<span style="color:red;">*</span>
+ 			</label>
+ 			<div class="col-sm-7">
+ 				<textarea
+ 					ng-model="mainCtrl.transferReply.productDetails"
+ 					id="productDetails"
+ 					name="productDetails"
+ 					rows="3"
+ 					cols="30"
+ 					class="form-control"
+ 					ng-required="true"
+ 					placeholder="簡單説明購買的商品即可 有不清楚的請先問我們"
+ 					ng-disabled="mainCtrl.fieldsDisabled"></textarea> 					
+ 			</div>
+ 		</div>
+ 	</div>
+	<div class="form-group">
+		<div class="col-sm-offset-1 col-sm-8" ng-class="{'has-error': transferReplyForm.shipment.$error.required}">
+			<label for="shipment" class="col-sm-3 control-label">寄送方式<span style="color:red;">*</span></label>
+			<div class="col-sm-4">
+				<select
+					ng-model="mainCtrl.shipment"
+					ng-options="g.value as g.label for g in mainCtrl.selectOpts.shipments"
+					class="form-control"
+					id="shipment"
+					name="shipment"
+					ng-change="mainCtrl.changeItem('shipment', mainCtrl.shipment)"
+					ng-required="true">
+				</select>
+			</div>
+			<div>
+				<span class="control-label">{{mainCtrl.shipMemo[mainCtrl.shipment]}}</span>
+			</div>
+		</div>
+	</div> 	 	
+</div> 	
+<div id="transferInfo">
 	<div class="form-group">
 		<div class="col-sm-offset-1 col-sm-8" ng-class="{'has-error': transferReplyForm.transferTo.$invalid || transferReplyForm.transferTo.$error.required}">
 			<label class="col-sm-3 control-label" for="transferTo">匯款至<span style="color:red;">*</span></label>
@@ -151,7 +227,8 @@
  					ng-required="true"
  					data-trigger="focus"
  					placement="auto top"
- 					bs-tooltip="{title: '郵局帳戶請提供戶名+後五碼/無摺存款請提供收據上的局號'}"/>
+ 					bs-tooltip="{title: '郵局帳戶請提供戶名+後五碼/無摺存款請提供收據上的局號'}"
+ 					ng-disabled="mainCtrl.fieldsDisabled"/>
  			</div>
  		</div>	
  	</div>	
@@ -173,7 +250,8 @@
  					date-type="string"
  					ng-required="true"
  					placeholder="請正確填寫日期，要不然會對不到帳喲"
- 					useNative="true">			      
+ 					useNative="true"
+ 					ng-disabled="mainCtrl.fieldsDisabled">			      
  			</div>		
 		</div>
  	</div>
@@ -183,12 +261,13 @@
  				匯款金額<span style="color:red;">*</span>
  			</label>
  			<div class="col-sm-4">
- 				<input type="number" ng-model="mainCtrl.transferReply.transferAmount" id="transferAmount" name="transferAmount" class="form-control" ng-required="true"/>
+ 				<input type="number" ng-model="mainCtrl.transferReply.transferAmount" id="transferAmount" name="transferAmount" class="form-control" ng-required="true" ng-disabled="mainCtrl.fieldsDisabled"/>
  			</div>
  		</div>
  	</div>	
 </div>
-<div id="contactInfo">	
+			
+<div id="shipInfo">
 	<div class="form-group">
  		<div class="col-sm-offset-1 col-sm-8" ng-class="{'has-error': transferReplyForm.fbNickname.$error.required}">
 			<label class="col-sm-3 control-label" for="fbNickname">
@@ -230,123 +309,7 @@
  				<input type="text" ng-model="mainCtrl.transferReply.tel" id="tel" name="tel" class="form-control"/>
  			</div>
  		</div> 	
- 	</div> 	
-</div>	
-<div id="salesInfo" ng-if="mainCtrl.transferReply.transferType == '配送商品'">	
-	<div class="form-group">
-		<div class="col-sm-offset-1 col-sm-8" ng-class="{'has-error': transferReplyForm.brand.$invalid || transferReplyForm.brand.$error.required}">
-			<label for="brand" class="col-sm-3 control-label">品牌<span style="color:red;">*</span></label>
-			<div class="col-sm-4">
-				<select
-					ng-model="mainCtrl.brand"
-					ng-options="g.value as g.label for g in mainCtrl.selectOpts.brands"
-					class="form-control"
-					id="brand"
-					name="brand"
-					ng-change="mainCtrl.changeItem('brand', mainCtrl.brand)"
-					ng-required="true">
-				</select>
-			</div>
-			<div class="col-sm-3" ng-if="mainCtrl.brand == '其他'" ng-class="{'has-error': transferReplyForm.brandInput.$error.required}">
-				<input type="text" ng-model="mainCtrl.transferReply.brand" class="form-control" ng-required="true" name="brandInput">
-			</div>			
-		</div>
-	</div>
-	<div class="form-group">
-		<div class="col-sm-offset-1 col-sm-8">
-			<label for="activity" class="col-sm-3 control-label">活動</label>
-			<div class="col-sm-4">
-				<select
-					ng-model="mainCtrl.activity"
-					ng-options="g.value as g.label for g in mainCtrl.selectOpts.activities"
-					class="form-control"
-					id="activity"
-					name="activity"
-					ng-change="mainCtrl.changeItem('activity', mainCtrl.activity)">
-				</select>
-			</div>
-			<div class="col-sm-3" ng-if="mainCtrl.activity == '其他'" ng-class="{'has-error': transferReplyForm.activityInput.$error.required}">
-				<input type="text" ng-model="mainCtrl.transferReply.activity" class="form-control" ng-required="true" name="activityInput">
-			</div>			
-		</div>
-	</div>	
-	<div class="form-group">
-		<div class="col-sm-offset-1 col-sm-8" ng-class="{'has-error': transferReplyForm.salePoint.$invalid || transferReplyForm.salePoint.$error.required}">
-			<label for="salePoint" class="col-sm-3 control-label">訂購管道<span style="color:red;">*</span></label>
-			<div class="col-sm-4">
-				<select
-					ng-model="mainCtrl.salePoint"
-					ng-options="g.value as g.label for g in mainCtrl.selectOpts.salePoints"
-					class="form-control"
-					id="salePoint"
-					name="salePoint"
-					ng-change="mainCtrl.changeItem('salePoint', mainCtrl.salePoint)"
-					ng-required="true">
-				</select>
-			</div>
-		</div>
-	</div>
- 	<div class="form-group" ng-if="mainCtrl.transferReply.salePoint == 'OHM商店' || (mainCtrl.transferReply.brand == 'Pandora' && mainCtrl.transferReply.activity == '美國團')">
-  		<div class="col-sm-offset-1 col-sm-8" ng-class="{'has-error': transferReplyForm.salesNo.$error.required || transferReplyForm.salesNo.$error.salesNoNotExisted}">
-			<label class="col-sm-3 control-label" for="salesNo">
- 				訂單編號<span style="color:red;">*</span>
- 			</label>
- 			<div class="col-sm-4">
- 				<input
- 					type="text"
- 					ng-model="mainCtrl.transferReply.salesNo"
- 					id="salesNo"
- 					name="salesNo"
- 					class="form-control"
- 					ng-required="true"
- 					data-trigger="focus"
- 					placement="auto top"
- 					bs-tooltip="{title: '如有需要填寫多個訂單編號，請以逗點分隔'}"
- 					ng-blur="mainCtrl.checkSalesNoExisted()"/>
- 			</div>
- 			<div class="col-sm-3">
- 				<span style="color:red;" ng-show="transferReplyForm.salesNo.$error.salesNoNotExisted">
- 					訂單編號不存在
- 				</span>
- 			</div>
- 		</div>	
  	</div>
- 	<div class="form-group">
- 		<div class="col-sm-offset-1 col-sm-8" ng-class="{'has-error': transferReplyForm.productDetails.$error.required}">
-			<label class="col-sm-3 control-label" for="productDetails">
- 				購買明細<span style="color:red;">*</span>
- 			</label>
- 			<div class="col-sm-7">
- 				<textarea
- 					ng-model="mainCtrl.transferReply.productDetails"
- 					id="productDetails"
- 					name="productDetails"
- 					rows="3"
- 					cols="30"
- 					class="form-control"
- 					ng-required="true"
- 					placeholder="簡單説明購買的商品即可 有不清楚的請先問我們"></textarea> 					
- 			</div>
- 		</div>
- 	</div> 	
-</div> 		
-<div id="shipInfo" ng-if="mainCtrl.transferReply.transferType == '配送商品'">	
-	<div class="form-group">
-		<div class="col-sm-offset-1 col-sm-8" ng-class="{'has-error': transferReplyForm.shipment.$error.required}">
-			<label for="shipment" class="col-sm-3 control-label">寄送方式<span style="color:red;">*</span></label>
-			<div class="col-sm-4">
-				<select
-					ng-model="mainCtrl.shipment"
-					ng-options="g.value as g.label for g in mainCtrl.selectOpts.shipments"
-					class="form-control"
-					id="shipment"
-					name="shipment"
-					ng-change="mainCtrl.changeItem('shipment', mainCtrl.shipment)"
-					ng-required="true">
-				</select>
-			</div>
-		</div>
-	</div>
  	<div class="form-group">
  	 	<div class="col-sm-offset-1 col-sm-8" ng-class="{'has-error': transferReplyForm.name.$error.required}">
 			<label class="col-sm-3 control-label" for="name">
@@ -365,7 +328,7 @@
  			</div>
  		</div>
  	</div>
- 	<div class="form-group" ng-if="!mainCtrl.transferReply.shipment || mainCtrl.transferReply.shipment == '郵寄'">
+ 	<div class="form-group">
  		<div class="col-sm-offset-1 col-sm-8" ng-class="{'has-error': transferReplyForm.postalCode.$error.required}">
 			<label class="col-sm-3 control-label" for="postalCode">
  				郵遞區號<span style="color:red;">*</span>
@@ -378,8 +341,8 @@
  	<div class="form-group">
  		<div class="col-sm-offset-1 col-sm-8" ng-class="{'has-error': transferReplyForm.address.$error.required}">
  			<label class="col-sm-3 control-label" for="address">
- 				<span ng-if="!mainCtrl.transferReply.shipment || mainCtrl.transferReply.shipment == '郵寄'">掛號收件地址</span>
- 				<span ng-if="mainCtrl.transferReply.shipment && mainCtrl.transferReply.shipment != '郵寄'">店名</span>
+ 				<span ng-if="!mainCtrl.transferReply.shipment || mainCtrl.transferReply.shipment == '郵局掛號' || mainCtrl.transferReply.shipment == '郵局便利箱'">掛號收件地址</span>
+ 				<span ng-if="mainCtrl.transferReply.shipment && mainCtrl.transferReply.shipment != '郵局掛號' && mainCtrl.transferReply.shipment != '郵局便利箱'">店名</span>
  				<span style="color:red;">*</span>	
  			</label>
  			<div class="col-sm-7">
@@ -400,6 +363,9 @@
  	</div>
 </div> 
 
+<div id="contactInfo">	
+ 	
+</div>
  	<div class="form-group">
  		<div class="col-sm-offset-1 col-sm-8">
  			<label class="col-sm-3 control-label" for="note">
@@ -417,10 +383,15 @@
  		</div>
  	</div>
  	<div class="row text-center">
- 		<div class="col-sm-offset-3 col-sm-1">
- 			<input type="submit" value="提交" ng-click="mainCtrl.save()" ng-disabled="transferReplyForm.$invalid" class="btn btn-primary" id="submitResults"/>
- 			<input type="button" value="關閉" onclick="document.location.href='${urlPrefix}/list'" class="btn btn-default" ng-if="mainCtrl.login"/>
- 		</div>
+<div class="btn-group" role="group" aria-label="Submit Button">
+	<input type="submit" value="提交" ng-click="mainCtrl.save()" ng-disabled="transferReplyForm.$invalid || mainCtrl.fieldsDisabled" class="btn btn-primary" id="submitResults"/>
+</div>
+<div class="btn-group" role="group" aria-label="New Transfer Reply Button">
+	<input type="submit" value="新增匯款回條" ng-click="mainCtrl.addNew()" ng-disabled="!mainCtrl.fieldsDisabled" class="btn btn-primary"/>
+</div>
+<div class="btn-group" role="group" aria-label="Close Page Button">
+	<input type="button" value="關閉" onclick="document.location.href='${urlPrefix}/list'" class="btn btn-default" ng-if="mainCtrl.login"/>
+</div>
  	</div>
 </form>
 
@@ -433,7 +404,7 @@
 		.constant('user', ${user == null ? "null" : user})
 		.constant('moduleName', '${moduleName == null ? "null" : moduleName}')
 		.constant('config', ${config == null ? "null" : config})
-		.controller('MainCtrl', ['$scope', 'DateService', 'AjaxService', 'urlPrefix', 'login', 'targetData', '$cookies', 'moduleName', '$alert', 'user', 'config', function($scope, DateService, AjaxService, urlPrefix, login, targetData, $cookies, moduleName, $alert, user, config){
+		.controller('MainCtrl', ['$scope', 'DateService', 'AjaxService', 'urlPrefix', 'login', 'targetData', '$cookies', 'moduleName', '$alert', 'user', 'config', '$modal', function($scope, DateService, AjaxService, urlPrefix, login, targetData, $cookies, moduleName, $alert, user, config, $modal){
 			var self = this,
 				saveUrl = urlPrefix + '/batchSaveOrMerge.json';
 			
@@ -448,12 +419,10 @@
 			}
 			// 目前有幾種確定的管道: Pandora美國團、OHM商店
 			var selectOpts = {
-				transferTypes: ['配送商品', '郵資', '其他'],
 				transferTos: ['郵局', '中國信託'],
 				brands: ['Pandora', 'OHM Beads', 'Town Talk Polish', '皆有', '其他'],
-				activities: ['美國團', '其他'],
 				salePoints: ['FB社團', 'OHM商店', '粉絲團'],
-				shipments: ['郵寄', '全家', '7-11']};
+				shipments: ['郵局掛號', '郵局便利箱', '全家', '7-11']};
 			for(var p in selectOpts){
 				if(selectOpts.hasOwnProperty(p)){
 					var oldList = selectOpts[p];
@@ -465,27 +434,12 @@
 				}
 			}
 			self.selectOpts = selectOpts;
-			
+			self.shipMemo = {'郵局掛號': '(0NT)Town Talk商品不適用','郵局便利箱': '(郵資80NT)', '全家': '(郵資60NT)', '7-11': '(郵資60NT)'};
 			self.changeItem = function(prop, val){
 				if(val != '其他'){
 					assignPropVal(prop, val);
 				}else{
 					self.transferReply[prop] = null;
-				}
-				if(prop == 'transferType'){
-					if(val != self.selectOpts[prop+'s'][0].value){
-						assignNull('brand');
-						assignNull('activity');
-						assignNull('salePoint');
-						assignNull('shipment');
-					}else{
-						assignDefaultOption();
-					}
-				}
-				if(prop == 'brand'){
-					if(val != 'Pandora' && self.transferReply.activity == '美國團'){
-						assignNull('activity');
-					}
 				}
 				if(prop == 'shipment'){
 					genAddressMsg();
@@ -493,10 +447,10 @@
 			};
 			
 			function genAddressMsg(){
-				if(self.transferReply.shipment && self.transferReply.shipment != '郵寄'){
+				if(self.transferReply.shipment && (self.transferReply.shipment != '郵局掛號' || self.transferReply.shipment != '郵局便利箱')){
 					self.addressPlaceHolder = '店到店請填寫店名並補郵資60元';
 				}
-				if(!self.transferReply.shipment || self.transferReply.shipment == '郵寄'){
+				if(!self.transferReply.shipment || self.transferReply.shipment == '郵局掛號' || self.transferReply.shipment == '郵局便利箱'){
 					self.addressPlaceHolder = '若有區域 請一定要寫 ex:三重區 內湖區 北屯區...(掛號免運費,其他寄送方式請跟喵娘確認)';
 				}
 			}
@@ -522,8 +476,7 @@
 				assignPropVal(prop, val);
 				self.changeItem(prop, val);
 			}
-			assignItem('transferType', self.selectOpts['transferTypes'][0].value);
-			
+			assignDefaultOption();
 			if(config){
 				for(var prop in config){
 					if(config.hasOwnProperty(prop)){
@@ -545,6 +498,7 @@
 					jqlite.addClass(oriCss);
 				}, 3000);
 			}
+			/*
 			function alertSaveSuccess(msg){
 				var alertService = 
 					$alert({
@@ -559,7 +513,7 @@
 					console.log(msg);	
 				}
 				submitResults('儲存成功', 'btn btn-success');
-			}
+			}*/
 			function alertSaveFail(msg){
 				var alertService = 
 					$alert({
@@ -620,12 +574,10 @@
 							self.transferReply[prop] = val;
 						}
 					}
-					if(self.transferReply.transferType == '配送商品' && ship){
-						for(var prop in ship){
-							var val = ship[prop];
-							if(val){
-								self.transferReply[prop] = val;
-							}
+					for(var prop in ship){
+						var val = ship[prop];
+						if(val){
+							self.transferReply[prop] = val;
 						}
 					}
 					//document.getElementById("transferDate").focus();
@@ -648,17 +600,30 @@
 				var shipCopy =  copyProp(['shipment', 'name', 'postalCode', 'address']);
 				$cookies.putObject(shipFilled, shipCopy);
 			}
-
-			self.save = function(){
-				var isNew = self.transferReply.id ? false : true;
-				if(isNew){
-					self.transferReply.brand = "PANDORA";
+			function alertSaveSuccess(msg){
+				if(msg){
+					console.log(msg);	
 				}
+				var myModal = $modal({content: '成功送出匯款回條', placement: 'center'});
+			}
+			self.addNew = function(){
+				self.transferReply.id = null;
+				
+				self.transferReply.productDetails = null;
+				self.transferReply.transferAccountCheck = null;
+				self.transferReply.transferDate = null;
+				self.transferReply.transferAmount = null;
+				
+				self.fieldsDisabled = false;
+			};
+			self.fieldsDisabled = false;
+			self.save = function(){
 				AjaxService.post(saveUrl, [self.transferReply])
 					.then(function(response){
 						self.transferReply = response.data[0];
 						saveFilled();
 						alertSaveSuccess();
+						self.fieldsDisabled = true;
 					},
 					function(errResponse){
 						alertSaveFail(JSON.stringify(errResponse));
