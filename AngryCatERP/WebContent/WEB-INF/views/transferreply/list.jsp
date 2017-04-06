@@ -24,7 +24,7 @@
 <head>
 	<meta charset="utf-8"/>
 	<meta content="width=device-width, initial-scale=1.0" name="viewport">
-	<title>Pandora匯款回條</title>
+	<title>安格卡特Angrycat匯款回條</title>
 	
 	<link rel="stylesheet" href="${kendouiStyle}/kendo.common.min.css">
 	<link rel="stylesheet" href="${kendouiStyle}/kendo.default.min.css">
@@ -85,7 +85,11 @@
 					uneditable = {editable: false},
 					fields = [
 		       			//0fieldName			1column title		2column width	3field type	4column filter operator	5field custom		6column custom			7column editor
-		       			["transferType",		"匯款項目",			150,			"string",	"contains"],
+		       			["brand",				"購買商品品牌",		150,			"string",	"contains"],
+		       			["salePoint",			"訂購管道",			150,			"string",	"contains"],
+		       			["productDetails",		"購買明細",			150,			"string",	"contains"],
+		       			["shipment",			"寄送方式",			150,			"string",	"contains"],
+		       					       			
 		       			["transferTo",			"匯款至",				150,			"string",	"contains"],
 		       			["transferAccountCheck","匯款帳號後5碼",		150,			"string",	"contains"],
 		       			["transferDate",		"匯款日期",			150,			"date",		"gte"],
@@ -94,14 +98,6 @@
 						["fbNickname",			"FB顯示名稱",			150,			"string",	"contains",				null],
 						["mobile",				"手機號碼",			150,			"string",	"contains"],
 						["tel",					"備用聯絡電話",		150,			"string",	"contains"],
-						
-		       			["brand",				"品牌",				150,			"string",	"contains"],
-		       			["activity",			"活動",				150,			"string",	"contains"],
-		       			["salePoint",			"訂購管道",			150,			"string",	"contains"],
-		       			["salesNo",				"訂單編號",			150,			"string",	"contains"],
-		       			["productDetails",		"購買明細",			150,			"string",	"contains"],
-		       			
-		       			["shipment",			"寄送方式",			150,			"string",	"contains"],
 		       			["name",				"收件人真實姓名",		150,			"string",	"contains",				null],
 		       			["postalCode",			"郵遞區號",			150,			"string",	"contains"],
 						["address",				"掛號收件地址",		150,			"string",	"contains"],
