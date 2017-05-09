@@ -34,6 +34,10 @@ public class TransferReply {
 //	@JsonFormat(shape=JsonFormat.Shape.STRING, pattern="yyyy-MM-dd'T'HH:mm:ss.SSSZ")
 	private Date createDate = new Date(System.currentTimeMillis());
 	
+	// 對帳資訊	
+	private boolean billChecked;
+	private String computerBillCheckNote;
+	
 	@Id
 	@Column(name="id")
 	@GenericGenerator(name = "angrycat_transferreply_id", strategy = "com.angrycat.erp.ds.TimeUID")
@@ -155,5 +159,19 @@ public class TransferReply {
 	}
 	public void setTransferTo(String transferTo) {
 		this.transferTo = transferTo;
+	}
+	@Column(name="billChecked", columnDefinition="對帳是否成功")
+	public boolean isBillChecked() {
+		return billChecked;
+	}
+	public void setBillChecked(boolean billChecked) {
+		this.billChecked = billChecked;
+	}
+	@Column(name="computerBillCheckNote", columnDefinition="電腦對帳備註")
+	public String getComputerBillCheckNote() {
+		return computerBillCheckNote;
+	}
+	public void setComputerBillCheckNote(String computerBillCheckNote) {
+		this.computerBillCheckNote = computerBillCheckNote;
 	}
 }
