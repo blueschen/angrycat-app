@@ -111,6 +111,9 @@ public class FormatListFactory {
 		f.add(createDate);
 		f.add(new PropertyFormat("其他備註", "note"));
 		
+		f.add(new PropertyFormat("對帳是否成功", "billChecked"));
+		f.add(new PropertyFormat("電腦對帳備註", "computerBillCheckNote"));
+		
 		return f;
 	}
 	public static FormatList ofTransferReplyForExcelExport(){
