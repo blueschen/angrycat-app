@@ -95,23 +95,106 @@
 		       			["transferDate",		"匯款日期",			150,			"date",		"gte"],
 						["transferAmount",		"匯款金額",			150,			"number",	"gte"],
 						
+						["billChecked",			"對帳是否成功",		150,			"boolean",	"eq",					uneditable,				null,			null,			kendo.template('<strong>#= billChecked ? "<span style=\'color: green;\'>已對帳</span>" : "<span style=\'color: red;\'>未對帳</span>" #</strong>')],
+						["computerBillCheckNote","電腦對帳",			150,			"string",	"contains"],
+						
 						["fbNickname",			"FB顯示名稱",			150,			"string",	"contains",				null],
 						["mobile",				"手機號碼",			150,			"string",	"contains"],
 						["tel",					"備用聯絡電話",		150,			"string",	"contains"],
 		       			["name",				"收件人真實姓名",		150,			"string",	"contains",				null],
 		       			["postalCode",			"郵遞區號",			150,			"string",	"contains"],
-						["address",				"掛號收件地址",		150,			"string",	"contains"],
-
+						["address",				"掛號收件地址",		150,			"string",	"contains"],						
+						
 		       			["note",				"其他備註",			150,			"string",	"contains",				null,				hidden],
 						["createDate",			"填單時間",			150,			"date",		"gte"],
 						[opts.pk,				"TransferReply ID",	150,			"string",	"gte",					uneditable,			hidden]
 					];
 				return fields;
 			}
+			function afterGridInitHandler(mainGrid){
+				mainGrid.tbody.on('dblclick', 'td', function(e){
+					var cell = $(this),
+						cellIdx = cell.index()+1, // 索引號放在第一個欄位，所以要加1
+						column = mainGrid.options.columns[cellIdx],
+						field = column.field,
+						row = cell.closest('tr'),
+						dataItem = mainGrid.dataItem(row);
+					if('billChecked' === field && dataItem){
+						var val = dataItem[field];
+						dataItem[field] = !dataItem[field];
+						var template = column.template;
+						// ref. http://stackoverflow.com/questions/275931/how-do-you-make-an-element-flash-in-jquery
+						cell.delay(100).fadeOut().fadeIn('slow', function(){
+							cell.html(kendo.template(template)(dataItem));	
+						});
+					}
+				});
+				mainGrid.element.find('.k-grid-downloadExcel')
+					.after('<span class="v-divider"></span><a href="#" class="k-button" id="startUpload">上傳csv</a>')
+					.closest('.k-grid-toolbar')
+					.find('#startUpload')
+					.on('click', function(){
+						var previousUpload = $('#uploadCsv').data('kendoUpload');
+						if(previousUpload){
+							previousUpload.destroy();
+							$('#uploadCsv').remove();
+						}
+						var previousWindow = $('#uploadWindow').data('kendoWindow')
+						if(previousWindow){
+							previousWindow.destroy();
+							$('#uploadWindow').remove();
+						}
+						
+						$('<div id="uploadWindow"><input type="file" id="uploadCsv" name="csv"></div>')
+							.appendTo(document.body)
+							.promise()
+							.done(function(ele){
+								$('#uploadCsv').kendoUpload({
+									async: {
+										autoUpload: true,
+										saveUrl: opts.moduleBaseUrl + '/uploadCsv.json'
+									},
+									success: function(e){
+										var resp = e.response;
+										if(resp && resp.data === 'success'){
+											var lastKendoData = resp.lastKendoData,
+												importMsg = resp.importMsg;
+											if(lastKendoData){
+												mainGrid.dataSource.query(JSON.parse(lastKendoData));	
+											}
+											if(importMsg){
+												$("#uploadWindow").append('<div>' + JSON.stringify(importMsg) + '</div>');
+											}
+										}
+									},
+									progress: function(e){
+										//kendo.ui.progress($("#uploadWindow").data("kendoWindow").wrapper, true);
+									},
+									complete: function(e){
+										//kendo.ui.progress($("#uploadWindow").data("kendoWindow").wrapper, false);
+									},
+									multiple: false
+								}).click();
+								
+								$("#uploadWindow").kendoWindow({
+									width: "30%",
+									modal: true,
+									position: {
+										top: "25%",
+										left: "30%"
+									}
+								})
+								.data("kendoWindow")
+								//.center()
+								.open();
+							});
+					});
+			}
 			angrycat.kendoGridService
 				.init(opts)
-				.fieldsReady(fieldsReadyHandler);
-		})(jQuery, kendo, angrycat);			
+				.fieldsReady(fieldsReadyHandler, afterGridInitHandler);
+		})(jQuery, kendo, angrycat);
+		
 	</script>
 </body>
 </html>
