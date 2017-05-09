@@ -1,8 +1,11 @@
 package com.angrycat.erp.web.controller;
 
+import java.time.LocalDate;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -14,9 +17,12 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RequestPart;
 import org.springframework.web.bind.annotation.ResponseBody;
 
 import com.angrycat.erp.common.CommonUtil;
+import com.angrycat.erp.component.CBCTBankTransferCSVProcessor;
+import com.angrycat.erp.component.CBCTBankTransferCSVProcessor.CBCTBankTransfer;
 import com.angrycat.erp.excel.ExcelExporter;
 import com.angrycat.erp.excel.TransferReplyExcelExporter;
 import com.angrycat.erp.model.TransferReply;
@@ -35,6 +41,8 @@ public class TransferReplyController extends
 	private AmericanGroupBuyOrderFormKendoUiService serv;
 	@Autowired
 	private MagentoOrderService magentoOrderService;
+	@Autowired
+	private CBCTBankTransferCSVProcessor csvProcessor;
 	
 	@SuppressWarnings("unchecked")
 	@Override
@@ -93,5 +101,27 @@ public class TransferReplyController extends
 	}
 	private String moduleView(){
 		return moduleName + "/view";
+	}
+	@RequestMapping(
+		value="/uploadCsv",
+		method=RequestMethod.POST,
+		produces={"application/xml", "application/json"},
+		headers="Accept=*/*"
+	)
+	public @ResponseBody Map<String, Object> uploadCsv(@RequestPart("csv") byte[] csv){
+		Map<String, Object> msg = new LinkedHashMap<>();
+		if(csv == null){
+			msg.put("data", "not found");
+			return msg;
+		}
+		// TODO 在上傳完畢後檢查是否要清理暫存檔
+		Map<String, String> importMsg = csvProcessor.importBytes(csv).updateTranferReplies();
+		
+		String kendoDataJson = (String)kendoUiGridService.getCurrentHttpSession().getAttribute(moduleName+"KendoData");
+		msg.put("data", "success");
+		msg.put("lastKendoData", kendoDataJson);
+		msg.put("importMsg", importMsg);
+		
+		return msg;
 	}
 }
