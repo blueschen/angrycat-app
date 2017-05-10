@@ -15,6 +15,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -143,14 +144,14 @@ public class CBCTBankTransferCSVProcessorTests {
 		assertFalse(m5.matches());
 	}
 	@Test
-	public void replaceNumberWithComma(){
+	public void removeCommaWithinNumber(){
 		String t1 = "=\"106/05/02\",=\"跨行轉入\",,,\"1,650\",\"170,217\",=\"0000125200462676\"";
-		String o1 = CBCTBankTransferCSVProcessor.replaceNumberWithComma(t1);
+		String o1 = CBCTBankTransferCSVProcessor.removeCommaWithinNumber(t1);
 		String expected = "=\"106/05/02\",=\"跨行轉入\",,,\"1650\",\"170217\",=\"0000125200462676\"";
 		assertEquals(null, expected, o1);
 		
 		String t2 = "=\"106/05/02\",=\"跨行轉入\",,,\"0\",\"22,170,217\",=\"0000125200462676\"";
-		String o2 = CBCTBankTransferCSVProcessor.replaceNumberWithComma(t2);
+		String o2 = CBCTBankTransferCSVProcessor.removeCommaWithinNumber(t2);
 		expected = "=\"106/05/02\",=\"跨行轉入\",,,\"0\",\"22170217\",=\"0000125200462676\"";
 		assertEquals(null, expected, o2);
 	}
@@ -163,6 +164,16 @@ public class CBCTBankTransferCSVProcessorTests {
 	public void importBytes() throws IOException {
 		String path = "C:\\Users\\JerryLin\\Desktop\\交易明細查詢.csv";
 		processor.importBytes(Files.readAllBytes(Paths.get(path)));
+	}
+	@Test
+	public void sqlDateStr(){
+		Pattern p = Pattern.compile("\\d{4}-\\d{2}-\\d{2}");
+		
+		Date d1 = Date.valueOf(LocalDate.now());
+		assertTrue(p.matcher(d1.toString()).matches());
+		
+		Date d2 = Date.valueOf(LocalDate.of(2017, 5, 9));
+		assertTrue(p.matcher(d2.toString()).matches());
 	}
 	@Test
 	public void restoreData(){
