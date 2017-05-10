@@ -56,6 +56,7 @@ public class CBCTBankTransferCSVProcessor {
 	static final Pattern ONLY_ACCOUNT = Pattern.compile(".+\\d{5}$");
 	static final Pattern ONLY_NUM_OR_COMMA = Pattern.compile("\\d+,?\\d*");
 	static final Pattern FIND_NUM_WITH_COMMA = Pattern.compile("(\"\\d+(,\\d+){1,}\")");
+	static final Pattern FIND_DATE = Pattern.compile("\\d{3}/\\d{2}/\\d{2}");
 	
 	@Autowired
 	private SessionFactoryWrapper sfw;
@@ -88,29 +89,29 @@ public class CBCTBankTransferCSVProcessor {
 				if(inputs.size() <= 備註){
 					continue;
 				}
-				if(inputs.get(摘要).contains(BYPASS)) {
+				if(inputs.get(摘要).contains(BYPASS)) { // 含有續上一筆代表用第二行表示同一筆剩下資料
 					continue;
 				}
 				List<String> data = inputs.stream()
 					.map((input) -> removeRedundant(input))
 					.collect(Collectors.toList());
-				// TODO 提款有資料 排除該筆
-				String memo = data.get(備註);
-				if(StringUtils.isBlank(memo)
+				
+				String memo = data.get(備註).trim();
+				String depositAmount = data.get(存款金額);
+				String txDate = data.get(交易日期);
+				
+				if(!FIND_DATE.matcher(txDate).matches() // 應該有民國年交易日期
 				|| memo.length() < 6
-				|| !ONLY_ACCOUNT.matcher(memo).matches()){
+				|| !ONLY_ACCOUNT.matcher(memo).matches() // 備註要符合存款帳號後五碼格式
+				|| StringUtils.isBlank(depositAmount)
+				|| "0".equals(depositAmount)
+				|| !StringUtils.isNumeric(depositAmount)){ // 存款金額只能為數字，且要大於0 ==>代表轉入
 					continue;
 				}
-				String txDate = data.get(交易日期);
-				String depositAmount = data.get(存款金額);
 				
 				CBCTBankTransfer cbct = new CBCTBankTransfer();
-				if(StringUtils.isNotBlank(txDate) && txDate.trim().length() == 9){
-					cbct.transferDate = toSqlDateFromROC(txDate);
-				}
-				if(StringUtils.isNotBlank(depositAmount) && ONLY_NUM_OR_COMMA.matcher(depositAmount).matches()){
-					cbct.transferAmount = formatNumber(depositAmount).intValue();
-				}
+				cbct.transferDate = toSqlDateFromROC(txDate);
+				cbct.transferAmount = formatNumber(depositAmount).intValue();
 				cbct.transferAccountCheck = retrieveTransferAccountCheck(memo);
 				csvData.add(cbct);
 			}
