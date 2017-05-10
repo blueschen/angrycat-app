@@ -121,6 +121,28 @@ public class CBCTBankTransferCSVProcessorTests {
 		assertTrue(m4.matches());
 	}
 	@Test
+	public void findDate(){
+		String t1 = "106/05/03";
+		Matcher m1 = CBCTBankTransferCSVProcessor.FIND_DATE.matcher(t1);
+		assertTrue(m1.matches());
+		
+		String t2 = "106-05-03";
+		Matcher m2 = CBCTBankTransferCSVProcessor.FIND_DATE.matcher(t2);
+		assertFalse(m2.matches());
+		
+		String t3 = "807永豐銀行";
+		Matcher m3 = CBCTBankTransferCSVProcessor.FIND_DATE.matcher(t3);
+		assertFalse(m3.matches());
+		
+		String t4 = "7760";
+		Matcher m4 = CBCTBankTransferCSVProcessor.FIND_DATE.matcher(t4);
+		assertFalse(m4.matches());
+		
+		String t5 = "";
+		Matcher m5 = CBCTBankTransferCSVProcessor.FIND_DATE.matcher(t5);
+		assertFalse(m5.matches());
+	}
+	@Test
 	public void replaceNumberWithComma(){
 		String t1 = "=\"106/05/02\",=\"跨行轉入\",,,\"1,650\",\"170,217\",=\"0000125200462676\"";
 		String o1 = CBCTBankTransferCSVProcessor.replaceNumberWithComma(t1);
