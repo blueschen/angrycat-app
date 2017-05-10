@@ -84,7 +84,7 @@ public class CBCTBankTransferCSVProcessor {
 					continue;
 				}
 				
-				line = replaceNumberWithComma(line);				
+				line = removeCommaWithinNumber(line);				
 				List<String> inputs = Arrays.asList(line.split(",", -1));
 				if(inputs.size() <= 備註){
 					continue;
@@ -127,7 +127,7 @@ public class CBCTBankTransferCSVProcessor {
 	}
 	
 	/**
-	 * HQL對於NOT IN的支援有限，所以自行轉換陣列字串
+	 * HQL對於NOT IN語法的支援有限，所以自行轉換陣列字串
 	 * @param data
 	 * @return
 	 */
@@ -144,14 +144,7 @@ public class CBCTBankTransferCSVProcessor {
 	 * TODO 是否要綁定異動記錄
 	 */
 	public Map<String, String> updateTranferReplies(){
-		List<CBCTBankTransfer> data = csvData.stream()
-			.filter(d -> 
-				d.transferAmount > 0 
-				&& StringUtils.isNotBlank(d.transferAccountCheck) 
-				&& d.transferAccountCheck.length() >= 5
-				&& d.transferDate != null)
-			.collect(Collectors.toList());
-		
+		List<CBCTBankTransfer> data = csvData;
 		Map<String, String> msg = new LinkedHashMap<>();
 		
 		int oriTotal = data.size();
@@ -226,7 +219,7 @@ public class CBCTBankTransferCSVProcessor {
 				
 				if(dateOnlyNotMatchFound.size() > 0){
 					for(TransferReply f : dateOnlyNotMatchFound){
-						f.setComputerBillCheckNote("僅轉帳日期不符");
+						f.setComputerBillCheckNote("僅轉帳日期不符:" + d.transferDate.toString());
 						s.update(f);
 						++dateNotMatched;
 					}
@@ -239,7 +232,7 @@ public class CBCTBankTransferCSVProcessor {
 					.list();
 				if(amountOnlyNotMatchFound.size() > 0){
 					for(TransferReply f: amountOnlyNotMatchFound){
-						f.setComputerBillCheckNote("僅匯款金額不符");
+						f.setComputerBillCheckNote("僅匯款金額不符:" + d.transferAmount);
 						s.update(f);
 						++amountNotMatched;
 					}
@@ -252,7 +245,7 @@ public class CBCTBankTransferCSVProcessor {
 					.list();
 				if(checkOnlyNotMatchFound.size() > 0){
 					for(TransferReply f: checkOnlyNotMatchFound){
-						f.setComputerBillCheckNote("僅帳號後五碼不符");
+						f.setComputerBillCheckNote("僅帳號後五碼不符:" + d.transferAccountCheck);
 						s.update(f);
 						++checkNotMatched;
 					}
@@ -272,11 +265,11 @@ public class CBCTBankTransferCSVProcessor {
 	
 	/**
 	 * 因為csv裡面的金額達千分位含逗點，跟分隔符號相混，會造成切割單位錯誤<br>
-	 * 所以在此先把金額裡面的逗點取代掉，以利後續處理
+	 * 所以在此先把金額裡面的逗點移除掉，以利後續處理
 	 * @param input
 	 * @return
 	 */
-	static String replaceNumberWithComma(String input) {
+	static String removeCommaWithinNumber(String input) {
 		Matcher m = CBCTBankTransferCSVProcessor.FIND_NUM_WITH_COMMA.matcher(input);
 		String r = input;
 		while(m.find()){
