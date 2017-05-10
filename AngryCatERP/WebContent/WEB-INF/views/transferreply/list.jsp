@@ -83,6 +83,16 @@
 					hidden = {hidden: true},
 					locked = {locked: lockedFlag},
 					uneditable = {editable: false},
+					billCheckIsTrue = "對帳成功",
+					billCheckIsFalse = "未對帳",
+					changeBooleanFilter = {
+						filterable: {
+							messages: {
+								isTrue: billCheckIsTrue,
+								isFalse: billCheckIsFalse
+							}
+						}
+					},
 					fields = [
 		       			//0fieldName			1column title		2column width	3field type	4column filter operator	5field custom		6column custom			7column editor
 		       			["brand",				"購買商品品牌",		150,			"string",	"contains"],
@@ -95,8 +105,8 @@
 		       			["transferDate",		"匯款日期",			150,			"date",		"gte"],
 						["transferAmount",		"匯款金額",			150,			"number",	"gte"],
 						
-						["billChecked",			"對帳是否成功",		150,			"boolean",	"eq",					uneditable,				null,			null,			kendo.template('<strong>#= billChecked ? "<span style=\'color: green;\'>已對帳</span>" : "<span style=\'color: red;\'>未對帳</span>" #</strong>')],
-						["computerBillCheckNote","電腦對帳",			150,			"string",	"contains"],
+						["billChecked",			"對帳是否成功",		180,			"boolean",	"eq",					null,			changeBooleanFilter,			null,			kendo.template('<strong>#= billChecked ? "<span style=\'color: green;\'>'+billCheckIsTrue+'</span>" : "<span style=\'color: red;\'>'+billCheckIsFalse+'</span>" #</strong>')],
+						["computerBillCheckNote","電腦對帳",			200,			"string",	"contains"],
 						
 						["fbNickname",			"FB顯示名稱",			150,			"string",	"contains",				null],
 						["mobile",				"手機號碼",			150,			"string",	"contains"],
@@ -111,7 +121,7 @@
 					];
 				return fields;
 			}
-			function afterGridInitHandler(mainGrid){
+			function afterGridInitHandler(mainGrid){				
 				mainGrid.tbody.on('dblclick', 'td', function(e){
 					var cell = $(this),
 						cellIdx = cell.index()+1, // 索引號放在第一個欄位，所以要加1
@@ -121,7 +131,7 @@
 						dataItem = mainGrid.dataItem(row);
 					if('billChecked' === field && dataItem){
 						var val = dataItem[field];
-						dataItem[field] = !dataItem[field];
+						dataItem.set(field, !dataItem[field]); // 用set才會觸發dirty flag，後續的修改才能成功
 						var template = column.template;
 						// ref. http://stackoverflow.com/questions/275931/how-do-you-make-an-element-flash-in-jquery
 						cell.delay(100).fadeOut().fadeIn('slow', function(){
@@ -162,16 +172,18 @@
 											if(lastKendoData){
 												mainGrid.dataSource.query(JSON.parse(lastKendoData));	
 											}
+											var tr = '<tr><td>{title}</td><td>{info}</td></tr>';
 											if(importMsg){
-												$("#uploadWindow").append('<div>' + JSON.stringify(importMsg) + '</div>');
+												var content = '';
+												for(var p in importMsg){
+													if(importMsg.hasOwnProperty(p)){
+														content += tr.replace('{title}', p).replace('{info}', importMsg[p]);
+													}
+												}
+												var table = '<table class="table"><tbody>' + content + '</tbody></table>'
+												$("#uploadWindow").append(table);
 											}
 										}
-									},
-									progress: function(e){
-										//kendo.ui.progress($("#uploadWindow").data("kendoWindow").wrapper, true);
-									},
-									complete: function(e){
-										//kendo.ui.progress($("#uploadWindow").data("kendoWindow").wrapper, false);
 									},
 									multiple: false
 								}).click();
@@ -189,6 +201,24 @@
 								.open();
 							});
 					});
+				
+				mainGrid.bind("dataBound", function(e){
+					var rows = e.sender.tbody.children(),
+						columnIndex = this.wrapper.find(".k-grid-header [data-field=" + "computerBillCheckNote" + "]").index(),
+						range = /^(僅匯款金額不符|僅轉帳日期不符|僅帳號後五碼不符)/,
+						warningClz = 'alert alert-danger';
+					for (var j = 0; j < rows.length; j++) {
+						var row = $(rows[j]);
+                        var dataItem = e.sender.dataItem(row);
+                        var note = dataItem.get('computerBillCheckNote');
+                        var cell = row.children().eq(columnIndex);
+                        if(range.test(note)){
+                        	cell.addClass(warningClz);
+                        }else{
+                        	cell.removeClass(warningClz);
+                        }
+					}
+				});
 			}
 			angrycat.kendoGridService
 				.init(opts)
