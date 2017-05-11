@@ -712,7 +712,12 @@
 				}
 			};
 		}
-
+		
+		function getLockCount(){
+			var lockCount = $("div.k-grid-content-locked > table > tbody > tr:nth-child(1) > td").length;
+			return lockCount;
+		}
+		
 		function fieldsReady(callback, afterGridInit){
 			var context = this,
 				getScrollDimensions = 
@@ -1139,7 +1144,7 @@
 							return;
 						};
 						//console.log("selection.length: " + selection.length);
-					    var lockCount = $("div.k-grid-content-locked > table > tbody > tr:nth-child(1) > td").length, // 計算有lock欄位數，目前因第一個欄位為固定位置索引號，所以至少會有一個
+					    var lockCount = getLockCount(), // 計算有lock欄位數，目前因第一個欄位為固定位置索引號，所以至少會有一個
 					    	startColIdx = selection.index(), // 計算所在table的第一個td(cell)索引位置；0 based, 隱藏欄位會被計算
 					    	lastColIdx = selection.last().index(), // 計算所在table的最後一個td(cell)索引位置, ref. http://stackoverflow.com/questions/788225/table-row-and-column-number-in-jquery
 					    	selectedCount = selection.size(), // 有幾個cell被選擇，因為設定select參數為cell，所以這裡以cell為單位
@@ -1340,7 +1345,8 @@
 			getDefaultFieldAutoCompleteValidation: getDefaultFieldAutoCompleteValidation,
 			getDefaultRemoteDropDownList: getDefaultRemoteDropDownList,
 			getDefaultAutoCompleteFilterEditor: getDefaultAutoCompleteFilterEditor,
-			fieldsReady: fieldsReady
+			fieldsReady: fieldsReady,
+			getLockCount: getLockCount
 		};
 	}
 	angrycat.kendoGridService = {
