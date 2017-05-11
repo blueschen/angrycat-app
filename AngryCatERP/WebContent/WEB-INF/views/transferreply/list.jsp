@@ -93,6 +93,11 @@
 							}
 						}
 					},
+					hiddenEditor = function(container, options){ // 由設定的觸發事件更改值，如果有提供UI輸入，反而容易弄錯或混淆。如果設為uneditable，又無法正常啟用後續更新的程序，所以提供一個使用者無法直接操作的空UI
+						var input = $('<input type="hidden">');
+						input.attr("name", options.field);
+						input.appendTo(container);
+					},
 					fields = [
 		       			//0fieldName			1column title		2column width	3field type	4column filter operator	5field custom		6column custom			7column editor
 		       			["brand",				"購買商品品牌",		150,			"string",	"contains"],
@@ -105,7 +110,7 @@
 		       			["transferDate",		"匯款日期",			150,			"date",		"gte"],
 						["transferAmount",		"匯款金額",			150,			"number",	"gte"],
 						
-						["billChecked",			"對帳是否成功",		180,			"boolean",	"eq",					null,			changeBooleanFilter,			null,			kendo.template('<strong>#= billChecked ? "<span style=\'color: green;\'>'+billCheckIsTrue+'</span>" : "<span style=\'color: red;\'>'+billCheckIsFalse+'</span>" #</strong>')],
+						["billChecked",			"對帳是否成功",		180,			"boolean",	"eq",					null,			changeBooleanFilter,			hiddenEditor,			kendo.template('<strong>#= billChecked ? "<span style=\'color: green;\'>'+billCheckIsTrue+'</span>" : "<span style=\'color: red;\'>'+billCheckIsFalse+'</span>" #</strong>')],
 						["computerBillCheckNote","電腦對帳",			200,			"string",	"contains"],
 						
 						["fbNickname",			"FB顯示名稱",			150,			"string",	"contains",				null],
@@ -142,6 +147,7 @@
 						cell.fadeOut().fadeIn('slow', function(){
 							cell.html(kendo.template(template)(dataItem));	
 						});
+						e.preventDefault();
 					}
 				});
 				mainGrid.element.find('.k-grid-downloadExcel')
