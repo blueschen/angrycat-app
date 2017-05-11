@@ -121,20 +121,25 @@
 					];
 				return fields;
 			}
+			
+			var kendoGridService = angrycat.kendoGridService.init(opts);
+			
 			function afterGridInitHandler(mainGrid){				
 				mainGrid.tbody.on('dblclick', 'td', function(e){
 					var cell = $(this),
-						cellIdx = cell.index()+1, // 索引號放在第一個欄位，所以要加1
+						row = cell.closest('tr'),
+						lockCount = kendoGridService.getLockCount(),
+						cellIdx = cell.index()+lockCount, // column索引計算會受到lock欄位影響
 						column = mainGrid.options.columns[cellIdx],
 						field = column.field,
-						row = cell.closest('tr'),
 						dataItem = mainGrid.dataItem(row);
+					
 					if('billChecked' === field && dataItem){
 						var val = dataItem[field];
 						dataItem.set(field, !dataItem[field]); // 用set才會觸發dirty flag，後續的修改才能成功
 						var template = column.template;
 						// ref. http://stackoverflow.com/questions/275931/how-do-you-make-an-element-flash-in-jquery
-						cell.delay(100).fadeOut().fadeIn('slow', function(){
+						cell.fadeOut().fadeIn('slow', function(){
 							cell.html(kendo.template(template)(dataItem));	
 						});
 					}
@@ -220,9 +225,7 @@
 					}
 				});
 			}
-			angrycat.kendoGridService
-				.init(opts)
-				.fieldsReady(fieldsReadyHandler, afterGridInitHandler);
+			kendoGridService.fieldsReady(fieldsReadyHandler, afterGridInitHandler);
 		})(jQuery, kendo, angrycat);
 		
 	</script>
