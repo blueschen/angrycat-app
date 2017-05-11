@@ -860,7 +860,6 @@
 							docHeight = newDocHeight;
 							var navbarHeight = $("#navbarDiv").height(); // 非Kendo UI模組的(固定)置頂瀏覽列
 							var newGridHeight = docHeight - navbarHeight - scrollbarHeight * 1.4; // Grid的高度還要扣掉水平捲軸的高度才是正確的
-							console.log("docHeight: " + docHeight + ", newGridHeight: " + newGridHeight);
 							
 							$(gridId).height(newGridHeight); // 設定grid新高度，必須多扣，讓底部多留空間，目前計算方式就是多扣scrollbar高度40%，這讓Google Chrome也可以正常運作；如果沒有，每次重拿document的高度都會多2，導致grid高度逐漸增加，目前原因不明
 							mainGrid.resize(); // 透過這種校對，凍結欄位造成下方部分資料列被切掉，及兩側資料列高度不一致的情況，都可以處理
@@ -875,7 +874,6 @@
 						$rows.find(".k-grid-datachangelog")
 							.unbind("click", dataChangeClkHandler)
 							.click(dataChangeClkHandler);
-						console.log("dataBound...");
 					},
 					edit: editAction
 				}).data("kendoGrid");
@@ -1213,6 +1211,7 @@
 							var dataItem = dataItems[i];
 							var val = {},
 								anyValWrited = false;
+							var row = grid.tbody.find("tr[data-uid='" + dataItem.get("uid") + "']");
 							for(var j=0; j<fields.length; j++){
 								var field = fields[j];
 								if(field && modelFields[field].editable !== false){
@@ -1225,6 +1224,7 @@
 									}
 								}
 							}
+							
 							if(anyValWrited){
 								//$.extend(dataItem, val); // 一次將所有值寫進去
 								var uid = dataItem.get("uid");
