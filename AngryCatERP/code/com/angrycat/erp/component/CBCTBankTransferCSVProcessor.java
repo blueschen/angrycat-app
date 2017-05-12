@@ -110,6 +110,7 @@ public class CBCTBankTransferCSVProcessor {
 				}
 				
 				CBCTBankTransfer cbct = new CBCTBankTransfer();
+				cbct.lineCount = count;
 				cbct.transferDate = toSqlDateFromROC(txDate);
 				cbct.transferAmount = formatNumber(depositAmount).intValue();
 				cbct.transferAccountCheck = retrieveTransferAccountCheck(memo);
@@ -119,10 +120,10 @@ public class CBCTBankTransferCSVProcessor {
 			throw new RuntimeException(e);
 		}
 //		for debug
-		for(CBCTBankTransfer cbct : csvData){
-			System.out.println(ReflectionToStringBuilder.toString(cbct, ToStringStyle.MULTI_LINE_STYLE));
-		}
-		System.out.println("effective csv count: " + csvData.size());
+//		for(CBCTBankTransfer cbct : csvData){
+//			System.out.println(ReflectionToStringBuilder.toString(cbct, ToStringStyle.MULTI_LINE_STYLE));
+//		}
+//		System.out.println("effective csv count: " + csvData.size());
 		return this;
 	}
 	
@@ -172,7 +173,7 @@ public class CBCTBankTransferCSVProcessor {
 				if(exactCount > 0){
 					for(TransferReply f : exactFound){
 						f.setBillChecked(true);
-						f.setComputerBillCheckNote(today);
+						f.setComputerBillCheckNote(d.lineCountf()+today);
 						s.update(f);
 						updatedIds.add(f.getId());
 						++billCheckedCount;
@@ -219,7 +220,7 @@ public class CBCTBankTransferCSVProcessor {
 				
 				if(dateOnlyNotMatchFound.size() > 0){
 					for(TransferReply f : dateOnlyNotMatchFound){
-						f.setComputerBillCheckNote("僅轉帳日期不符:" + d.transferDate.toString());
+						f.setComputerBillCheckNote("轉帳日期:" + d.lineCountf() + d.transferDate.toString());
 						s.update(f);
 						++dateNotMatched;
 					}
@@ -232,7 +233,7 @@ public class CBCTBankTransferCSVProcessor {
 					.list();
 				if(amountOnlyNotMatchFound.size() > 0){
 					for(TransferReply f: amountOnlyNotMatchFound){
-						f.setComputerBillCheckNote("僅匯款金額不符:" + d.transferAmount);
+						f.setComputerBillCheckNote("匯款金額:" + d.lineCountf() + d.transferAmount);
 						s.update(f);
 						++amountNotMatched;
 					}
@@ -245,7 +246,7 @@ public class CBCTBankTransferCSVProcessor {
 					.list();
 				if(checkOnlyNotMatchFound.size() > 0){
 					for(TransferReply f: checkOnlyNotMatchFound){
-						f.setComputerBillCheckNote("僅帳號後五碼不符:" + d.transferAccountCheck);
+						f.setComputerBillCheckNote("帳後五碼:" + d.lineCountf() + d.transferAccountCheck);
 						s.update(f);
 						++checkNotMatched;
 					}
@@ -341,8 +342,12 @@ public class CBCTBankTransferCSVProcessor {
 		return input.substring(firstIdx, lastIdx);
 	}
 	public static class CBCTBankTransfer {
+		public int lineCount;
 		public String transferAccountCheck;
 		public Date transferDate;
 		public int transferAmount;
+		public String lineCountf(){
+			return "("+ lineCount +")";
+		}
 	}
 }
