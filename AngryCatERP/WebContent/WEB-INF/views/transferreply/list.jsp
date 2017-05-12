@@ -110,8 +110,8 @@
 		       			["transferDate",		"匯款日期",			150,			"date",		"gte"],
 						["transferAmount",		"匯款金額",			150,			"number",	"gte"],
 						
-						["billChecked",			"對帳是否成功",		180,			"boolean",	"eq",					null,			changeBooleanFilter,			hiddenEditor,			kendo.template('<strong>#= billChecked ? "<span style=\'color: green;\'>'+billCheckIsTrue+'</span>" : "<span style=\'color: red;\'>'+billCheckIsFalse+'</span>" #</strong>')],
-						["computerBillCheckNote","電腦對帳",			200,			"string",	"contains"],
+						["billChecked",			"對帳是否成功",		180,			"boolean",	"eq",					null,			changeBooleanFilter,			null,			kendo.template('<strong>#= billChecked ? "<span style=\'color: green;\'>'+billCheckIsTrue+'</span>" : "<span style=\'color: red;\'>'+billCheckIsFalse+'</span>" #</strong>')],
+						["computerBillCheckNote","電腦對帳",			180,			"string",	"contains"],
 						
 						["fbNickname",			"FB顯示名稱",			150,			"string",	"contains",				null],
 						["mobile",				"手機號碼",			150,			"string",	"contains"],
@@ -147,9 +147,22 @@
 						cell.fadeOut().fadeIn('slow', function(){
 							cell.html(kendo.template(template)(dataItem));	
 						});
-						e.preventDefault();
 					}
 				});
+				
+				function appendUploadMsg(content){
+					var $uploadMsgs = $('.upload-msg');
+					if($uploadMsgs.length == 0){
+						$('#uploadWindow').append(content);
+					}else{
+						$(content).insertBefore($uploadMsgs[0]);	
+					}
+				}
+				function appendFailMsg(msg){
+					var content = '<table class="table upload-msg upload-err"><tbody><tr><td><span><b style="color: red">'+ msg +'</b></span></td></tr></tbody></table>';
+					appendUploadMsg(content);
+				}
+				
 				mainGrid.element.find('.k-grid-downloadExcel')
 					.after('<span class="v-divider"></span><a href="#" class="k-button" id="startUpload">上傳csv</a>')
 					.closest('.k-grid-toolbar')
@@ -175,6 +188,15 @@
 										autoUpload: true,
 										saveUrl: opts.moduleBaseUrl + '/uploadCsv.json'
 									},
+									select: function(e){
+										$.each(e.files, function(index, f){
+											if(f.extension != '.csv'){
+												e.preventDefault();
+												appendFailMsg('目前僅支援上傳csv檔，不支援' + f.extension + '檔');
+												return false;
+											}
+										});
+									},
 									success: function(e){
 										var resp = e.response;
 										if(resp && resp.data === 'success'){
@@ -191,9 +213,11 @@
 														content += tr.replace('{title}', p).replace('{info}', importMsg[p]);
 													}
 												}
-												var table = '<table class="table"><tbody>' + content + '</tbody></table>'
-												$("#uploadWindow").append(table);
+												var table = '<table class="table upload-msg upload-success"><tbody>' + content + '</tbody></table>'
+												appendUploadMsg(table);
 											}
+										}else{
+											appendFailMsg('上傳資料失敗，請稍後重新上傳，或尋求協助');
 										}
 									},
 									multiple: false
@@ -216,7 +240,7 @@
 				mainGrid.bind("dataBound", function(e){
 					var rows = e.sender.tbody.children(),
 						columnIndex = this.wrapper.find(".k-grid-header [data-field=" + "computerBillCheckNote" + "]").index(),
-						range = /^(僅匯款金額不符|僅轉帳日期不符|僅帳號後五碼不符)/,
+						range = /^(匯款金額:\(|轉帳日期:\(|帳後五碼:\()/,
 						warningClz = 'alert alert-danger';
 					for (var j = 0; j < rows.length; j++) {
 						var row = $(rows[j]);
@@ -228,6 +252,17 @@
                         }else{
                         	cell.removeClass(warningClz);
                         }
+                        /*
+                        dataItem.bind('change', function(e){
+                        	if(e.field === 'billChecked'){
+                        		var pos = 8,
+                        			tmpt = mainGrid.options.columns[pos+1].template,
+                        			uid = this.get('uid'),
+                        			target = mainGrid.wrapper.find("[data-uid="+ uid +"]").find("td:eq("+pos+")");
+                        		console.log('row uid' + uid);
+                        		target.html(kendo.template(tmpt)(dataItem));
+                        	}
+                        });*/
 					}
 				});
 			}
