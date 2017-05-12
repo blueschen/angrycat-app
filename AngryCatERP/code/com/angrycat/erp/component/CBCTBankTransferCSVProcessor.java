@@ -112,6 +112,7 @@ public class CBCTBankTransferCSVProcessor {
 				CBCTBankTransfer cbct = new CBCTBankTransfer();
 				cbct.lineCount = count;
 				cbct.transferDate = toSqlDateFromROC(txDate);
+				cbct.rocDate = txDate;
 				cbct.transferAmount = formatNumber(depositAmount).intValue();
 				cbct.transferAccountCheck = retrieveTransferAccountCheck(memo);
 				csvData.add(cbct);
@@ -220,7 +221,7 @@ public class CBCTBankTransferCSVProcessor {
 				
 				if(dateOnlyNotMatchFound.size() > 0){
 					for(TransferReply f : dateOnlyNotMatchFound){
-						f.setComputerBillCheckNote("轉帳日期:" + d.lineCountf() + d.transferDate.toString());
+						f.setComputerBillCheckNote("轉帳日期:" + d.lineCountf() + d.rocDate);
 						s.update(f);
 						++dateNotMatched;
 					}
@@ -345,6 +346,7 @@ public class CBCTBankTransferCSVProcessor {
 		public int lineCount;
 		public String transferAccountCheck;
 		public Date transferDate;
+		public String rocDate;
 		public int transferAmount;
 		public String lineCountf(){
 			return "("+ lineCount +")";
