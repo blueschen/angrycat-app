@@ -125,7 +125,7 @@
 			var kendoGridService = angrycat.kendoGridService.init(opts);
 			
 			function afterGridInitHandler(mainGrid){
-				mainGrid.tbody.on('dblclick', 'td', function(e){
+				mainGrid.element.on('dblclick', 'td', function(e){
 					var cell = $(this),
 						row = cell.closest('tr'),
 						column = kendoGridService.getColumnViaCell(this, mainGrid),
@@ -231,15 +231,18 @@
 					});
 				
 				mainGrid.bind("dataBound", function(e){
-					var rows = e.sender.tbody.children(),
-						columnIndex = this.wrapper.find(".k-grid-header [data-field=" + "computerBillCheckNote" + "]").index(),
+					var $target = $("th[data-field=" + "computerBillCheckNote" + "]"),
+						isLocked = $target.closest("div.k-grid-header-locked").length > 0,
+						$grid = e.sender.wrapper,
+						rows = isLocked ? $grid.find("div.k-grid-content-locked tr") : $grid.find("div.k-grid-content tr"),
+						columnIndex = $target.index(),
 						range = /^(匯款金額:\(|轉帳日期:\(|帳後五碼:\()/,
 						warningClz = 'alert alert-danger';
 					for (var j = 0; j < rows.length; j++) {
-						var row = $(rows[j]);
-                        var dataItem = e.sender.dataItem(row);
-                        var note = dataItem.get('computerBillCheckNote');
-                        var cell = row.children().eq(columnIndex);
+						var row = $(rows[j]),
+                        	dataItem = e.sender.dataItem(row),
+                        	note = dataItem.get('computerBillCheckNote'),
+                        	cell = row.children().eq(columnIndex);
                         if(range.test(note)){
                         	cell.addClass(warningClz);
                         }else{
