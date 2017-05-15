@@ -93,11 +93,6 @@
 							}
 						}
 					},
-					hiddenEditor = function(container, options){ // 由設定的觸發事件更改值，如果有提供UI輸入，反而容易弄錯或混淆。如果設為uneditable，又無法正常啟用後續更新的程序，所以提供一個使用者無法直接操作的空UI
-						var input = $('<input type="hidden">');
-						input.attr("name", options.field);
-						input.appendTo(container);
-					},
 					fields = [
 		       			//0fieldName			1column title		2column width	3field type	4column filter operator	5field custom		6column custom			7column editor
 		       			["brand",				"購買商品品牌",		150,			"string",	"contains"],
@@ -129,13 +124,11 @@
 			
 			var kendoGridService = angrycat.kendoGridService.init(opts);
 			
-			function afterGridInitHandler(mainGrid){				
+			function afterGridInitHandler(mainGrid){
 				mainGrid.tbody.on('dblclick', 'td', function(e){
 					var cell = $(this),
 						row = cell.closest('tr'),
-						lockCount = kendoGridService.getLockCount(),
-						cellIdx = cell.index()+lockCount, // column索引計算會受到lock欄位影響
-						column = mainGrid.options.columns[cellIdx],
+						column = kendoGridService.getColumnViaCell(this, mainGrid),
 						field = column.field,
 						dataItem = mainGrid.dataItem(row);
 					
