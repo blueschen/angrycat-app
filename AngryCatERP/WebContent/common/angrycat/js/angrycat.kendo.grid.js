@@ -712,12 +712,50 @@
 				}
 			};
 		}
-		
+		var divLocked = "div.k-grid-content-locked",
+			divUnlocked = "div.k-grid-content";
+		function isLocked(ele){
+			return $(ele).closest(divLocked).length > 0;
+		}
 		function getLockCount(){
-			var lockCount = $("div.k-grid-content-locked > table > tbody > tr:nth-child(1) > td").length;
+			var lockCount = $(divLocked + " > table > tbody > tr:nth-child(1) > td").length;
 			return lockCount;
 		}
-		
+		function getFieldViaIdx(idx, mainGrid){ // 如果有lock table，這邊傳入的idx要合併計算
+			if(!mainGrid){
+				mainGrid = $(gridId).data("kendoGrid");
+			}
+			var field = mainGrid.element.find("th[data-index="+idx+"]").attr("data-field");
+			return field;
+		}
+		function getCellIdx(cell){
+			var $cell = $(cell),
+				eleIdx = $cell.index(),
+				tdIdx = eleIdx;
+			if(!isLocked(cell)){
+				var lockCount = getLockCount();
+				tdIdx += lockCount;
+			}
+			return tdIdx;
+		}
+		function getFieldViaCell(cell){
+			var tdIdx = getCellIdx(cell);
+			var field = getFieldViaIdx(tdIdx);
+			return field;
+		}
+		function getColumnViaCell(cell, mainGrid){
+			if(!mainGrid){
+				mainGrid = $(gridId).data("kendoGrid");
+			}
+			var field = getFieldViaCell(cell),
+				columns = mainGrid.options.columns;
+			for(var i = 0; i < columns.length; i++){
+				var column = columns[i];
+				if(column.field === field){
+					return column;
+				}
+			}
+		}
 		function fieldsReady(callback, afterGridInit){
 			var context = this,
 				getScrollDimensions = 
@@ -1098,11 +1136,6 @@
 					});
 				}
 				*/
-				var divLocked = "div.k-grid-content-locked",
-					divUnlocked = "div.k-grid-content";
-				function isLocked($ele){
-					return $ele.closest("div").is(divLocked);
-				}
 				$(document.body).keydown(function(e){
 					var altKey = e.altKey,
 						keyCode = e.keyCode;
@@ -1138,12 +1171,58 @@
 					}
 					*/				
 					if(e.ctrlKey && altKey && keyCode == 65){// Ctrl + Alt + A 執行批次複製, ref. http://stackoverflow.com/questions/24273432/kendo-ui-grid-select-single-cell-get-back-dataitem-and-prevent-specific-cells
+						var selected = mainGrid.select();
+						//console.log("selected count: " + selected.length);
+						if(selected.length == 0){
+							return true;
+						}
+						var columns = mainGrid.options.columns,
+							firstDataItem = mainGrid.dataItem(selected.first().closest("tr")),
+							firstTdInfo = null;
+					
+						selected.each(function(idx, ele){
+							var $ele = $(ele),
+								field = getFieldViaCell(ele),
+								dataItem = mainGrid.dataItem($ele.closest("tr"));
+						
+							if(idx == 0 && dataItem === firstDataItem){
+								var content = isLocked(ele) ? divLocked : divUnlocked;
+								firstTdInfo = {
+									"content": content,
+									"uid": dataItem.get("uid"),
+									"idx": $ele.index()
+								};
+							}
+						
+							if(dataItem !== firstDataItem){
+								var newVal = firstDataItem.get(field);
+								for(var i = 0; i < columns.length; i++){
+									var column = columns[i];
+									if(column.field === field
+									&& column.editable !== false
+									&& JSON.stringify(newVal) != JSON.stringify(dataItem.get(field))){
+										mainGrid.editCell($ele); // 以這種方式編輯，才會觸發dirty flag ref. http://www.telerik.com/forums/kendo-mvc-grid-batch-mode-dataitem-set-clears-the-dirty-flags
+										dataItem.set(field, newVal);
+									}
+								}
+							}
+						});
+					
+						mainGrid.closeCell();
+						mainGrid.clearSelection();
+						// 目前尚無法將焦點移到第一個選擇項目
+						var firstTd = mainGrid.element.find(firstTdInfo.content).find("[data-uid="+firstTdInfo.uid+"]").find("td:eq("+firstTdInfo.idx+")");
+						//console.log(JSON.stringify(firstTdInfo));
+						firstTd.focus(); // not work
+						
+						
+						
+						/*
 						var grid = mainGrid,
 						    selection = grid.select(); // 裡面可能是被選取的cells或rows，這一點要由grid的select設定來判斷。ref.http://docs.telerik.com/kendo-ui/api/javascript/ui/grid#methods-select
 						if(!selection){
 							return;
 						};
-						//console.log("selection.length: " + selection.length);
 					    var lockCount = getLockCount(), // 計算有lock欄位數，目前因第一個欄位為固定位置索引號，所以至少會有一個
 					    	startColIdx = selection.index(), // 計算所在table的第一個td(cell)索引位置；0 based, 隱藏欄位會被計算
 					    	lastColIdx = selection.last().index(), // 計算所在table的最後一個td(cell)索引位置, ref. http://stackoverflow.com/questions/788225/table-row-and-column-number-in-jquery
@@ -1160,7 +1239,7 @@
 							selection.each(function(idx, ele){
 								var $ele = $(ele),
 									i = $ele.index();
-								if(!isLocked($ele)){
+								if(!isLocked(ele)){
 									unlockIdxes.push(i);
 									i += lockCount;// 在計算欄位索引值的時候，如果不是lock欄位，要把lockCount加回去，才能對應回model的fields
 								}else{
@@ -1181,11 +1260,6 @@
 						    }
 						}
 						var columnCount = fields.length;
-						//console.log("columnOpts:" + JSON.stringify(columnOpts));
-						//.log("startColIdx:" + startColIdx + ", lastColIdx:" + lastColIdx + ", lockCount:" + lockCount);
-						// console.log("columnOpts[0]:"+JSON.stringify(columnOpts[0])); // 第0項為頁面索引的template物件參數設定 
-						//console.log("columnSpanCount: " + columnCount + ", selectedCellCount: " + selectedCount);
-						//console.log("selected fields:"+JSON.stringify(fields));
 						var oldUids = [],
 							firstRowVals = [],
 							currentIdx = 0;
@@ -1254,12 +1328,10 @@
 						}
 						mainGrid.current(firstTd);
 						firstTd.focus();
-						mainGrid.clearSelection();
-						// TODO 要排除不可修改的欄位
-						
+						mainGrid.clearSelection();						
 						// 在dataBound之後，修改的flag會被移除，所以這邊手動加回去
 						// 下一次批次修改的flag會覆蓋前次的--因為又再一次觸發dataBound
-						/*
+						
 						setTimeout(function(){
 							for(var i=0; i<uids.length; i++){
 								var uid = uids[i];
@@ -1346,7 +1418,9 @@
 			getDefaultRemoteDropDownList: getDefaultRemoteDropDownList,
 			getDefaultAutoCompleteFilterEditor: getDefaultAutoCompleteFilterEditor,
 			fieldsReady: fieldsReady,
-			getLockCount: getLockCount
+			getLockCount: getLockCount,
+			getFieldViaIdx: getFieldViaIdx,
+			getColumnViaCell: getColumnViaCell
 		};
 	}
 	angrycat.kendoGridService = {
