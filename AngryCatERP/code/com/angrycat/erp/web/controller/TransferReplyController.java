@@ -1,11 +1,11 @@
 package com.angrycat.erp.web.controller;
 
-import java.time.LocalDate;
+import java.io.IOException;
+import java.io.PrintWriter;
+import java.io.StringWriter;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
-import java.util.List;
 import java.util.Map;
-import java.util.stream.Collectors;
 
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -19,10 +19,10 @@ import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RequestPart;
 import org.springframework.web.bind.annotation.ResponseBody;
+import org.springframework.web.multipart.MultipartFile;
 
 import com.angrycat.erp.common.CommonUtil;
 import com.angrycat.erp.component.CBCTBankTransferCSVProcessor;
-import com.angrycat.erp.component.CBCTBankTransferCSVProcessor.CBCTBankTransfer;
 import com.angrycat.erp.excel.ExcelExporter;
 import com.angrycat.erp.excel.TransferReplyExcelExporter;
 import com.angrycat.erp.model.TransferReply;
@@ -102,26 +102,40 @@ public class TransferReplyController extends
 	private String moduleView(){
 		return moduleName + "/view";
 	}
+	private static String stackTraceString(Throwable e){
+		StringWriter sw = new StringWriter();
+		e.printStackTrace(new PrintWriter(sw));
+		return sw.toString();
+	}
 	@RequestMapping(
 		value="/uploadCsv",
 		method=RequestMethod.POST,
 		produces={"application/xml", "application/json"},
 		headers="Accept=*/*"
 	)
-	public @ResponseBody Map<String, Object> uploadCsv(@RequestPart("csv") byte[] csv){
+	public @ResponseBody Map<String, Object> uploadCsv(@RequestPart("csv") MultipartFile csv){
 		Map<String, Object> msg = new LinkedHashMap<>();
 		if(csv == null){
 			msg.put("data", "not found");
 			return msg;
 		}
-		// TODO 在上傳完畢後檢查是否要清理暫存檔
-		Map<String, String> importMsg = csvProcessor.importBytes(csv).updateTranferReplies();
-		
-		String kendoDataJson = (String)kendoUiGridService.getCurrentHttpSession().getAttribute(moduleName+"KendoData");
-		msg.put("data", "success");
-		msg.put("lastKendoData", kendoDataJson);
-		msg.put("importMsg", importMsg);
-		
+		try{
+			Map<String, String> importMsg = csvProcessor.importBytes(csv.getBytes()).updateTranferReplies();
+			String kendoDataJson = (String)kendoUiGridService.getCurrentHttpSession().getAttribute(moduleName+"KendoData");
+			msg.put("data", "success");
+			msg.put("lastKendoData", kendoDataJson);
+			msg.put("importMsg", importMsg);
+		}catch(Throwable e){
+			msg.put("data", "runtime err:\n" + stackTraceString(e));
+		}finally{
+			if(csv != null){
+				try {
+					csv.getInputStream().close(); // 這個方法可以刪除暫存檔釋放資源
+				} catch (IOException e) {
+					msg.put("data", "runtime err:\n" + stackTraceString(e));
+				}
+			}
+		}
 		return msg;
 	}
 }
