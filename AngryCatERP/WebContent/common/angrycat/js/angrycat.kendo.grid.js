@@ -1178,7 +1178,7 @@
 						}
 						var columns = mainGrid.options.columns,
 							firstDataItem = mainGrid.dataItem(selected.first().closest("tr")),
-							firstTdInfo = null;
+							firstTd = null;
 					
 						selected.each(function(idx, ele){
 							var $ele = $(ele),
@@ -1186,12 +1186,7 @@
 								dataItem = mainGrid.dataItem($ele.closest("tr"));
 						
 							if(idx == 0 && dataItem === firstDataItem){
-								var content = isLocked(ele) ? divLocked : divUnlocked;
-								firstTdInfo = {
-									"content": content,
-									"uid": dataItem.get("uid"),
-									"idx": $ele.index()
-								};
+								firstTd = $ele;
 							}
 						
 							if(dataItem !== firstDataItem){
@@ -1201,7 +1196,7 @@
 									if(column.field === field
 									&& column.editable !== false
 									&& JSON.stringify(newVal) != JSON.stringify(dataItem.get(field))){
-										mainGrid.editCell($ele); // 以這種方式編輯，才會觸發dirty flag ref. http://www.telerik.com/forums/kendo-mvc-grid-batch-mode-dataitem-set-clears-the-dirty-flags
+										mainGrid.editCell($ele); // 每次dataItem.set()都會觸發頁面reprint，讓前次的dirty flag消失；在dataItem.set()之前呼叫editCell，可以阻止頁面reprint，保留每一個dirty flag ref. http://www.telerik.com/forums/kendo-mvc-grid-batch-mode-dataitem-set-clears-the-dirty-flags
 										dataItem.set(field, newVal);
 									}
 								}
@@ -1210,182 +1205,7 @@
 					
 						mainGrid.closeCell();
 						mainGrid.clearSelection();
-						// 目前尚無法將焦點移到第一個選擇項目
-						var firstTd = mainGrid.element.find(firstTdInfo.content).find("[data-uid="+firstTdInfo.uid+"]").find("td:eq("+firstTdInfo.idx+")");
-						//console.log(JSON.stringify(firstTdInfo));
-						firstTd.focus(); // not work
-						
-						
-						
-						/*
-						var grid = mainGrid,
-						    selection = grid.select(); // 裡面可能是被選取的cells或rows，這一點要由grid的select設定來判斷。ref.http://docs.telerik.com/kendo-ui/api/javascript/ui/grid#methods-select
-						if(!selection){
-							return;
-						};
-					    var lockCount = getLockCount(), // 計算有lock欄位數，目前因第一個欄位為固定位置索引號，所以至少會有一個
-					    	startColIdx = selection.index(), // 計算所在table的第一個td(cell)索引位置；0 based, 隱藏欄位會被計算
-					    	lastColIdx = selection.last().index(), // 計算所在table的最後一個td(cell)索引位置, ref. http://stackoverflow.com/questions/788225/table-row-and-column-number-in-jquery
-					    	selectedCount = selection.size(), // 有幾個cell被選擇，因為設定select參數為cell，所以這裡以cell為單位
-					    	columnOpts = grid.options.columns,
-							firstRow = selection.closest("tr"), // 如果多選的時候，只會拿到第一個row
-							firstDataItem = grid.dataItem(firstRow), // 如果多選的時候，只會拿到第一個dataItem
-							firstRowUid = firstDataItem.get("uid"),
-							fields = [],
-							lockIdxes = [],
-							unlockIdxes = [],
-							normalIdxes = [];
-						if(lockCount > 0){// 預設至少都有第一個索引欄位是lock，所以一般都會進到這邊
-							selection.each(function(idx, ele){
-								var $ele = $(ele),
-									i = $ele.index();
-								if(!isLocked(ele)){
-									unlockIdxes.push(i);
-									i += lockCount;// 在計算欄位索引值的時候，如果不是lock欄位，要把lockCount加回去，才能對應回model的fields
-								}else{
-									lockIdxes.push(i);
-								}
-								var field = columnOpts[i].field;
-								if(fields.indexOf(field) < 0){// 排除重複
-									fields.push(field);
-								}
-							});
-						}else{
-						    for(var i=startColIdx; i<(lastColIdx+1); i++){
-						    	var field = columnOpts[i].field;
-						    	if(fields.indexOf(field) < 0){
-						    		normalIdxes.push(i);
-									fields.push(field);
-								}
-						    }
-						}
-						var columnCount = fields.length;
-						var oldUids = [],
-							firstRowVals = [],
-							currentIdx = 0;
-						var dataItems = selection.map(function(idx, cell){
-							// $(cell).eq(0).text()可直接取得cell值--debug用
-							// idx以0起始依序標示每個選到的cell，如果被選到12個cell，最後一個idx為11
-							// 標號的順序，隨著是否有橫跨兩個table而不同:如果沒有跨table，標號的順序是由先由左而右，到底之後再由上而下。如果有跨，按照前述同樣的順序，先跑完第一個(lock)table，再跑第二個。
-							// 即便因為lock導致分成兩個table，但兩個table對應的同一列的dataItem還是一樣，這可以由dataItem上的uid去確認，ref. http://docs.telerik.com/kendo-ui/api/javascript/ui/grid#methods-select
-							var $cell = $(cell),
-								$row = $cell.closest("tr"),
-								rowIdx = $row.index(),
-								dataItem = grid.dataItem($row),
-								uid = dataItem.get("uid");
-														
-							if(uid != firstRowUid // 去除第一列
-							&& oldUids.indexOf(uid)<0){// 去除重複的uid
-								//mainGrid._modelChange({field: totalFields.join(","), model: dataItem}); // 手動加入異動記錄 ref.http://stackoverflow.com/questions/36142792/kendo-ui-manually-set-cell-dirty-indicator
-								oldUids.push(uid);
-								return dataItem;
-							}
-						});
-						//console.log("firstRowVals:"+JSON.stringify(firstRowVals));
-						//mainGrid.refresh();// 如果每次都呼叫dataItem的set函式，都會觸發一次dataBound事件。我們可以直接修改dataItem的值，等到完畢之後，再呼叫refresh，這樣不管修改幾項dataItem，都只會觸發一次dataBound
-						// 修改content table之後，焦點會回到左上方第一個預設位置，比較合理的狀況是，停留在選取區塊的左上方第一個位置
-						
-						var uids = [];
-						for(var i=0; i<dataItems.length; i++){
-							var dataItem = dataItems[i];
-							var val = {},
-								anyValWrited = false;
-							var row = grid.tbody.find("tr[data-uid='" + dataItem.get("uid") + "']");
-							for(var j=0; j<fields.length; j++){
-								var field = fields[j];
-								if(field && modelFields[field].editable !== false){
-									var oldVal = dataItem[field],
-										newVal = firstDataItem.get(field);
-									//console.log("oldVal:"+oldVal+",newVal:"+newVal);
-									if(JSON.stringify(oldVal)!=JSON.stringify(newVal)){//ref. http://stackoverflow.com/questions/1068834/object-comparison-in-javascript
-										dataItem.set(field, newVal);
-										anyValWrited = true;
-									}
-								}
-							}
-							
-							if(anyValWrited){
-								//$.extend(dataItem, val); // 一次將所有值寫進去
-								var uid = dataItem.get("uid");
-								//console.log("new uid:"+uid);
-								// dataItem.set("uid", uid); // 使用set function會觸發dataBound事件，這也可以確保後續的儲存動作成功
-								// mainGrid._modelChange({model: dataItem}); // 手動加入異動記錄 ref.http://stackoverflow.com/questions/36142792/kendo-ui-manually-set-cell-dirty-indicator
-								// dataItem.trigger("change");
-								uids.push(uid);
-							}
-						}
-						
-						// 修改content table之後，焦點會回到左上方第一個預設位置，比較合理的狀況是，停留在選取區塊的左上方第一個位置
-						var $main = $(mainGrid.element);
-						var firstTd;
-						if(lockIdxes.length > 0){
-							var row = $main.find(divLocked).find("[data-uid="+firstRowUid+"]");
-							firstTd = row.find("td:eq("+lockIdxes[0]+")");
-						}
-						if(!firstTd){
-							var row = $main.find(divUnlocked).find("[data-uid="+firstRowUid+"]");
-							firstTd = row.find("td:eq("+unlockIdxes[0]+")");
-						}
-						mainGrid.current(firstTd);
-						firstTd.focus();
-						mainGrid.clearSelection();						
-						// 在dataBound之後，修改的flag會被移除，所以這邊手動加回去
-						// 下一次批次修改的flag會覆蓋前次的--因為又再一次觸發dataBound
-						
-						setTimeout(function(){
-							for(var i=0; i<uids.length; i++){
-								var uid = uids[i];
-								if(lockCount > 0){
-									var $main = $(mainGrid.element);
-									if(lockIdxes.length > 0){
-										var row = $main.find(divLocked).find("[data-uid="+uid+"]");
-										var tds = row.find("td");
-										for(var j=0; j<lockIdxes.length; j++){
-											var lockIdx = lockIdxes[j];
-											var cell = tds.eq(lockIdx);
-											if(cell.find("span.k-dirty").length==0){
-												cell.addClass("k-dirty-cell").prepend("<span class='k-dirty'/>");
-											}
-										}
-									}
-									if(unlockIdxes.length > 0){
-										var row = $main.find(divUnlocked).find("[data-uid="+uid+"]");
-										var tds = row.find("td");
-										for(var j=0; j<unlockIdxes.length; j++){
-											var unlockIdx = unlockIdxes[j];
-											var cell = tds.eq(unlockIdx);
-											if(cell.find("span.k-dirty").length==0){
-												cell.addClass("k-dirty-cell").prepend("<span class='k-dirty'/>");
-											}
-										}
-									}
-								}else{
-									var row = mainGrid.table.find("[data-uid="+uid+"]");
-									var tds = row.find("td");
-									for(var j=0; j<normalIdxes.length;j++){
-										var cellIdx = normalIdxes[j];
-										var cell = tds.eq(cellIdx);
-										if(cell.find("span.k-dirty").length==0){
-											cell.addClass("k-dirty-cell").prepend("<span class='k-dirty'/>");
-										}
-									}
-								}
-							}
-							// 修改content table之後，焦點會回到左上方第一個預設位置，比較合理的狀況是，停留在選取區塊的左上方第一個位置
-							var firstTd;
-							if(lockIdxes.length > 0){
-								var row = $main.find(divLocked).find("[data-uid="+firstRowUid+"]");
-								firstTd = row.find("td:eq("+lockIdxes[0]+")");
-							}
-							if(!firstTd){
-								var row = $main.find(divUnlocked).find("[data-uid="+firstRowUid+"]");
-								firstTd = row.find("td:eq("+unlockIdxes[0]+")");
-							}
-							mainGrid.current(firstTd);
-							firstTd.focus();
-							mainGrid.clearSelection();
-						});
-						*/
+						firstTd.closest("table").focus(); //ref. http://stackoverflow.com/questions/28828228/kendo-grid-how-to-set-focus-back-to-a-grid-cell-after-canceling-current-editing
 					}
 				});
 				
@@ -1420,7 +1240,8 @@
 			fieldsReady: fieldsReady,
 			getLockCount: getLockCount,
 			getFieldViaIdx: getFieldViaIdx,
-			getColumnViaCell: getColumnViaCell
+			getColumnViaCell: getColumnViaCell,
+			getFieldViaCell: getFieldViaCell
 		};
 	}
 	angrycat.kendoGridService = {
