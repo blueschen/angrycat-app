@@ -78,18 +78,16 @@ public class CBCTBankTransferCSVProcessor {
 				count++;
 				if(StringUtils.isBlank(line)
 				|| !line.startsWith("=\"")
-				|| count == 1 // 第一行是條件，兩兩對稱，第一項是條件名稱，第二項是條件值，依此類推
-				|| count == 2 // 第二行是欄位名稱
+				//|| count == 1 // 第一行是條件，兩兩對稱，第一項是條件名稱，第二項是條件值，依此類推
+				//|| count == 2 // 第二行是欄位名稱
 				){
 					continue;
 				}
 				
 				line = removeCommaWithinNumber(line);				
 				List<String> inputs = Arrays.asList(line.split(",", -1));
-				if(inputs.size() <= 備註){
-					continue;
-				}
-				if(inputs.get(摘要).contains(BYPASS)) { // 含有續上一筆代表用第二行表示同一筆剩下資料
+				if(inputs.size() <= 備註
+				|| inputs.get(摘要).contains(BYPASS)){// 含有續上一筆代表用第二行表示同一筆剩下資料
 					continue;
 				}
 				List<String> data = inputs.stream()
@@ -105,7 +103,7 @@ public class CBCTBankTransferCSVProcessor {
 				|| !ONLY_ACCOUNT.matcher(memo).matches() // 備註要符合存款帳號後五碼格式
 				|| StringUtils.isBlank(depositAmount)
 				|| "0".equals(depositAmount)
-				|| !StringUtils.isNumeric(depositAmount)){ // 存款金額只能為數字，且要大於0 ==>代表轉入
+				|| !StringUtils.isNumeric(depositAmount)){ // 轉入金額只能為數字，且要大於0 ==>代表轉入
 					continue;
 				}
 				
@@ -124,7 +122,7 @@ public class CBCTBankTransferCSVProcessor {
 //		for(CBCTBankTransfer cbct : csvData){
 //			System.out.println(ReflectionToStringBuilder.toString(cbct, ToStringStyle.MULTI_LINE_STYLE));
 //		}
-//		System.out.println("effective csv count: " + csvData.size());
+		System.out.println("effective csv count: " + csvData.size());
 		return this;
 	}
 	
