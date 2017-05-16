@@ -128,17 +128,21 @@
 				mainGrid.element.on('dblclick', 'td', function(e){
 					var cell = $(this),
 						row = cell.closest('tr'),
-						column = kendoGridService.getColumnViaCell(this, mainGrid),
-						field = column.field,
+						field = kendoGridService.getFieldViaCell(cell),
 						dataItem = mainGrid.dataItem(row);
 					
 					if('billChecked' === field && dataItem){
 						var val = dataItem[field];
 						dataItem.set(field, !dataItem[field]); // 用set才會觸發dirty flag，後續的修改才能成功
-						var template = column.template;
+						
 						// ref. http://stackoverflow.com/questions/275931/how-do-you-make-an-element-flash-in-jquery
 						cell.fadeOut().fadeIn('slow', function(){
-							cell.html(kendo.template(template)(dataItem));	
+							//var column = kendoGridService.getColumnViaCell(this, mainGrid),
+							//	template = column.template;
+							//cell.html(kendo.template(template)(dataItem));
+							mainGrid.clearSelection(); // 為了讓紅色文字更為明顯，清除select帶來的背景紅色
+							mainGrid.closeCell();
+							cell.closest("table").focus(); // ref. http://stackoverflow.com/questions/28828228/kendo-grid-how-to-set-focus-back-to-a-grid-cell-after-canceling-current-editing
 						});
 					}
 				});
@@ -231,11 +235,11 @@
 					});
 				
 				mainGrid.bind("dataBound", function(e){
-					var $target = $("th[data-field=" + "computerBillCheckNote" + "]"),
-						isLocked = $target.closest("div.k-grid-header-locked").length > 0,
-						$grid = e.sender.wrapper,
-						rows = isLocked ? $grid.find("div.k-grid-content-locked tr") : $grid.find("div.k-grid-content tr"),
-						columnIndex = $target.index(),
+					var target = $("th[data-field=" + "computerBillCheckNote" + "]"),
+						isLocked = target.closest("div.k-grid-header-locked").length > 0,
+						grid = e.sender.wrapper,
+						rows = isLocked ? grid.find("div.k-grid-content-locked tr") : grid.find("div.k-grid-content tr"),
+						columnIndex = target.index(),
 						range = /^(匯款金額:\(|轉帳日期:\(|帳後五碼:\()/,
 						warningClz = 'alert alert-danger';
 					for (var j = 0; j < rows.length; j++) {
