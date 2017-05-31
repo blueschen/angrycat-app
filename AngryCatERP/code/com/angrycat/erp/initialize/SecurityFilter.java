@@ -92,6 +92,8 @@ public class SecurityFilter implements Filter {
 		// 會員頁面需要檢核手機和室內電話擇一必填
 		allowPathStart.add("/member/mobileDuplicated");
 		allowPathStart.add("/member/telDuplicated");
+		
+		allowPathStart.add("/member/idNoDuplicated");
 		// 潘朵拉匯款回條要檢核訂單編號是否存在
 		allowPathStart.add("/transferreply/salesNoNotExisted");
 	}
