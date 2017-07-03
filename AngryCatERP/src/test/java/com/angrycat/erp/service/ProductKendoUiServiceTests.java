@@ -14,6 +14,8 @@ import com.angrycat.erp.model.Product;
 import com.angrycat.erp.service.ProductKendoUiService.ProductStockReport;
 import com.angrycat.erp.service.magento.MagentoBaseService;
 
+import static org.junit.Assert.*;
+
 @RunWith(SpringJUnit4ClassRunner.class)
 @ContextConfiguration(classes = RootConfig.class)
 public class ProductKendoUiServiceTests {
@@ -25,7 +27,18 @@ public class ProductKendoUiServiceTests {
 		productKendoUiService.getMagentoProductService().setBaseUrl(MagentoBaseService.INTRANET_BASE_URL);
 		productKendoUiService.getMagentoProductService().setDebug(true);
 		ProductStockReport report = productKendoUiService.generateStockReport();
-		report.printToConsole();
+//		report.printToConsole();
+		System.out.println(report.toHtml());
+	}
+	@Test
+	public void testNegativeFormat(){
+		String trTmp1 = "<tr><td>%s</td><td>%s</td><td>%s</td></tr>";
+		String f1 = String.format(trTmp1, "AMV00601", -1+"", 0+"");
+		assertEquals("<tr><td>AMV00601</td><td>-1</td><td>0</td></tr>", f1);
+		
+		String trTmp2 = "<tr><td>%s</td><td>%o</td><td>%o</td></tr>";
+		String f2 = String.format(trTmp2, "AMV00601", -1, 0);
+		assertEquals("<tr><td>AMV00601</td><td>37777777777</td><td>0</td></tr>", f2);
 	}
 	@Test
 	public void sendStockReportHTML(){
