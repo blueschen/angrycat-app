@@ -49,8 +49,8 @@ import com.angrycat.erp.web.component.ConditionConfig;
 
 
 @Controller
-@RequestMapping(value="/member")
 @Scope("session")
+@RequestMapping(value="/member")
 public class MemberController extends BaseUpdateController<Member, Member>{
 	private static final long serialVersionUID = -6770128750582504862L;
 	
