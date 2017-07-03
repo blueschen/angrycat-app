@@ -100,7 +100,7 @@
 		       			["productDetails",		"購買明細",			150,			"string",	"contains"],
 		       			["shipment",			"寄送方式",			150,			"string",	"contains"],
 		       					       			
-		       			["transferTo",			"匯款至",				150,			"string",	"contains"],
+		       			//["transferTo",			"匯款至",				150,			"string",	"contains"],
 		       			["transferAccountCheck","匯款帳號後5碼",		150,			"string",	"contains"],
 		       			["transferDate",		"匯款日期",			150,			"date",		"gte"],
 						["transferAmount",		"匯款金額",			150,			"number",	"gte"],
@@ -242,6 +242,7 @@
 						columnIndex = target.index(),
 						range = /^(匯款金額:\(|轉帳日期:\(|帳後五碼:\()/,
 						warningClz = 'alert alert-danger';
+					
 					for (var j = 0; j < rows.length; j++) {
 						var row = $(rows[j]),
                         	dataItem = e.sender.dataItem(row),
