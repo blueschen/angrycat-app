@@ -111,6 +111,7 @@ public class MagentoBaseService implements Serializable{
 			}
 			// 回應碼在(包含)200~(不包含)400之間，都算成功
 			// 503 Service Unavailable
+			// TODO 如果沒有回傳200，要怎麼處理後續的程式邏輯
 			isOk = (responseCode >= HttpURLConnection.HTTP_OK && responseCode < HttpURLConnection.HTTP_BAD_REQUEST);
 			try(BufferedReader br = new BufferedReader(new InputStreamReader((isOk ? connection.getInputStream() : connection.getErrorStream())));){
 				String lineResult = null;
