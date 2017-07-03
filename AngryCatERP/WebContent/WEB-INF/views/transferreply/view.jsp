@@ -7,16 +7,20 @@
 <c:set value="transferreply" var="moduleName"/>
 <c:set value="${pageContext.request.contextPath}/${moduleName}" var="urlPrefix"/>
 <!DOCTYPE html>
+
 <html lang="zh-TW" ng-app="angryCatTransferReplyViewApp">
 <head>
 	<meta charset="utf-8">
-    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge,Chrome=1">
+    <meta http-equiv="X-UA-Compatible" content="IE=9" />
 	<meta content="width=device-width, initial-scale=1.0" name="viewport">
 	
 	<title>安格卡特Angrycat匯款回條</title>
 
 	<link rel="stylesheet" href='<c:url value="/vendor/bootstrap/3.3.5/css/bootstrap.css"/>'/>
 	<link rel="stylesheet" href='<c:url value="/vendor/bootstrap/3.3.5/css/bootstrap-theme.css"/>'/>
+    
+
     
     <script type="text/javascript" src="<c:url value="/vendor/angularjs/1.4.3/angular.min.js"/>"></script>
     <script type="text/javascript" src="<c:url value="/vendor/angularjs/1.4.3/angular-cookies.min.js"/>"></script>
@@ -87,15 +91,11 @@
 		我們統一週日至週四晚上9點對帳，現貨商品安排下一個工作天出貨，預定商品則需依照到貨時間等待2-3週不等時間寄送期間還麻煩耐心等待，有任何問題可以在粉絲團或社團留言，或是直接來信<b><a href="mailto:info@ohmbeads.com.tw" target="_blank">info@ohmbeads.com.tw</a></b>聯絡。		
 		</p>
 		<p>
-		我們提供兩組帳號方便大家同銀行轉帳節省轉帳費用，郵局無折存款請務必提供郵局局號：		
+		所有款項統一匯款至郵局帳號，無折存款請務必提供<b>郵局局號</b> (請參考郵局提供收據上的印章)		
 		</p>
 		<h5><b>郵局700</b></h5>
 		<h5><b>戶名:王逸凡</b></h5>
  		<h5><b>帳號: 0002123-0169388</b></h5>
- 		<br>
-		<h5><b>中國信托 822長安分行3153</b></h5>
- 		<h5><b>戶名: 安格卡特國際貿易有限公司</b></h5>
- 		<h5><b>帳號:495-54049133-1</b></h5>
  		 				
 		<div class="row">
 			<div class="col-sm-offset-5">
@@ -110,7 +110,16 @@
 	</div>
 </div>
 <hr>
-<div class="container">
+<div id="warning-compatibility" style="display: block;">
+	<h1 style="color:red;">
+		注意!!&nbsp;&nbsp;您的瀏覽器版本不支援本頁面服務，請採用Google Chrome或Firefox填寫匯款回條
+	</h1>
+	<br>
+	<h3>
+		若有任何回條填寫問題請來信<b><a href="mailto:info@ohmbeads.com.tw" target="_blank">info@ohmbeads.com.tw</a></b>或洽詢02-2776-1505
+	</h3>
+</div>
+<div class="container" id="container" style="display: none;">
 <form class="form-horizontal" name="transferReplyForm">
 	<div class="row" style="height: 60px;">
 		<div class="checkbox col-sm-3">
@@ -196,6 +205,7 @@
 	</div> 	 	
 </div> 	
 <div id="transferInfo">
+	<!-- 
 	<div class="form-group">
 		<div class="col-sm-offset-1 col-sm-8" ng-class="{'has-error': transferReplyForm.transferTo.$invalid || transferReplyForm.transferTo.$error.required}">
 			<label class="col-sm-3 control-label" for="transferTo">匯款至<span style="color:red;">*</span></label>
@@ -211,7 +221,7 @@
 				</select>
 			</div>
 		</div>
-	</div>
+	</div> -->
  	<div class="form-group">
   		<div class="col-sm-offset-1 col-sm-8" ng-class="{'has-error': transferReplyForm.transferAccountCheck.$error.required}">
 			<label class="col-sm-3 control-label" for="transferAccountCheck">
@@ -405,6 +415,10 @@
 		.constant('moduleName', '${moduleName == null ? "null" : moduleName}')
 		.constant('config', ${config == null ? "null" : config})
 		.controller('MainCtrl', ['$scope', 'DateService', 'AjaxService', 'urlPrefix', 'login', 'targetData', '$cookies', 'moduleName', '$alert', 'user', 'config', '$modal', function($scope, DateService, AjaxService, urlPrefix, login, targetData, $cookies, moduleName, $alert, user, config, $modal){
+			
+	     	document.getElementById('container').style.display = 'block';
+	     	document.getElementById('warning-compatibility').style.display = 'none';
+			
 			var self = this,
 				saveUrl = urlPrefix + '/batchSaveOrMerge.json';
 			
@@ -419,7 +433,7 @@
 			}
 			// 目前有幾種確定的管道: Pandora美國團、OHM商店
 			var selectOpts = {
-				transferTos: ['郵局', '中國信託'],
+				transferTos: ['郵局'],
 				brands: ['Pandora', 'OHM Beads', 'Town Talk Polish', '皆有', '其他'],
 				salePoints: ['FB社團', 'OHM商店', '粉絲團'],
 				shipments: ['郵局掛號', '郵局便利箱', '全家', '7-11']};
