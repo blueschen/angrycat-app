@@ -81,7 +81,6 @@ public class TransferReplyController extends
 	public String addOHMStore(Model model){
 		Map<String, String> config = new LinkedHashMap<>();
 		config.put("brand", "OHM Beads");
-		config.put("transferTo", "中國信託");
 		config.put("salePoint", "OHM商店");
 		model.addAttribute("config", CommonUtil.parseToJson(config));
 		return moduleView();
@@ -113,7 +112,7 @@ public class TransferReplyController extends
 		produces={"application/xml", "application/json"},
 		headers="Accept=*/*"
 	)
-	public @ResponseBody Map<String, Object> uploadCsv(@RequestPart("csv") MultipartFile csv){
+	public @ResponseBody Map<String, Object> uploadCsv(@RequestPart("csv") MultipartFile csv){ // 這裡也可以使用byte[]
 		Map<String, Object> msg = new LinkedHashMap<>();
 		if(csv == null){
 			msg.put("data", "not found");
@@ -130,7 +129,7 @@ public class TransferReplyController extends
 		}finally{
 			if(csv != null){
 				try {
-					csv.getInputStream().close(); // 這個方法可以刪除暫存檔釋放資源
+					csv.getInputStream().close();
 				} catch (IOException e) {
 					msg.put("data", "runtime err:\n" + stackTraceString(e));
 				}
