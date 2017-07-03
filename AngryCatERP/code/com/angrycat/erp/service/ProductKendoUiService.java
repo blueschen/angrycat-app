@@ -264,9 +264,9 @@ public class ProductKendoUiService extends KendoUiService<Product, Product> {
 			if(infos.size() == 0){
 				return header;
 			}
-			String trTmp = "<tr><td>%s</td><td>%o</td><td>%o</td></tr>";
+			String trTmp = "<tr><td>%s</td><td>%s</td><td>%s</td></tr>";
 			String tr = infos.stream()
-				.map(si->String.format(trTmp, si.getSku(), si.getMagentoStockQty(), si.getTotalStockQty()))
+				.map(si->String.format(trTmp, si.getSku(), si.getMagentoStockQty()+"", si.getTotalStockQty()+""))
 				.collect(Collectors.joining());
 			String tableTmp = "%s<table border='0' valign='top' ><tr><th style='width: 35%%;'>型號</th><th style='width: 35%%;'>購物網站</th><th style='width: 30%%;'>庫存表</th></tr>%s</table>";
 			String table = String.format(tableTmp, header, tr);
