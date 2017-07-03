@@ -41,8 +41,16 @@
 <body ng-controller="MainCtrl as mainCtrl">
 <input type="hidden" value="{{mainCtrl.member.id}}"/>
 
-
-<div class="container">
+<div id="warning-compatibility" style="display: block;">
+	<h1 style="color:red;">
+		注意!!&nbsp;&nbsp;您的瀏覽器版本不支援本頁面服務，請採用Google Chrome或Firefox填寫會員資料
+	</h1>
+	<br>
+	<h3>
+		若有任何會員資料填寫問題請來信<b><a href="mailto:info@ohmbeads.com.tw" target="_blank">info@ohmbeads.com.tw</a></b>或洽詢02-2776-1505
+	</h3>
+</div>
+<div class="container" id="container" style="display: none;">
 	<div class="col-sm-offset-2">
 		<h2>會員資料</h2>
 	</div>
@@ -327,6 +335,10 @@
 		.constant('targetData', ${member == null ? "null" : member})
 		.constant('displayJsonCountries', ${displayJsonCountries == null ? "null" : displayJsonCountries})
 		.controller('MainCtrl', ['$scope', 'DateService', 'AjaxService', 'urlPrefix', 'login', 'targetData', 'displayJsonCountries', function($scope, DateService, AjaxService, urlPrefix, login, targetData, displayJsonCountries){
+			
+	     	document.getElementById('container').style.display = 'block';
+	     	document.getElementById('warning-compatibility').style.display = 'none';
+			
 			var self = this,
 				saveUrl = urlPrefix + '/save.json',
 				updateMemberDiscountUrl = urlPrefix + '/updateMemberDiscount.json',
