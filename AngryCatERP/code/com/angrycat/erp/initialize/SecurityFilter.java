@@ -89,6 +89,9 @@ public class SecurityFilter implements Filter {
 		allowPathEqual.add("/americangroupbuyorderform/add");
 		allowPathEqual.add("/americangroupbuyorderform/batchSaveOrMerge.json");
 		allowPathEqual.add("/americangroupbuyorderform/deleteByIds.json");
+		// 出貨明細
+		allowPathEqual.add("/shipping/index");
+		allowPathEqual.add("/shipping/uploadShippingRawData");
 		// 會員頁面需要檢核手機和室內電話擇一必填
 		allowPathStart.add("/member/mobileDuplicated");
 		allowPathStart.add("/member/telDuplicated");
