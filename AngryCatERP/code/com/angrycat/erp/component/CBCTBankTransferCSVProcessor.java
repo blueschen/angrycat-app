@@ -122,7 +122,7 @@ public class CBCTBankTransferCSVProcessor {
 //		for(CBCTBankTransfer cbct : csvData){
 //			System.out.println(ReflectionToStringBuilder.toString(cbct, ToStringStyle.MULTI_LINE_STYLE));
 //		}
-		System.out.println("effective csv count: " + csvData.size());
+//		System.out.println("effective csv count: " + csvData.size());
 		return this;
 	}
 	
