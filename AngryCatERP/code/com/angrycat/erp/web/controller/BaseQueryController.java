@@ -226,7 +226,7 @@ public abstract class BaseQueryController<T, R> implements Serializable {
 		}
 	}
 	
-	private static String getMimeType(String fileName){
+	public static String getMimeType(String fileName){
 		String extension = fileName.substring(fileName.lastIndexOf(".")+1, fileName.length());
 		String mimeType = "application/octet-stream";
 		if("xls".equals(extension)){
