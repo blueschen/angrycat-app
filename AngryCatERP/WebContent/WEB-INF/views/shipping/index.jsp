@@ -52,8 +52,8 @@
 		            window.URL.revokeObjectURL(xlsxData);
 	        	}
 	        	document.getElementById("reset").click(); // clear selected upload file
-	        }else{
-	        	alert("內部處理錯誤，檢查是否為匯入檔案格式有誤");
+	        }else if(xhr.status >= 400){
+	        	alert("內部處理錯誤，檢查是否為匯入檔案格式有誤:\nxhr.status:" + xhr.status + "\nxhr.readyState:" + xhr.readyState + "\nerr:" + e);
 	        }
 		};			
 		xhr.send(formData);
