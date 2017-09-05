@@ -7,8 +7,19 @@
 <head>
 	<meta content="width=device-width, initial-scale=1.0" name="viewport">
 	<title>出貨明細</title>
+	<style type="text/css">
+     	.btn {
+     		border-color: #ccc;
+     		border: 1px solid transparent; 
+     		border-radius: 4px;
+     		padding: 6px 12px;
+     		cursor: pointer;
+     		display: inline-block;
+     		background-color: #ccc;
+     	}
+	</style> 
 </head>
-<body>
+<body style="font-family:微軟正黑體;">
     <h4>出貨明細轉換須知</h4>
     <ul>
     	<li>只支援.xlsx檔</li>
@@ -18,8 +29,17 @@
     	<li>以第一欄為分隔出貨明細基準</li>
     </ul>
 	<form action="${urlPrefix}/uploadShippingRawData" method="post" enctype="multipart/form-data" id="form_convert">
-		<label>轉換成出貨明細Excel</label><br>
-		<input type="file" name="uploadTarget" onchange="uploadToConvert();" accept=".xlsx"><br>
+		<fieldset>
+			<legend>轉換成出貨明細Excel</legend>
+			<label>出貨日期</label>&nbsp;&nbsp;&nbsp;
+			<input type="text" name="shippingDate">
+			<br>
+			<br>
+			<label for="upload" class="btn">
+				上傳檔案
+				<input type="file" name="uploadTarget" onchange="uploadToConvert();" accept=".xlsx" style="display: none;" id="upload">
+			</label>
+		</fieldset>
 		<input type="reset" id="reset" style="display: none;">
 	</form>	
 
