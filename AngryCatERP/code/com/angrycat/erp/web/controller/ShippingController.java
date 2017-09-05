@@ -1,5 +1,9 @@
 package com.angrycat.erp.web.controller;
 
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.Map;
+
 import javax.servlet.ServletOutputStream;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -8,6 +12,7 @@ import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RequestPart;
 
 import com.angrycat.erp.excel.ShippingDetailsProcessor;
@@ -30,8 +35,17 @@ public class ShippingController {
 		produces={"application/xml", "application/json"},
 		headers="Accept=*/*"
 	)
-	public void uploadShippingRawData(HttpServletResponse response, @RequestPart("uploadTarget") byte[] rawData) throws Exception{
-		byte[] outputData = ShippingDetailsProcessor.renderXlsx(rawData); // TODO considering the possibility of not clearing up tmp file
+	public void uploadShippingRawData(
+		HttpServletResponse response,
+		@RequestParam("shippingDate") String shippingDate,
+		@RequestPart("uploadTarget") byte[] rawData) throws Exception{
+		
+		Map<String, Object> options = Collections.emptyMap();
+		if(shippingDate != null && !"".equals(shippingDate.trim())){
+			options = new HashMap<>();
+			options.put("shippingDate", shippingDate.trim());
+		}		
+		byte[] outputData = ShippingDetailsProcessor.renderXlsx(rawData, options); // TODO considering the possibility of not clearing up tmp file
 		
 		String fileName = "details.xlsx";
 		response.setContentType(BaseQueryController.getMimeType(fileName));
