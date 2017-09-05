@@ -33,7 +33,7 @@ public class ShippingDetailsProcessor {
 	    return widthUnits; 
 	} 
 	
-	public static byte[] renderXlsx(byte[] data) throws Exception{
+	public static byte[] renderXlsx(byte[] data, Map<String, Object> options) throws Exception{
 		
 		Map<String, List<String>> shippingDetails = new LinkedHashMap<>();
 		byte[] outputData = null;
@@ -77,7 +77,8 @@ public class ShippingDetailsProcessor {
 		int month = time.getMonth().getValue();
 		int day = time.getDayOfMonth();
 		
-		String dateF = year + "-" + month + "-" + day;
+		String shippingDate = (String)options.get("shippingDate");
+		String dateF = shippingDate == null ? year + "-" + month + "-" + day : shippingDate;
 		
 		try(ByteArrayOutputStream baos = new ByteArrayOutputStream();
 			Workbook workbook = new XSSFWorkbook();){
