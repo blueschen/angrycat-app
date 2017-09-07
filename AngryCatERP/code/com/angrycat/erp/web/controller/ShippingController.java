@@ -38,14 +38,17 @@ public class ShippingController {
 	public void uploadShippingRawData(
 		HttpServletResponse response,
 		@RequestParam("shippingDate") String shippingDate,
-		@RequestPart("uploadTarget") byte[] rawData) throws Exception{
+		@RequestPart("uploadTargetFixed") byte[] uploadTargetFixed,
+		@RequestPart("uploadTargetSpecified") byte[] uploadTargetSpecified) throws Exception{
 		
 		Map<String, Object> options = Collections.emptyMap();
 		if(shippingDate != null && !"".equals(shippingDate.trim())){
 			options = new HashMap<>();
 			options.put("shippingDate", shippingDate.trim());
 		}		
-		byte[] outputData = ShippingDetailsProcessor.renderXlsx(rawData, options); // TODO considering the possibility of not clearing up tmp file
+		byte[] outputData = uploadTargetFixed != null && uploadTargetFixed.length > 0 
+			? ShippingDetailsProcessor.renderXlsx(uploadTargetFixed, options)
+			: ShippingDetailsProcessor.renderAgeteXlsx(uploadTargetSpecified, options); // TODO considering the possibility of not clearing up tmp file
 		
 		String fileName = "details.xlsx";
 		response.setContentType(BaseQueryController.getMimeType(fileName));
@@ -56,10 +59,5 @@ public class ShippingController {
 		ServletOutputStream sos = response.getOutputStream();
 		sos.write(outputData);
 		sos.close();
-	}
-	private void blockNotAuthorized(HttpServletRequest request){
-		String remoteAddr = request.getRemoteAddr();
-		String remoteIP = request.getHeader("X-FORWARDED-FOR");
-		System.out.println("remoteAddr: " + remoteAddr + ", remoteIP: " + remoteIP);
 	}
 }
