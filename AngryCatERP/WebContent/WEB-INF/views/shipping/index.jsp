@@ -24,9 +24,7 @@
     <ul>
     	<li>只支援.xlsx檔</li>
     	<li>只轉換名稱為"內容"的sheet</li>
-    	<li>忽略第一行且從第二行開始轉換</li>
-    	<li>只轉換最前面兩欄對其他欄位沒有影響</li>
-    	<li>以第一欄為分隔出貨明細基準</li>
+    	<li>以第一欄為分隔出貨明細基準</li>    	
     </ul>
 	<form action="${urlPrefix}/uploadShippingRawData" method="post" enctype="multipart/form-data" id="form_convert">
 		<fieldset>
@@ -36,8 +34,14 @@
 			<br>
 			<br>
 			<label for="upload" class="btn">
-				上傳檔案
-				<input type="file" name="uploadTarget" onchange="uploadToConvert();" accept=".xlsx" style="display: none;" id="upload">
+				上傳檔案轉換成固定格式
+				<input type="file" name="uploadTargetFixed" onchange="uploadToConvert();" accept=".xlsx" style="display: none;" id="upload">
+			</label>
+			<br>
+			<br>
+			<label for="upload2" class="btn">
+				上傳檔案轉換成指定格式
+				<input type="file" name="uploadTargetSpecified" onchange="uploadToConvert();" accept=".xlsx" style="display: none;" id="upload2">
 			</label>
 		</fieldset>
 		<input type="reset" id="reset" style="display: none;">
