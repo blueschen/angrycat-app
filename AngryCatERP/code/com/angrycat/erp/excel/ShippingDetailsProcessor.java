@@ -2,6 +2,7 @@ package com.angrycat.erp.excel;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Iterator;
@@ -232,6 +233,9 @@ public class ShippingDetailsProcessor {
 					String val = null;
 					if(cell.getCellType() == Cell.CELL_TYPE_STRING){
 						val = cell.getStringCellValue();
+					}else if(cell.getCellType() == Cell.CELL_TYPE_NUMERIC){
+						double num = cell.getNumericCellValue();
+						val = new BigDecimal(num).toPlainString();
 					}
 					detail.add(val);
 				}
