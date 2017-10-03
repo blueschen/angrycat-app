@@ -56,11 +56,18 @@ public class ShippingDetailsProcessor {
 				}
 				Row row = rows.next();
 				Cell firstCell = row.getCell(0);
+				if(firstCell == null){
+					continue;
+				}
 				int cellType = firstCell.getCellType();
 				if(cellType != Cell.CELL_TYPE_STRING){
 					continue;
 				}
 				String customerName = firstCell.getStringCellValue();
+				if(customerName == null || "".equals(customerName.trim())){
+					continue;
+				}
+				customerName = customerName.trim();
 				List<String> details = shippingDetails.get(customerName);
 				if(details == null){
 					details = new ArrayList<>();
@@ -215,11 +222,19 @@ public class ShippingDetailsProcessor {
 								
 				Row row = rows.next();
 				Cell firstCell = row.getCell(0);
+				if(firstCell == null){
+					continue;
+				}
 				int cellType = firstCell.getCellType();
 				if(cellType != Cell.CELL_TYPE_STRING){
 					continue;
 				}
 				String customerName = firstCell.getStringCellValue();
+				if(customerName == null || "".equals(customerName.trim())){
+					continue;
+				}
+				customerName = customerName.trim();
+				
 				List<List<String>> details = shippingDetails.get(customerName);
 				if(details == null){
 					details = new ArrayList<>();
