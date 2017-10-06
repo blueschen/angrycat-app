@@ -129,7 +129,7 @@ public class ShippingDetailsProcessor {
 				Row titleRow = sheet.createRow(0);
 				Cell titleCell = titleRow.createCell(0);
 				titleCell.setCellStyle(titleStyle);
-				titleCell.setCellValue("AngryCat　出　貨　明　細");
+				titleCell.setCellValue("出　貨　明　細");
 				sheet.addMergedRegion(new CellRangeAddress(0, 0, 0, lastCol));
 				
 				sheet.setColumnWidth(0, pixel2WidthUnits(547));
@@ -309,7 +309,7 @@ public class ShippingDetailsProcessor {
 				Row titleRow = sheet.createRow(0);
 				Cell titleCell = titleRow.createCell(0);
 				titleCell.setCellStyle(titleStyle);
-				titleCell.setCellValue("AngryCat　出　貨　明　細");
+				titleCell.setCellValue("出　貨　明　細");
 				sheet.addMergedRegion(new CellRangeAddress(0, 0, 0, lastCol));
 				
 				Row shippingDateRow = sheet.createRow(1);
