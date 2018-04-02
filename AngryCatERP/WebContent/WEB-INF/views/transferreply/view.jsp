@@ -266,12 +266,16 @@
 		</div>
  	</div>
 	<div class="form-group">
-		 <div class="col-sm-offset-1 col-sm-8" ng-class="{'has-error': transferReplyForm.transferAmount.$error.required}">
+		 <div class="col-sm-offset-1 col-sm-8" ng-class="{'has-error': transferReplyForm.transferAmount.$error.required || transferReplyForm.transferAmount.$error.number}">
 			<label class="col-sm-3 control-label" for="transferAmount">
  				匯款金額<span style="color:red;">*</span>
  			</label>
  			<div class="col-sm-4">
- 				<input type="number" ng-model="mainCtrl.transferReply.transferAmount" id="transferAmount" name="transferAmount" class="form-control" ng-required="true" ng-disabled="mainCtrl.fieldsDisabled"/>
+ 				<input type="number" ng-model="mainCtrl.transferReply.transferAmount" id="transferAmount" name="transferAmount" class="form-control" ng-required="true" ng-disabled="mainCtrl.fieldsDisabled"/>	
+ 			</div>
+ 			<div class="col-sm-4">
+ 				<span  style="color:red;" ng-show="transferReplyForm.transferAmount.$error.number">
+      				請填入大於0整數!</span>
  			</div>
  		</div>
  	</div>	
@@ -295,7 +299,7 @@
  		</div>
  	</div>
  	<div class="form-group">
- 		<div class="col-sm-offset-1 col-sm-8" ng-class="{'has-error': transferReplyForm.mobile.$error.required}">
+ 		<div class="col-sm-offset-1 col-sm-8" ng-class="{'has-error': transferReplyForm.mobile.$error.required || transferReplyForm.mobile.$error.pattern}">
 			<label class="col-sm-3 control-label" for="mobile">
  				手機號碼<span style="color:red;">*</span>
  			</label>
@@ -306,7 +310,12 @@
 					name="mobile"
 					class="form-control"
 					ng-required="true"
-					placeholder="Ex. 09xx-xxx-xxx"/>
+					ng-pattern="/^09[0-9]{8}$/"
+					placeholder="Ex. 09xxxxxxxx"/>
+ 			</div>
+ 			<div class="col-sm-4">
+ 				<span  style="color:red;" ng-show="transferReplyForm.mobile.$error.pattern">
+      				請填入手機格式09xxxxxxxx共十碼</span>
  			</div>
  		</div>
  	</div>
@@ -339,12 +348,16 @@
  		</div>
  	</div>
  	<div class="form-group">
- 		<div class="col-sm-offset-1 col-sm-8" ng-class="{'has-error': transferReplyForm.postalCode.$error.required}">
+ 		<div class="col-sm-offset-1 col-sm-8" ng-class="{'has-error': transferReplyForm.postalCode.$error.required || transferReplyForm.postalCode.$error.pattern}">
 			<label class="col-sm-3 control-label" for="postalCode">
  				郵遞區號<span style="color:red;">*</span>
  			</label>
  			<div class="col-sm-4">
- 				<input type="text" ng-model="mainCtrl.transferReply.postalCode" id="postalCode" name="postalCode" class="form-control" ng-required="true"/>
+ 				<input type="text" ng-model="mainCtrl.transferReply.postalCode" id="postalCode" name="postalCode" class="form-control" ng-required="true" ng-pattern="/^([0-9]{3}|[0-9]{5})$/"/>
+ 			</div>
+ 			<div class="col-sm-4">
+ 				<span  style="color:red;" ng-show="transferReplyForm.postalCode.$error.pattern">
+      				請填入郵遞區號三碼或五碼</span>
  			</div>
  		</div>
  	</div>
