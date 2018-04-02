@@ -66,7 +66,7 @@
 					notiId: "#updateNoti",
 					updateInfoWindowId: "#updateInfoWindow",
 					page: 1,
-					pageSize: 15,
+					pageSize: 100,
 					filter: null,
 					sort: null,
 					group: null,
