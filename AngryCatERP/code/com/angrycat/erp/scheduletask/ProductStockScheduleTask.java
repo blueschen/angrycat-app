@@ -18,27 +18,29 @@ import com.angrycat.erp.service.ProductKendoUiService.ProductStockReport;
 
 @Component
 public class ProductStockScheduleTask {
-	@Autowired
-	private ProductKendoUiService productKendoUiService;
-	@Autowired
-	private MailService mailService;
-	
-	@PostConstruct
-	public void init(){
-		mailService.to(MIKO, SLOW)
-			.cc(IFLY, JERRY, BLUES)
-			.subject("庫存狀態通知");
-	}
+//	@Autowired
+//	private ProductKendoUiService productKendoUiService;
+//	@Autowired
+//	private MailService mailService;
+//	
+//	@PostConstruct
+//	public void init(){
+//		mailService
+////			.to(MIKO, SLOW) 
+////			.cc(IFLY, JERRY, BLUES) // TODO 待上線後再啟用
+//			.subject("庫存狀態通知");
+//	}
+	// TODO 待上線後再啟用
+	/*
 	@Scheduled(cron="0 55 23 * * ?")
 	public void updateStockIfMagentoIsMore(){
-		// TODO 待上線後再啟用
+		
 //		productKendoUiService.updateStockIfMagentoIsMore();
 	}
 	@Scheduled(cron="0 50 23 * * 1")
-	public void generateStockReport(){
-		// TODO 待上線後再啟用
-//		ProductStockReport report = productKendoUiService.generateStockReport();
-//		mailService.content(report.toHtml())
-//			.sendHTML();
-	}
+	public void generateStockReport(){		
+		ProductStockReport report = productKendoUiService.generateStockReport();
+		mailService.content(report.toHtml())
+			.sendHTML();
+	}*/
 }
