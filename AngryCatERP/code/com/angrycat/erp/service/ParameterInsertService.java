@@ -15,6 +15,7 @@ import com.angrycat.erp.common.CommonUtil;
 import com.angrycat.erp.component.SessionFactoryWrapper;
 import com.angrycat.erp.model.Parameter;
 import com.angrycat.erp.model.ParameterCategory;
+import com.angrycat.erp.model.SalesDetail;
 import com.angrycat.erp.test.BaseTest;
 /**
  * 新增參數
@@ -72,6 +73,7 @@ public class ParameterInsertService {
 			.add("粉絲團")
 			.add("商店")
 			.add("私訊")
+			.add(SalesDetail.SALE_POINT_ESLITE_TAOBAO)
 		
 		,new Parameters("折扣別", s,		"discount")
 			.add("VIP9折",		"0.9")
