@@ -26,6 +26,7 @@ public class Product {
 	private String imgDir;
 	
 	private int totalStockQty;
+	private int taobaoStockQty;
 	
 	private String totalStockChangeNote;
 	@Id
@@ -124,6 +125,13 @@ public class Product {
 	}
 	public void setTotalStockQty(int totalStockQty) {
 		this.totalStockQty = totalStockQty;
+	}
+	@Column(name="taobaoStockQty", columnDefinition="淘寶庫存")
+	public int getTaobaoStockQty() {
+		return taobaoStockQty;
+	}
+	public void setTaobaoStockQty(int taobaoStockQty) {
+		this.taobaoStockQty = taobaoStockQty;
 	}
 	@Column(name="totalStockChangeNote", columnDefinition="總庫存修改備註")
 	public String getTotalStockChangeNote() {
