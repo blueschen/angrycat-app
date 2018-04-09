@@ -137,6 +137,7 @@
 						["suggestedRetailPrice",		"定價",			100,			"number",	"eq"],
 						["imgDir",						"圖片",			100,			"string",	"contains",				uneditable,				imgColumn],
 						["totalStockQty",				"總庫存",			100,			"number",	"eq"],
+						["taobaoStockQty",				"淘寶庫存",		100,			"number",	"eq"],
 						["barcode",						"條碼號",			150,			"string",	"contains",				null,					hidden],
 						["seriesName",					"系列名",			150,			"string",	"contains",				uneditable,				hidden],
 						["totalStockChangeNote",		"總庫存修改備註",	150,			"string",	"contains",				null,					hidden],
@@ -145,6 +146,7 @@
 					];
 				return fields;
 			}
+			var kendoGridService = angrycat.kendoGridService.init(opts);
 			
 			function afterGridInitHandler(mainGrid){
 				var clkDisplayImg = function(){
@@ -164,46 +166,130 @@
 					});
 				};
 				mainGrid.bind("dataBound", clkDisplayImg);
+				
+				var showStockWarning = function(e){
+					//console.log("showStockWarning...");
+				};
+				mainGrid.bind("dataBound", showStockWarning);
+				
+				var checkStock = function(taobao, total){
+					var msg = "";
+					if($.isNumeric(taobao)
+					&& $.isNumeric(total)){
+						if(taobao > total){
+							msg = "淘寶庫存不得超過總庫存";
+							return msg;
+						}
+					}
+					if($.isNumeric(taobao)
+					&& !$.isNumeric(total)){
+						msg = "總庫存應為有效數字";
+						return msg;
+					}
+					return msg;
+				};
 				mainGrid.bind("saveChanges", function(e){
 					var ds = mainGrid.dataSource,
 						undirty = ds._pristineData,
 						dirty = ds._data,
-						undirtyQty = {},
-						dirtyQty = {},
-						ids=[];
+						undirtyTotalQty = {},
+						dirtyTotalQty = {},
+						undirtyTaobaoQty = {},
+						dirtyTaobaoQty = {},
+						totalDiffIds=[],
+						taobaoDiffIds=[];
+					// 集中舊資料
 					for(var i=0; i<undirty.length; i++){
 						var und = undirty[i];
 						if(und.id){
-							undirtyQty[und.id]=und.totalStockQty;
+							undirtyTotalQty[und.id]=und.totalStockQty;
+							undirtyTaobaoQty[und.id]=und.taobaoStockQty;
 						}
 					}
+					// 集中有異動的新資料
 					for(var i=0; i<dirty.length; i++){
 						var d = dirty[i];
 						if(d.id){
-							dirtyQty[d.id]=d.totalStockQty;
+							dirtyTotalQty[d.id]=d.totalStockQty;
+							dirtyTaobaoQty[d.id]=d.taobaoStockQty;
+						}else{// 新增資料在此
+							var taobao = d.taobaoStockQty,
+								total = d.totalStockQty;
+							var msg = checkStock(taobao, total);
+							if(msg){
+								alert(msg);
+								e.preventDefault();
+								return;
+							}
 						}
 					}
-					for(var id in undirtyQty){
-						if(undirtyQty.hasOwnProperty(id) && undirtyQty[id]!=dirtyQty[id]){
-							ids.push(id);
+					// 集中總庫存有異的資料
+					for(var id in dirtyTotalQty){
+						if(dirtyTotalQty.hasOwnProperty(id) && undirtyTotalQty[id]!=dirtyTotalQty[id]){
+							totalDiffIds.push(id);
 							var dataItem = ds.get(id);
-							//console.log("dataItem:"+JSON.stringify(dataItem));
+							if(dataItem){
+								var taobao = dataItem.get("taobaoStockQty"),
+									total = dataItem.get("totalStockQty");
+								var msg = checkStock(taobao, total);
+								if(msg){
+									alert(msg);
+									e.preventDefault();
+									return;
+								}
+							}
 						}
 					}
+					// 集中淘寶庫存有異的地方
+					for(var id in dirtyTaobaoQty){
+						if(dirtyTaobaoQty.hasOwnProperty(id) && undirtyTaobaoQty[id]!=dirtyTaobaoQty[id]){
+							taobaoDiffIds.push(id);
+							
+							if(totalDiffIds.indexOf(id) != -1) {
+								alert("修改淘寶庫存不宜一起修改總庫存");
+								e.preventDefault();
+								return;
+							}
+							var dataItem = ds.get(id);
+							if(dataItem){
+								var taobao = dataItem.get("taobaoStockQty"),
+									total = dataItem.get("totalStockQty");
+								var msg = checkStock(taobao, total);
+								if(msg){
+									alert(msg);
+									e.preventDefault();
+									return;
+								}
+								var diff = dirtyTaobaoQty[id] - undirtyTaobaoQty[id];
+								if(diff > 0){//加淘寶庫存
+									dataItem.set("warning", "taobao_+_"+diff);
+								}else{//減淘寶庫存
+									dataItem.set("warning", "taobao_-_"+(-diff));
+								}
+							}
+						}
+					}
+					//console.log("totalDiffIds: " + totalDiffIds + ", taobaoDiffIds: " + taobaoDiffIds);
 					//console.log("undirtyQty:"+JSON.stringify(undirtyQty)+", dirtyQty:"+JSON.stringify(dirtyQty) + ", ids:"+JSON.stringify(ids));
-					if(ids.length>0){
+					if(totalDiffIds.length > 0){
 						var response = prompt("請輸入異動總庫存的原因");
 						if(!response){
-							alert("無法儲存資料!!");
+							alert("未輸入異動總庫存原因，無法儲存資料!!");
 							e.preventDefault();
 							return;
 						}
-						for(var i=0; i<ids.length; i++){
-							var id = ids[i],
+						for(var i=0; i < totalDiffIds.length; i++){
+							var id = totalDiffIds[i],
 								dataItem = ds.get(id);
-							console.log('dataItem id: ' + id);
+							//console.log('dataItem id: ' + id);
 							if(dataItem){ // 如果刪除物件，會發生有id卻沒有dataItem的狀況
 								dataItem.set("totalStockChangeNote", response);
+								var diff = dirtyTotalQty[id] - undirtyTotalQty[id];
+								if(diff > 0){//加總庫存
+									dataItem.set("warning", "tatal_+_" + diff);
+								}else{//減總庫存
+									dataItem.set("warning", "tatal_-_" + (-diff));
+								}
 							}
 						}
 					}
@@ -239,9 +325,7 @@
 				*/
 			}
 			
-			angrycat.kendoGridService
-				.init(opts)
-				.fieldsReady(fieldsReadyHandler, afterGridInitHandler);
+			kendoGridService.fieldsReady(fieldsReadyHandler, afterGridInitHandler);
 		})(jQuery, kendo, angrycat);			
 	</script>
 </body>
