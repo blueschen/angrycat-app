@@ -8,6 +8,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 import java.util.function.BiFunction;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 
 import org.apache.commons.lang3.StringUtils;
@@ -52,12 +53,99 @@ public class ProductKendoUiService extends KendoUiService<Product, Product> {
 		// TODO 與Magento庫存非同步連動: 待其他功能完成後，再測試
 //		asyncUpdateMagentoStock(targets);
 		return results;
-	}	
+	}
 	@Override
 	@Transactional
 	public List<Product> batchSaveOrMerge(List<Product> targets, BiFunction<Product, Session, Product> before){
 		Session s = sfw.currentSession();
+		
+		List<Product> stocks = targets.stream().filter(p->StringUtils.isNotBlank(p.getWarning())).collect(Collectors.toList());
+	
+		Map<String, Product> exists = stocks.stream().collect(Collectors.toMap(Product::getId, Function.identity()));
+		String q = "SELECT p.id, p.totalStockQty, p.taobaoStockQty FROM " + Product.class.getName() + " p WHERE p.id IN (:ids)";
+		List<Object[]> olds = 
+			s.createQuery(q)
+			.setParameterList("ids", exists.keySet())
+			.list();
+		List<Product> filterOut = new ArrayList<>();
+		for (Object[] old : olds){
+			String id = (String)old[0];
+			int oldTotalStockQty = (int)old[1];
+			int oldTaobaoStockQty = (int)old[2];
+			
+			Product prod = exists.get(id);
+			int newTotalStockQty = prod.getTotalStockQty();
+			int newTaobaoStockQty = prod.getTaobaoStockQty();
+			
+			String[] intentions = prod.getWarning().split("_");
+			String type = intentions[0];
+			String add = intentions[1];
+			int count = Integer.parseInt(intentions[2]);
+			
+			prod.setWarning(null);
+			
+			String msg = "增加";
+			if(!"+".equals(add)){
+				count = -count;
+				msg = "減去";
+			}
+			
+			if("taobao".equals(type)){
+				int diff = newTaobaoStockQty - oldTaobaoStockQty;
+				msg += "淘寶庫存";
+				msg += Math.abs(count);
+				msg += ":";
+				if(diff != count){
+					prod.setWarning(msg+"淘寶庫存已先被異動");
+					filterOut.add(prod);
+					continue;
+				}
+				if(newTotalStockQty != oldTotalStockQty){
+					prod.setWarning(msg+"總庫存已先被異動");
+					filterOut.add(targets.remove(targets.indexOf(prod)));
+					continue;
+				}
+				// 連動總庫存
+				if("+".equals(add)){
+					if(newTaobaoStockQty > newTotalStockQty){
+						prod.setWarning(msg+"淘寶庫存已大於總庫存");
+						filterOut.add(targets.remove(targets.indexOf(prod)));
+						continue;
+					}
+				}else{
+					int totalStock = newTaobaoStockQty + count;
+					if(totalStock < 0){
+						prod.setWarning(msg+"總庫存跟著連動會小於0");
+						filterOut.add(targets.remove(targets.indexOf(prod)));
+						continue;
+					}else{
+						prod.setTotalStockQty(totalStock);
+					}
+				}
+			}
+			
+			if("total".equals(type)){
+				msg += "總庫存";
+				msg += Math.abs(count);
+				msg += ":";
+				int diff = newTotalStockQty - oldTotalStockQty;
+				if(diff != count){
+					prod.setWarning("總庫存已先被異動");
+					filterOut.add(targets.remove(targets.indexOf(prod)));
+					continue;
+				}
+				if(!"+".equals(add)){ // 減總庫存
+					if(newTotalStockQty < newTaobaoStockQty){
+						prod.setWarning(msg+"總庫存已小於淘寶庫存");
+						filterOut.add(targets.remove(targets.indexOf(prod)));
+						continue;
+					}
+				}
+			}
+
+		}
 		List<Product> results = batchSaveOrMerge(targets, before, s);
+		results.addAll(filterOut);
 		return results;
 	}
 	/**
