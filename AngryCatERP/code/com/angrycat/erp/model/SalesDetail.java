@@ -19,6 +19,8 @@ public class SalesDetail {
 	public static final String SALE_POINT_FB = "FB社團";
 	@Transient
 	public static final String SALE_POINT_ESLITE_DUNNAN = "敦南誠品";
+	@Transient
+	public static final String SALE_POINT_ESLITE_TAOBAO = "淘寶";
 	
 	private String id;
 	private Member member;
