@@ -29,6 +29,7 @@ public class Product {
 	private int taobaoStockQty;
 	
 	private String totalStockChangeNote;
+	private String warning;
 	@Id
 	@Column(name="id", columnDefinition="ID")
 	@GenericGenerator(name="angrycat_product_id", strategy="com.angrycat.erp.ds.TimeUID")
@@ -139,5 +140,12 @@ public class Product {
 	}
 	public void setTotalStockChangeNote(String totalStockChangeNote) {
 		this.totalStockChangeNote = totalStockChangeNote;
+	}
+	@Transient
+	public String getWarning() {
+		return warning;
+	}
+	public void setWarning(String warning) {
+		this.warning = warning;
 	}
 }
