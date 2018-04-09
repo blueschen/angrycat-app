@@ -292,6 +292,10 @@ public class ShippingDetailsProcessor {
 			subTitleStyle.setAlignment(CellStyle.ALIGN_CENTER);
 			subTitleStyle.setFont(font);
 			
+			CellStyle detailCellStyle = workbook.createCellStyle();
+			detailCellStyle.cloneStyleFrom(borderStyle);
+			detailCellStyle.setAlignment(CellStyle.ALIGN_CENTER);
+			
 			CellStyle detailRowStyle = workbook.createCellStyle();
 			detailRowStyle.setWrapText(true);
 			
@@ -344,7 +348,7 @@ public class ShippingDetailsProcessor {
 					for(int i = 0; i < size; i++){
 						Cell cell = detail.createCell(i);
 						cell.setCellValue(item.get(i));
-						cell.setCellStyle(borderStyle);
+						cell.setCellStyle(detailCellStyle);
 					}
 					Cell quantityCell = detail.createCell(size);
 					quantityCell.setCellValue(1);
