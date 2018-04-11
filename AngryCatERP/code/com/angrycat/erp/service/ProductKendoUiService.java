@@ -54,8 +54,10 @@ public class ProductKendoUiService extends KendoUiService<Product, Product> {
 	 * 這個方法呼叫adjustProdStock驗證修改庫存的需求。<br>
 	 * 如果部分資料無法通過檢查，<br>
 	 * 整批資料都不會跟資料庫同步。<br>
-	 * 如果透過其他模組呼叫此方法更新產品及庫存會產生一個問題是:<br>
-	 * 
+	 * 為了設計上的簡便，<br>
+	 * 一旦修改庫存被檢查出有問題，<br>
+	 * 直接丟出例外，<br>
+	 * 錯誤訊息可以讓前端轉換後直接輸出。
 	 */
 	@Override
 	public List<Product> batchSaveOrMerge(List<Product> targets, BiFunction<Product, Session, Product> before, Session s){
@@ -68,7 +70,7 @@ public class ProductKendoUiService extends KendoUiService<Product, Product> {
 		
 		log("needToModifyStock:\n" + printJson(needToModifyStock)); 
 		if(needToModifyStock.size() != 0){
-			String q = "SELECT DISTINCT p FROM " + Product.class.getName() + " p WHERE p.id IN (:ids)";
+			String q = "SELECT DISTINCT p FROM " + Product.class.getName() + " p WHERE p.id IN (:ids) ORDER BY p.id DESC";
 			olds = 
 				s.createQuery(q)
 				.setParameterList("ids", needToModifyStock.keySet())
