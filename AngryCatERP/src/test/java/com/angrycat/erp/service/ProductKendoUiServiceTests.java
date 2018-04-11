@@ -219,12 +219,12 @@ public class ProductKendoUiServiceTests {
 		int i = -1;
 		assertEquals(1, targets.size());
 		assertEquals(6, filterOut.size());
-		assertEquals("增加淘寶庫存2:淘寶庫存已先被異動", filterOut.get(++i).getWarning());
-		assertEquals("增加淘寶庫存3:總庫存已先被異動", filterOut.get(++i).getWarning());
-		assertEquals("減去淘寶庫存1:淘寶庫存已先被異動", filterOut.get(++i).getWarning());
-		assertEquals("減去淘寶庫存2:總庫存已先被異動", filterOut.get(++i).getWarning());
-		assertEquals("增加淘寶庫存2:淘寶庫存已大於總庫存", filterOut.get(++i).getWarning());
-		assertEquals("減去淘寶庫存5:總庫存跟著連動會小於0", filterOut.get(++i).getWarning());
+		assertEquals("增加001淘寶庫存2:淘寶庫存已先被異動", filterOut.get(++i).getWarning());
+		assertEquals("增加002淘寶庫存3:總庫存已先被異動", filterOut.get(++i).getWarning());
+		assertEquals("減去003淘寶庫存1:淘寶庫存已先被異動", filterOut.get(++i).getWarning());
+		assertEquals("減去004淘寶庫存2:總庫存已先被異動", filterOut.get(++i).getWarning());
+		assertEquals("增加005淘寶庫存2:淘寶庫存已大於總庫存", filterOut.get(++i).getWarning());
+		assertEquals("減去006淘寶庫存5:總庫存跟著連動會小於0", filterOut.get(++i).getWarning());
 		assertEquals("007", targets.get(0).getId());
 		assertEquals(1, targets.get(0).getTotalStockQty());
 	}
@@ -295,11 +295,38 @@ public class ProductKendoUiServiceTests {
 		int i = -1;
 		assertEquals(2, targets.size());
 		assertEquals(2, filterOut.size());
-		assertEquals("增加總庫存2:總庫存已先被異動", filterOut.get(++i).getWarning());
-		assertEquals("減去總庫存3:總庫存已小於淘寶庫存", filterOut.get(++i).getWarning());
+		assertEquals("增加001總庫存2:總庫存已先被異動", filterOut.get(++i).getWarning());
+		assertEquals("減去002總庫存3:總庫存已小於淘寶庫存", filterOut.get(++i).getWarning());
 		assertEquals("003", targets.get(0).getId());
 		assertEquals(9, targets.get(0).getTotalStockQty());
 		assertEquals("004", targets.get(1).getId());
 		assertEquals(5, targets.get(1).getTotalStockQty());
+	}
+	
+	@Test
+	public void printJson(){
+		List<Product> targets = new ArrayList<>();
+		
+		Product n1 = new Product();
+		n1.setId("001");
+		n1.setTotalStockQty(12);
+		n1.setTaobaoStockQty(3);
+		n1.setWarning(ADD_TOTAL+"2");
+		targets.add(n1);
+		
+		Product n2 = new Product();
+		n2.setId("002");
+		n2.setTotalStockQty(4);
+		n2.setTaobaoStockQty(5);
+		n2.setWarning(SUBTRACT_TOTAL+"3");
+		targets.add(n2);
+		
+		Map<String, Product> needToModifyStock = 
+			targets.stream()
+				.filter(p->isStockRelated(p.getWarning()) && StringUtils.isNotBlank(p.getId()))
+				.collect(Collectors.toMap(Product::getId, Function.identity()));
+		
+		String json = ProductKendoUiService.printJson(needToModifyStock);
+		System.out.println(json);
 	}
 }

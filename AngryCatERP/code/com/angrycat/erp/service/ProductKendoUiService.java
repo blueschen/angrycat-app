@@ -22,6 +22,8 @@ import org.springframework.transaction.annotation.Transactional;
 import com.angrycat.erp.model.Product;
 import com.angrycat.erp.service.magento.MagentoProductService;
 import com.angrycat.erp.service.magento.MagentoProductService.StockInfo;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 @Service
 @Scope("prototype")
 @Qualifier("productKendoUiService")
@@ -48,19 +50,31 @@ public class ProductKendoUiService extends KendoUiService<Product, Product> {
 		return results;
 	}
 	
+	/**
+	 * 這個方法呼叫adjustProdStock驗證修改庫存的需求。<br>
+	 * 如果部分資料無法通過檢查，<br>
+	 * 整批資料都不會跟資料庫同步。<br>
+	 * 如果透過其他模組呼叫此方法更新產品及庫存會產生一個問題是:<br>
+	 * 
+	 */
 	@Override
 	public List<Product> batchSaveOrMerge(List<Product> targets, BiFunction<Product, Session, Product> before, Session s){
 		Map<String, Product> needToModifyStock = 
 			targets.stream()
 				.filter(p->isStockRelated(p.getWarning()) && StringUtils.isNotBlank(p.getId()))
 				.collect(Collectors.toMap(Product::getId, Function.identity()));
-			
-		String q = "SELECT p FROM " + Product.class.getName() + " p WHERE p.id IN (:ids)";
-		List<Product> olds = 
-			s.createQuery(q)
-			.setParameterList("ids", needToModifyStock.keySet())
-			.list();			
-		olds.forEach(o->s.evict(o));
+		
+		List<Product> olds = Collections.emptyList();
+		
+		log("needToModifyStock:\n" + printJson(needToModifyStock)); 
+		if(needToModifyStock.size() != 0){
+			String q = "SELECT DISTINCT p FROM " + Product.class.getName() + " p WHERE p.id IN (:ids)";
+			olds = 
+				s.createQuery(q)
+				.setParameterList("ids", needToModifyStock.keySet())
+				.list();			
+			olds.forEach(o->s.evict(o));
+		}
 			
 		List<Product> filterOut = adjustProdStock(targets, needToModifyStock, olds);
 		List<Product> results = Collections.emptyList();
@@ -70,8 +84,16 @@ public class ProductKendoUiService extends KendoUiService<Product, Product> {
 			// TODO 與Magento庫存非同步連動: 待其他功能完成後，再測試
 //			asyncUpdateMagentoStock(targets);
 		}else{
+			String msg = "<h4>修改庫存狀態有誤:</h4>";
+			String w = filterOut.stream().filter(p->StringUtils.isNotBlank(p.getWarning())).map(p->"<h4>" + p.getWarning() + "</h4>").collect(Collectors.joining());
+			if(StringUtils.isNotBlank(w)){
+				msg += w;
+			}
 			targets.addAll(filterOut);
+			
 			results = targets;
+			// TODO 是否寄信給相關人士
+			throw new RuntimeException(msg);
 		}
 
 		return results;
@@ -340,8 +362,8 @@ public class ProductKendoUiService extends KendoUiService<Product, Product> {
 		
 	static final String ADD_TAOBAO = "taobao_+_";
 	static final String SUBTRACT_TAOBAO = "taobao_-_";
-	static final String ADD_TOTAL = "tatal_+_";
-	static final String SUBTRACT_TOTAL = "tatal_-_";
+	static final String ADD_TOTAL = "total_+_";
+	static final String SUBTRACT_TOTAL = "total_-_";
 	
 	static boolean isStockRelated(String warning){
 		if(StringUtils.isBlank(warning)){
@@ -384,7 +406,13 @@ public class ProductKendoUiService extends KendoUiService<Product, Product> {
 				count = -count;
 				msg = "減去";
 			}
-				
+			
+			String modelId = prod.getModelId();
+			if(StringUtils.isBlank(modelId)){
+				modelId = id;
+			}
+			msg += modelId;
+			
 			if("taobao".equals(type)){
 				int diff = newTaobaoStockQty - oldTaobaoStockQty;
 				msg += "淘寶庫存";
@@ -425,7 +453,7 @@ public class ProductKendoUiService extends KendoUiService<Product, Product> {
 				msg += ":";
 				int diff = newTotalStockQty - oldTotalStockQty;
 				if(diff != count){
-					prod.setWarning("總庫存已先被異動");
+					prod.setWarning(msg+"總庫存已先被異動");
 					filterOut.add(targets.remove(targets.indexOf(prod)));
 					continue;
 				}
@@ -439,5 +467,20 @@ public class ProductKendoUiService extends KendoUiService<Product, Product> {
 			}
 		}
 		return filterOut;
+	}
+	
+	public static String printJson(Object obj){
+		ObjectMapper om = new ObjectMapper();
+		String json = "Writing Err...";
+		try {
+			json = om.writerWithDefaultPrettyPrinter().writeValueAsString(obj);
+		} catch (JsonProcessingException e) {
+			throw new RuntimeException("ProductKendoUiService.printJson(Object) err...");
+		}
+		return json;
+	}
+	
+	public static void log(String msg){
+		System.out.println(msg);
 	}
 }
