@@ -80,25 +80,25 @@ public class SalesDetailKendoUiServiceTests {
 		List<String> shipStatuses = Arrays.asList(待出貨, 集貨中, 調貨中, 待補貨, 已出貨);
 		shipStatuses.forEach(newStatus->{
 			int stockChanged = serv.getStockChanged(ACTION_NEW, null, newStatus);
-			assertEquals(-1, stockChanged);
+			assertEquals(-1, stockChanged); // 只要是新增銷售明細，所有狀態皆需減1庫存，不含作廢
 		});
 		
-		shipStatuses.forEach(status->{
-			int stockChanged = serv.getStockChanged(ACTION_DELETE, null, status);
-			assertEquals(1, stockChanged);
+		shipStatuses.forEach(newStatus->{
+			int stockChanged = serv.getStockChanged(ACTION_DELETE, null, newStatus);
+			assertEquals(1, stockChanged); // 只要是刪除銷售明細，所有狀態皆需加1庫存，不含作廢
 		});
-		assertEquals(0, serv.getStockChanged(ACTION_DELETE, null, 作廢));
+		assertEquals(0, serv.getStockChanged(ACTION_DELETE, null, 作廢)); // 刪除初始狀態為作廢的銷售明細，不異動庫存: 理論上應該不可能發生這種事
 				
-		List<String> allStatuses = new ArrayList<>(shipStatuses);
-		Collections.addAll(allStatuses, 作廢);
-		List<String> copyStatuses = new ArrayList<>(allStatuses);
-		allStatuses.forEach(oldStatus->{
-			copyStatuses.forEach(newStatus->{
+		List<String> oldStatuses = new ArrayList<>(shipStatuses); // 所有狀態當作「舊」狀態，包含作廢
+		Collections.addAll(oldStatuses, 作廢);
+		List<String> newStatuses = new ArrayList<>(oldStatuses); // 所有狀態當作「新」狀態，包含作廢
+		oldStatuses.forEach(oldStatus->{
+			newStatuses.forEach(newStatus->{
 				int stockChanged = serv.getStockChanged(ACTION_UPDATE, oldStatus, newStatus);
-				if(oldStatus != newStatus){
-					if(oldStatus != null && oldStatus.contains(作廢)){
+				if(oldStatus != newStatus){// 新舊不同狀態
+					if(oldStatus.contains(作廢)){ // 舊狀態為「作廢」便減庫存1
 						assertEquals(-1, stockChanged);
-					}else if(newStatus != null && newStatus.contains(作廢)){
+					}else if(newStatus.contains(作廢)){ // 新狀態為「作廢」便加庫存1
 						assertEquals(1, stockChanged);
 					}
 				}else{
