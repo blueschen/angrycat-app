@@ -686,8 +686,14 @@
 					var status = (e && e.xhr && e.xhr.status) ? e.xhr.status : null;
 					defaultResponseHandler(status);
 					if(status != 200){
+						var regex = /<body><h1>.*Exception:\s(.*)<\/h1>/;
+						var rs = regex.exec(e.xhr.responseText);
+						var msg = e.xhr.responseText;
+						if(rs && rs.length >= 2){
+							msg = new DOMParser().parseFromString(rs[1], "text/html").documentElement.textContent;							
+						}
 						$(updateInfoWindowId).data("kendoWindow")
-							.content("<h3 style='color:red;'>主機發生錯誤</h3><br><h4><xmp>"+ JSON.stringify(e) +"</xmp></h4>")
+							.content("<h3 style='color:red; width: 50%;'>主機發生錯誤code:"+ status +"</h3>"+ msg)
 							.center()
 							.open();
 					}
@@ -1071,8 +1077,15 @@
 							$(notiId).data("kendoNotification").show("條件儲存成功");
 						},
 						error: function(jqxhr){
+							var status = jqxhr.status;
+							var regex = /<body><h1>.*Exception:\s(.*)<\/h1>/;
+							var rs = regex.exec(jqxhr.responseText);
+							var msg = jqxhr.responseText;
+							if(rs && rs.length >= 2){
+								msg = new DOMParser().parseFromString(rs[1], "text/html").documentElement.textContent;							
+							}
 							$(updateInfoWindowId).data("kendoWindow")
-								.content("<h3 style='color:red;'>主機發生錯誤</h3><br><h4><xmp>"+ JSON.stringify(jqxhr.statusText) +"</xmp></h4>")
+								.content("<h3 style='color:red;'>儲存條件時主機發生錯誤code:"+ status +"</h3>"+ msg)
 								.center()
 								.open();
 						}
