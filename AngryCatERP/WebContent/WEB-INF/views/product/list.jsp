@@ -142,6 +142,7 @@
 						["seriesName",					"系列名",			150,			"string",	"contains",				uneditable,				hidden],
 						["totalStockChangeNote",		"總庫存修改備註",	150,			"string",	"contains",				null,					hidden],
 						[productCategoryFieldName,		"商品類別代號",	150,			"string",	"contains",				productCategoryField,	productCategoryColumn,	productCategoryEditor],
+						["warning",						"訊息",			150,			"string",	"eq",					null,					hidden],
 						[opts.pk,						"Product ID",	150,			"string",	"eq",					uneditable,				hidden]
 					];
 				return fields;
@@ -166,11 +167,6 @@
 					});
 				};
 				mainGrid.bind("dataBound", clkDisplayImg);
-				
-				var showStockWarning = function(e){
-					//console.log("showStockWarning...");
-				};
-				mainGrid.bind("dataBound", showStockWarning);
 				
 				var checkStock = function(taobao, total){
 					var msg = "";
@@ -266,6 +262,7 @@
 								}else{//減淘寶庫存
 									dataItem.set("warning", "taobao_-_"+(-diff));
 								}
+								console.log("dataItem warning: " + dataItem.get("warning"));
 							}
 						}
 					}
