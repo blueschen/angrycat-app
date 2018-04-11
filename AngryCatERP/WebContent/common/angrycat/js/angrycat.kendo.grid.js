@@ -690,7 +690,9 @@
 						var rs = regex.exec(e.xhr.responseText);
 						var msg = e.xhr.responseText;
 						if(rs && rs.length >= 2){
-							msg = new DOMParser().parseFromString(rs[1], "text/html").documentElement.textContent;							
+							var txt = document.createElement("textarea");
+						    txt.innerHTML = rs[1];
+							msg = txt.value;							
 						}
 						$(updateInfoWindowId).data("kendoWindow")
 							.content("<h3 style='color:red; width: 50%;'>主機發生錯誤code:"+ status +"</h3>"+ msg)
@@ -1082,7 +1084,9 @@
 							var rs = regex.exec(jqxhr.responseText);
 							var msg = jqxhr.responseText;
 							if(rs && rs.length >= 2){
-								msg = new DOMParser().parseFromString(rs[1], "text/html").documentElement.textContent;							
+								var txt = document.createElement("textarea");
+							    txt.innerHTML = rs[1];
+								msg = txt.value;	
 							}
 							$(updateInfoWindowId).data("kendoWindow")
 								.content("<h3 style='color:red;'>儲存條件時主機發生錯誤code:"+ status +"</h3>"+ msg)
