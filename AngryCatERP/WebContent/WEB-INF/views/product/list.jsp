@@ -283,9 +283,9 @@
 								dataItem.set("totalStockChangeNote", response);
 								var diff = dirtyTotalQty[id] - undirtyTotalQty[id];
 								if(diff > 0){//加總庫存
-									dataItem.set("warning", "tatal_+_" + diff);
+									dataItem.set("warning", "total_+_" + diff);
 								}else{//減總庫存
-									dataItem.set("warning", "tatal_-_" + (-diff));
+									dataItem.set("warning", "total_-_" + (-diff));
 								}
 							}
 						}
