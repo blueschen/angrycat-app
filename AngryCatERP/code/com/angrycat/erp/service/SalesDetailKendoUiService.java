@@ -148,6 +148,20 @@ public class SalesDetailKendoUiService extends
 		
 		stock = getStockChanged(action, oldStatus, newStatus);
 		p.setTotalStockQty(p.getTotalStockQty()+stock);
+		if(SalesDetail.SALE_POINT_ESLITE_TAOBAO.equals(sd.getSalePoint())){
+			p.setTaobaoStockQty(p.getTaobaoStockQty()+stock);
+			if(stock > 0){
+				p.setWarning(ProductKendoUiService.ADD_TAOBAO + stock);
+			}else if(stock < 0){
+				p.setWarning(ProductKendoUiService.SUBTRACT_TAOBAO + (-stock));
+			}
+		}else{
+			if(stock > 0){
+				p.setWarning(ProductKendoUiService.ADD_TOTAL + stock);
+			}else if(stock < 0){
+				p.setWarning(ProductKendoUiService.SUBTRACT_TOTAL + (-stock));
+			}
+		}
 		
 		if(stock != 0){
 			p.setTotalStockChangeNote(ProductKendoUiService.genTotalStockChangeNote(action, "銷售明細"+saleId, stock));
