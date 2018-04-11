@@ -99,6 +99,9 @@ public class Product {
 	 */
 	@Transient
 	public String getModelIdAdjusted(){
+		if(modelId == null){
+			return null;
+		}
 		String modelIdAdjusted = modelId.replace(" ", "");
 		if(modelIdAdjusted.contains("(")){
 			int startIdx = modelIdAdjusted.indexOf("(");
@@ -141,7 +144,6 @@ public class Product {
 	public void setTotalStockChangeNote(String totalStockChangeNote) {
 		this.totalStockChangeNote = totalStockChangeNote;
 	}
-	@Transient
 	public String getWarning() {
 		return warning;
 	}
