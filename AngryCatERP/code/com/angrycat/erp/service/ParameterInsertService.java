@@ -73,7 +73,7 @@ public class ParameterInsertService {
 			.add("粉絲團")
 			.add("商店")
 			.add("私訊")
-			.add(SalesDetail.SALE_POINT_ESLITE_TAOBAO)
+			.add(SalesDetail.SALE_POINT_TAOBAO)
 		
 		,new Parameters("折扣別", s,		"discount")
 			.add("VIP9折",		"0.9")
