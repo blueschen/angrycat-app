@@ -2,8 +2,11 @@ package com.angrycat.erp.service;
 
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.function.BiFunction;
 import java.util.function.Function;
 import java.util.stream.Collectors;
@@ -42,6 +45,7 @@ public class SalesDetailKendoUiService extends
 		List<Product> products = findProducts(targets, s);
 		s.clear(); // 之後如果再度查詢，應該要拿資料庫而非記憶體當中的，所以清掉記憶體佔存的products；這個動作可以確保之後異動記錄抓到新舊資料差異。
 		List<Product> productsUpdated = new ArrayList<>();
+		List<String> msgs = new ArrayList<>();
 		IntStream.range(0, products.size())
 			.boxed()
 			.forEachOrdered(i->{
@@ -51,10 +55,23 @@ public class SalesDetailKendoUiService extends
 					return;
 				}
 				int stockChanged = updateStock(ACTION_DELETE, sd, p, null);
+				if(StringUtils.isNotBlank(p.getWarning())){
+					msgs.add(p.getWarning());
+				}
 				if(stockChanged != 0){
 					productsUpdated.add(p);
 				}
 			});
+		
+		// 刪除的時候，只有兩種情況: 加回庫存或者不異動庫存
+		// 由於錯誤只可能發生在減庫存的情況，所以理論上此處並不需要檢核
+		// 但還是保留程式
+		if(msgs.size() > 0){
+			String errMsg = "<h4>刪除銷售明細時修改庫存狀態有誤:</h4>";
+			errMsg += msgs.stream().map(m->"<h4>" + m + "</h4>").collect(Collectors.joining());
+			throw new RuntimeException(errMsg);
+		}
+		
 		productKendoUiService.batchSaveOrMerge(productsUpdated, null, s);
 		return results;
 	}
@@ -75,6 +92,7 @@ public class SalesDetailKendoUiService extends
 		// 銷售明細先儲存，是為了得到id
 		List<SalesDetail> details = super.batchSaveOrMerge(targets, before);
 		List<Product> productsUpdated = new ArrayList<>();
+		List<String> msgs = new ArrayList<>();
 		IntStream.range(0, products.size())
 			.boxed()
 			.forEachOrdered(i->{
@@ -93,40 +111,83 @@ public class SalesDetailKendoUiService extends
 					oldSaleStatus = oldDetail.getSaleStatus();
 				}
 				int stockChanged = updateStock(action, sd, p, oldSaleStatus);
+				if(StringUtils.isNotBlank(p.getWarning())){
+					msgs.add(p.getWarning());
+				}
 				if(stockChanged != 0){// 不一定每個銷售明細對應的商品庫存都有異動，有異動才更新
-					productsUpdated.add(p);// TODO 要考量針對同一商品連續異動庫存的狀況
+					productsUpdated.add(p);
 				}
 			});
+		
+		if(msgs.size() > 0){
+			String errMsg = "<h4>異動銷售明細時修改庫存狀態有誤:</h4>";
+			errMsg += msgs.stream().map(m->"<h4>" + m + "</h4>").collect(Collectors.joining());
+			throw new RuntimeException(errMsg);
+		}
 		
 		productKendoUiService.batchSaveOrMerge(productsUpdated, null, s);
 		return details;
 	}
 	/**
-	 * 以型號查詢與銷售明細順序一致的商品<br>
-	 * 銷售明細有可能不會對應到商品<br>
-	 * 或者其提供的型號沒有查到商品<br>
-	 * 在上述兩種情況下<br>
-	 * 會以null值呈現
+	 * 以型號查詢與銷售明細順序一致的商品。<br>
+	 * 銷售明細有可能不會對應到商品，<br>
+	 * 或者其提供的型號沒有查到商品，<br>
+	 * 在上述兩種情況下，<br>
+	 * 會以null值呈現商品。<br>
+	 * 相同商品的參照應一致，<br>
+	 * 這可以確保針對同一商品多次修改庫存結果符合預期
 	 * @param targets
 	 * @param s
 	 * @return
 	 */
 	public List<Product> findProducts(List<SalesDetail> targets, Session s){
-		String queryProduct = "SELECT p FROM " + Product.class.getName() + " p WHERE p.modelId = :modelId";
-		// 此處要確保記憶體中銷售明細和產品順序的一致性，所以用HQL只能一個一個查
-		List<Product> products = 
-			targets
-				.stream()
-				.map(sd->{
-					String modelId = sd.getModelId();
-					if(StringUtils.isBlank(modelId)){// 沒有提供型號，視作無效商品
-						return null;
-					}
-					// 查到一筆或者沒有結果
-					return (Product)s.createQuery(queryProduct).setString("modelId", modelId).uniqueResult();
-					})
-				.collect(Collectors.toList());
-		return products;		
+		List<String> modelIds = new ArrayList<>();
+		for(SalesDetail sd : targets){
+			String modelId = sd.getModelId();
+			if(modelId != null){
+				modelId = modelId.trim();
+			}
+			modelIds.add(modelId); // 如果有null也要保留
+		}
+		
+		Set<String> existedIds = new HashSet<>(modelIds);
+		existedIds.remove(null);
+		existedIds.remove("");
+		
+		String q = "SELECT DISTINCT p FROM " + Product.class.getName() + " p WHERE p.modelId IN (:ids)";
+		List<Product> founds = s.createQuery(q).setParameterList("ids", existedIds).list();
+		Map<String, Product> mapProd = new HashMap<>();
+		for(Product f : founds){
+			s.evict(f);
+			mapProd.put(f.getModelId(), f);
+		}
+		
+		List<Product> prods = new ArrayList<>();
+		for(String modelId : modelIds){
+			Product prod = null;
+			if(modelId != null && modelId != ""){
+				prod = mapProd.get(modelId);
+			}
+			prods.add(prod);
+		}
+		
+		return prods;
+		
+//		String queryProduct = "SELECT p FROM " + Product.class.getName() + " p WHERE p.modelId = :modelId";
+//		// 此處要確保記憶體中銷售明細和產品順序的一致性，所以用HQL只能一個一個查
+//		List<Product> products = 
+//			targets
+//				.stream()
+//				.map(sd->{
+//					String modelId = sd.getModelId();
+//					if(StringUtils.isBlank(modelId)){// 沒有提供型號，視作無效商品
+//						return null;
+//					}
+//					// 查到一筆或者沒有結果
+//					return (Product)s.createQuery(queryProduct).setString("modelId", modelId).uniqueResult();
+//					})
+//				.collect(Collectors.toList());
+//		return products;		
 	}
 	/**
 	 * 如果商品需要更動庫存<br>
@@ -134,7 +195,8 @@ public class SalesDetailKendoUiService extends
 	 * 之後回傳更動庫存數<br>
 	 * 1代表庫存加1<br>
 	 * -1代表庫存扣1<br>
-	 * 0代表庫存不變
+	 * 0代表庫存不變<br>
+	 * 另一個重點在於依據修改庫存的狀態提供不同的訊息
 	 * @param action
 	 * @param sd
 	 * @param p
@@ -148,44 +210,80 @@ public class SalesDetailKendoUiService extends
 		
 		stock = getStockChanged(action, oldStatus, newStatus);
 		p.setTotalStockQty(p.getTotalStockQty()+stock);
-		if(SalesDetail.SALE_POINT_ESLITE_TAOBAO.equals(sd.getSalePoint())){
+		String modelId = StringUtils.isNotBlank(p.getModelId()) ? p.getModelId() : p.getId();
+		String msg = null;
+		if(SalesDetail.SALE_POINT_TAOBAO.equals(sd.getSalePoint())){ // 淘寶庫存
 			p.setTaobaoStockQty(p.getTaobaoStockQty()+stock);
-			if(stock > 0){
-				p.setWarning(ProductKendoUiService.ADD_TAOBAO + stock);
-			}else if(stock < 0){
-				p.setWarning(ProductKendoUiService.SUBTRACT_TAOBAO + (-stock));
+			if(stock < 0){ // 減淘寶庫存需要檢核
+				if(p.getTaobaoStockQty() < 0){
+					msg = "減去"+modelId+"淘寶庫存1:淘寶庫存會小於0";
+				}
+				if(p.getTotalStockQty() < 0){
+					if(p.getTaobaoStockQty() < 0){
+						msg += ",總庫存跟著連動會小於0";
+					}else{
+						msg = "減去"+modelId+"淘寶庫存1:總庫存跟著連動會小於0";
+					}
+				}
 			}
-		}else{
-			if(stock > 0){
-				p.setWarning(ProductKendoUiService.ADD_TOTAL + stock);
-			}else if(stock < 0){
-				p.setWarning(ProductKendoUiService.SUBTRACT_TOTAL + (-stock));
+		}else{ // 總庫存
+			if(stock < 0){ // 減總庫存需要檢核
+				if(p.getTotalStockQty() < 0){
+					msg = "減去"+modelId+"總庫存1:總庫存會小於0";
+				}else if(p.getTotalStockQty() < p.getTaobaoStockQty()){
+					msg = "減去"+modelId+"總庫存1:淘寶庫存已大於總庫存";
+				}
 			}
 		}
 		
-		if(stock != 0){
+		if(StringUtils.isNotBlank(msg)){
+			p.setWarning(msg); // 這種格式就不會觸動Product模組內建檢核異動庫存機制，畢竟銷售明細處理庫存的方式不一樣
+		}
+		
+		if(stock != 0){// TODO 如果是異動淘寶庫存要另外標註
 			p.setTotalStockChangeNote(ProductKendoUiService.genTotalStockChangeNote(action, "銷售明細"+saleId, stock));
 		}
 		return stock;
 	}
+	
 	int getStockChanged(String action, String oldStatus, String newStatus){
-		int stockChanged = 0;
+		/* 	
+		 * 如果新增時允許銷售狀態為null，會衍生幾種狀態：
+		 * 	新增時銷售狀態可為null，庫存不動
+		 * 	修改時如果舊的銷售狀態不為null：
+		 * 		無法改為null(目前頁面的設計如此)
+		 * 		可選「作廢」加回庫存，庫存加1
+		 * 	修改時銷售狀態可從null改成其他新狀態：
+		 * 		改成作廢，庫存不動
+		 * 		改成其他狀態，庫存減1
+		 * 	刪除時狀態可能是null或非null：
+		 * 		若為null，庫存不動
+		 * 		若為作廢，庫存不動
+		 * 		若為其他狀態，庫存加1
+		 */
 		if(action.equals(ACTION_NEW)){
-			if(null == newStatus){
-				throw new IllegalArgumentException(ACTION_NEW + " 的時候，應提供狀態");
-			}else if(null != newStatus && newStatus.contains(STATUS_INVALID)){
-				throw new IllegalArgumentException(ACTION_NEW + " 的時候，" + "銷售狀態不應為: " + STATUS_INVALID);
+			if(null == newStatus || newStatus.contains(STATUS_INVALID)){
+				//throw new IllegalArgumentException(ACTION_NEW + " 的時候，應提供狀態");
+				//throw new IllegalArgumentException(ACTION_NEW + " 的時候，" + "銷售狀態不應為: " + STATUS_INVALID);
+				return 0;
 			}
-			stockChanged = -1;
-		}else if(action.equals(ACTION_DELETE) && null != newStatus && !newStatus.contains(STATUS_INVALID)){
-			stockChanged = 1;
-		}else if(action.equals(ACTION_UPDATE) && oldStatus != newStatus){
-			if(null != oldStatus && oldStatus.contains(STATUS_INVALID)){
-				stockChanged = -1;
-			}else if(null != newStatus && newStatus.contains(STATUS_INVALID)){
-				stockChanged = 1;
+			return -1;
+		}
+		if(action.equals(ACTION_DELETE)){
+			if(null == newStatus || newStatus.contains(STATUS_INVALID)){
+				return 0;
+			}
+			return 1;
+		}
+		if(action.equals(ACTION_UPDATE) && oldStatus != newStatus){
+			if((oldStatus == null && !newStatus.contains(STATUS_INVALID)) 
+			|| (oldStatus != null && oldStatus.contains(STATUS_INVALID))){
+				return -1;
+			}
+			if(oldStatus != null && newStatus.contains(STATUS_INVALID)){
+				return 1;
 			}
 		}
-		return stockChanged;
+		return 0;
 	}
 }
