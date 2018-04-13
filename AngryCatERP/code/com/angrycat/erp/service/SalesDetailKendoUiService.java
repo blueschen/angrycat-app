@@ -60,17 +60,17 @@ public class SalesDetailKendoUiService extends
 				}
 				if(stockChanged != 0){
 					productsUpdated.add(p);
+					
+					// 刪除的時候，只有兩種情況: 加回庫存或者不異動庫存
+					// 由於錯誤只可能發生在減庫存的情況，所以理論上此處並不需要檢核
+					// 但還是保留程式
+					if(msgs.size() > 0){
+						String errMsg = "<h4>刪除銷售明細時修改庫存狀態有誤:</h4>";
+						errMsg += msgs.stream().map(m->"<h4>" + m + "</h4>").collect(Collectors.joining());
+						throw new RuntimeException(errMsg);
+					}
 				}
 			});
-		
-		// 刪除的時候，只有兩種情況: 加回庫存或者不異動庫存
-		// 由於錯誤只可能發生在減庫存的情況，所以理論上此處並不需要檢核
-		// 但還是保留程式
-		if(msgs.size() > 0){
-			String errMsg = "<h4>刪除銷售明細時修改庫存狀態有誤:</h4>";
-			errMsg += msgs.stream().map(m->"<h4>" + m + "</h4>").collect(Collectors.joining());
-			throw new RuntimeException(errMsg);
-		}
 		
 		productKendoUiService.batchSaveOrMerge(productsUpdated, null, s);
 		return results;
@@ -100,7 +100,7 @@ public class SalesDetailKendoUiService extends
 				if(null == p){
 					return;
 				}
-				SalesDetail sd = targets.get(i);
+				SalesDetail sd = details.get(i);
 				SalesDetail oldDetail = oldDetailMap.get(sd.getId());
 				String action = null;
 				String oldSaleStatus = null;
@@ -113,17 +113,17 @@ public class SalesDetailKendoUiService extends
 				int stockChanged = updateStock(action, sd, p, oldSaleStatus);
 				if(StringUtils.isNotBlank(p.getWarning())){
 					msgs.add(p.getWarning());
+					
+					if(msgs.size() > 0){ // 原本是收集所有錯誤之後一次丟出，現在改為一發現有誤，立刻針對該筆庫存丟出錯誤，此舉是為了簡化連動庫存處理的複雜性
+						String errMsg = "<h4>異動銷售明細時修改庫存狀態有誤:</h4>";
+						errMsg += msgs.stream().map(m->"<h4>" + m + "</h4>").collect(Collectors.joining());
+						throw new RuntimeException(errMsg);
+					}
 				}
 				if(stockChanged != 0){// 不一定每個銷售明細對應的商品庫存都有異動，有異動才更新
 					productsUpdated.add(p);
 				}
 			});
-		
-		if(msgs.size() > 0){
-			String errMsg = "<h4>異動銷售明細時修改庫存狀態有誤:</h4>";
-			errMsg += msgs.stream().map(m->"<h4>" + m + "</h4>").collect(Collectors.joining());
-			throw new RuntimeException(errMsg);
-		}
 		
 		productKendoUiService.batchSaveOrMerge(productsUpdated, null, s);
 		return details;
@@ -165,7 +165,7 @@ public class SalesDetailKendoUiService extends
 		List<Product> prods = new ArrayList<>();
 		for(String modelId : modelIds){
 			Product prod = null;
-			if(modelId != null && modelId != ""){
+			if(StringUtils.isNotBlank(modelId)){
 				prod = mapProd.get(modelId);
 			}
 			prods.add(prod);
@@ -209,40 +209,65 @@ public class SalesDetailKendoUiService extends
 		String saleId = sd.getId();
 		
 		stock = getStockChanged(action, oldStatus, newStatus);
+		if(stock == 0){
+			return stock;
+		}
+		
 		p.setTotalStockQty(p.getTotalStockQty()+stock);
 		String modelId = StringUtils.isNotBlank(p.getModelId()) ? p.getModelId() : p.getId();
 		String msg = null;
+		
+		String stockMsg = modelId;
+		if(SalesDetail.SALE_POINT_TAOBAO.equals(sd.getSalePoint())){
+			stockMsg += "淘寶(總)";			
+		}else{
+			stockMsg += "總";
+		}
+		stockMsg += "庫存";
+		if(stock > 0){
+			stockMsg += ("+" + stock);
+		}else{
+			stockMsg += ("-" + (-stock));
+		}
+		
 		if(SalesDetail.SALE_POINT_TAOBAO.equals(sd.getSalePoint())){ // 淘寶庫存
 			p.setTaobaoStockQty(p.getTaobaoStockQty()+stock);
 			if(stock < 0){ // 減淘寶庫存需要檢核
 				if(p.getTaobaoStockQty() < 0){
-					msg = "減去"+modelId+"淘寶庫存1:淘寶庫存會小於0";
+					msg = stockMsg + ":淘寶庫存會小於0";
 				}
 				if(p.getTotalStockQty() < 0){
 					if(p.getTaobaoStockQty() < 0){
 						msg += ",總庫存跟著連動會小於0";
 					}else{
-						msg = "減去"+modelId+"淘寶庫存1:總庫存跟著連動會小於0";
+						msg = stockMsg + ":總庫存跟著連動會小於0";
 					}
 				}
 			}
 		}else{ // 總庫存
 			if(stock < 0){ // 減總庫存需要檢核
 				if(p.getTotalStockQty() < 0){
-					msg = "減去"+modelId+"總庫存1:總庫存會小於0";
+					msg = stockMsg + ":總庫存會小於0";
 				}else if(p.getTotalStockQty() < p.getTaobaoStockQty()){
-					msg = "減去"+modelId+"總庫存1:淘寶庫存已大於總庫存";
+					msg = stockMsg + ":淘寶庫存已大於總庫存";
 				}
 			}
 		}
 		
+		String msgTitle = "銷售明細" + saleId;
+		
 		if(StringUtils.isNotBlank(msg)){
-			p.setWarning(msg); // 這種格式就不會觸動Product模組內建檢核異動庫存機制，畢竟銷售明細處理庫存的方式不一樣
+			msg = msgTitle + "_" + msg;
+			p.setWarning(msg);// 這種格式就不會觸動Product模組內建檢核異動庫存機制，畢竟銷售明細處理庫存的方式不一樣
 		}
 		
-		if(stock != 0){// TODO 如果是異動淘寶庫存要另外標註
-			p.setTotalStockChangeNote(ProductKendoUiService.genTotalStockChangeNote(action, "銷售明細"+saleId, stock));
+		// TODO 如果是異動淘寶庫存要另外標註
+		String changeNote = p.getTotalStockChangeNote();
+		String currentNote = ProductKendoUiService.genTotalStockChangeNote(action, msgTitle, stock);
+		if(StringUtils.isNotBlank(changeNote)){
+			currentNote = changeNote + ";" + currentNote;
 		}
+		p.setTotalStockChangeNote(currentNote);
 		return stock;
 	}
 	
