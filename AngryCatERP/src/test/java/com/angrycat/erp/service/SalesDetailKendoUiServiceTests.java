@@ -173,7 +173,7 @@ public class SalesDetailKendoUiServiceTests {
 							System.out.println("oldStatus" + cancels + oldStatus + "->" + newStatus + ":" + "異動淘寶庫存: "+ stockChanged);
 						}else{
 							assertEquals(-1, stockChanged);
-							assertEquals("減去prod001淘寶庫存1:淘寶庫存會小於0", warning);
+							assertEquals("銷售明細sd001_prod001淘寶(總)庫存-1:淘寶庫存會小於0", warning);
 							System.out.println("oldStatus" + cancels + oldStatus + "->" + newStatus + ":" + "異動淘寶庫存: "+ stockChanged + "("+ warning +")");
 						}
 					}else{
@@ -228,10 +228,10 @@ public class SalesDetailKendoUiServiceTests {
 						}else{
 							assertEquals(-1, stockChanged);
 							if(p.getTotalStockQty() < 0){
-								assertEquals("減去prod001總庫存1:總庫存會小於0", warning);
+								assertEquals("銷售明細sd001_prod001總庫存-1:總庫存會小於0", warning);
 								System.out.println("oldStatus" + cancels + oldStatus + "->" + newStatus + ":" + "異動總庫存: "+ stockChanged + "("+ warning +")");
 							}else if(p.getTotalStockQty() < p.getTaobaoStockQty()){
-								assertEquals("減去prod001總庫存1:淘寶庫存已大於總庫存", warning);
+								assertEquals("銷售明細sd001_prod001總庫存-1:淘寶庫存已大於總庫存", warning);
 								System.out.println("oldStatus" + cancels + oldStatus + "->" + newStatus + ":" + "異動總庫存: "+ stockChanged + "("+ warning +")");
 							}
 						}
@@ -279,7 +279,7 @@ public class SalesDetailKendoUiServiceTests {
 			if(!cancels.contains(newStatus)){
 				assertEquals(-1, stockChanged);
 				String warning = p.getWarning();
-				assertEquals("減去prod001淘寶庫存1:淘寶庫存會小於0", warning);
+				assertEquals("銷售明細sd001_prod001淘寶(總)庫存-1:淘寶庫存會小於0", warning);
 				System.out.println(cancels + newStatus + ":" + "異動淘寶庫存: "+ stockChanged + "("+warning+")");
 			}else{
 				assertEquals(0, stockChanged);
@@ -318,7 +318,7 @@ public class SalesDetailKendoUiServiceTests {
 			if(!cancels.contains(newStatus)){
 				assertEquals(-1, stockChanged);
 				String warning = p.getWarning();
-				assertEquals("減去prod001總庫存1:總庫存會小於0", warning);
+				assertEquals("銷售明細sd001_prod001總庫存-1:總庫存會小於0", warning);
 				System.out.println(cancels + newStatus + ":" + "異動總庫存: "+ stockChanged + "("+warning+")");
 			}else{
 				assertEquals(0, stockChanged);
