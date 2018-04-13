@@ -224,6 +224,7 @@ public class SalesDetailKendoUiService extends
 			stockMsg += "總";
 		}
 		stockMsg += "庫存";
+		String stockType = stockMsg;
 		if(stock > 0){
 			stockMsg += ("+" + stock);
 		}else{
@@ -263,7 +264,7 @@ public class SalesDetailKendoUiService extends
 		
 		// TODO 如果是異動淘寶庫存要另外標註
 		String changeNote = p.getTotalStockChangeNote();
-		String currentNote = ProductKendoUiService.genTotalStockChangeNote(action, msgTitle, stock);
+		String currentNote = ProductKendoUiService.genTotalStockChangeNote(action, msgTitle, stock, stockType);
 		if(StringUtils.isNotBlank(changeNote)){
 			currentNote = changeNote + ";" + currentNote;
 		}
