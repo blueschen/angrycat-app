@@ -20,7 +20,7 @@ public class SalesDetail {
 	@Transient
 	public static final String SALE_POINT_ESLITE_DUNNAN = "敦南誠品";
 	@Transient
-	public static final String SALE_POINT_ESLITE_TAOBAO = "淘寶";
+	public static final String SALE_POINT_TAOBAO = "淘寶";
 	
 	private String id;
 	private Member member;
