@@ -204,18 +204,21 @@ public class ProductKendoUiService extends KendoUiService<Product, Product> {
 	MagentoProductService getMagentoProductService(){
 		return magentoProductService;
 	}
-	public static String genTotalStockChangeNote(String action, String title, int stockChanged){
+	public static String genTotalStockChangeNote(String action, String title, int stockChanged, String stockType){
 		if(stockChanged == 0){
 			return null;
+		}
+		if(StringUtils.isBlank(stockType)){
+			stockType = "總庫存";
 		}
 		List<String> template = new ArrayList<>();
 		template.add(action);
 		template.add(title);
 		if(stockChanged > 0){
-			template.add("總庫存+"+stockChanged);
+			template.add(stockType + "+" + stockChanged);
 		}
 		if(stockChanged < 0){
-			template.add("總庫存"+stockChanged);
+			template.add(stockType + stockChanged);
 		}
 		String note = "產生自:"+StringUtils.join(template, "_");
 		return note;
