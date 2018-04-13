@@ -162,7 +162,7 @@ public class PurchaseBillController extends
 				int addedStock = stockAdded.get(p.getModelId());
 				int newStock = oriStock + addedStock;
 				p.setTotalStockQty(newStock);
-				p.setTotalStockChangeNote(ProductKendoUiService.genTotalStockChangeNote(SalesDetailKendoUiService.ACTION_NEW, "進貨單"+target.getNo(), addedStock));
+				p.setTotalStockChangeNote(ProductKendoUiService.genTotalStockChangeNote(SalesDetailKendoUiService.ACTION_NEW, "進貨單"+target.getNo(), addedStock, null));
 			});
 			productKendoUiService.batchSaveOrMerge(products, null, s);
 		});
