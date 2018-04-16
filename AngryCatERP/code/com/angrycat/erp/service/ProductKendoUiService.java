@@ -220,7 +220,7 @@ public class ProductKendoUiService extends KendoUiService<Product, Product> {
 		if(stockChanged < 0){
 			template.add(stockType + stockChanged);
 		}
-		String note = "產生自:"+StringUtils.join(template, "_");
+		String note = StringUtils.join(template, "_");
 		return note;
 	}
 	public class ProductStockReport{
