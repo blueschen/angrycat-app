@@ -262,12 +262,7 @@ public class SalesDetailKendoUiService extends
 			p.setWarning(msg);// 這種格式就不會觸動Product模組內建檢核異動庫存機制，畢竟銷售明細處理庫存的方式不一樣
 		}
 		
-		// TODO 如果是異動淘寶庫存要另外標註
-		String changeNote = p.getTotalStockChangeNote();
 		String currentNote = ProductKendoUiService.genTotalStockChangeNote(action, msgTitle, stock, stockType);
-		if(StringUtils.isNotBlank(changeNote)){
-			currentNote = changeNote + ";" + currentNote;
-		}
 		p.setTotalStockChangeNote(currentNote);
 		return stock;
 	}
