@@ -870,6 +870,7 @@
 						mode: "menu, row",
 						extra: true
 					},
+					allowCopy: true,
 					selectable: "multiple, cell",
 					columnMenu: true,
 					resizable: true,
