@@ -83,47 +83,49 @@ public class SalesDetailKendoUiService extends
 		Session s = sfw.currentSession();
 		String querySalesDetail = "SELECT p FROM " + SalesDetail.class.getName() + " p WHERE p.id IN (:ids)";
 		List<SalesDetail> oldDetails = updateIds.isEmpty() ? Collections.emptyList() : s.createQuery(querySalesDetail).setParameterList("ids", updateIds).list();
-		Map<String, SalesDetail> oldDetailMap = 
-			oldDetails.stream().map(d->{
-				s.evict(d);// 轉換的時候，順帶脫離session
-				return d;
-			}).collect(Collectors.toMap(d->d.getId(), Function.identity()));
+		
+		Map<String, SalesDetail> oldDetailMap = new HashMap<>();
+		for(SalesDetail oldDetail : oldDetails){
+			s.evict(oldDetail);// 轉換的時候，順帶脫離session
+			oldDetailMap.put(oldDetail.getId(), oldDetail);
+		}
+		
 		List<Product> products = findProducts(targets, s);
+		
 		// 銷售明細先儲存，是為了得到id
 		List<SalesDetail> details = super.batchSaveOrMerge(targets, before);
+		
 		List<Product> productsUpdated = new ArrayList<>();
 		List<String> msgs = new ArrayList<>();
-		IntStream.range(0, products.size())
-			.boxed()
-			.forEachOrdered(i->{
-				Product p = products.get(i);
-				if(null == p){
-					return;
+		for(int i = 0; i < products.size(); i++){
+			Product p = products.get(i);
+			if(null == p){
+				continue;
+			}
+			SalesDetail sd = details.get(i);
+			SalesDetail oldDetail = oldDetailMap.get(sd.getId());
+			String action = null;
+			String oldSaleStatus = null;
+			if(oldDetail==null){
+				action = ACTION_NEW;
+			}else{
+				action = ACTION_UPDATE;
+				oldSaleStatus = oldDetail.getSaleStatus();
+			}
+			int stockChanged = updateStock(action, sd, p, oldSaleStatus);
+			if(StringUtils.isNotBlank(p.getWarning())){
+				msgs.add(p.getWarning());
+				
+				if(msgs.size() > 0){ // 原本是收集所有錯誤之後一次丟出，現在改為一發現有誤，立刻針對該筆庫存丟出錯誤，此舉是為了簡化連動庫存處理的複雜性
+					String errMsg = "<h4>異動銷售明細時修改庫存狀態有誤:</h4>";
+					errMsg += msgs.stream().map(m->"<h4>" + m + "</h4>").collect(Collectors.joining());
+					throw new RuntimeException(errMsg);
 				}
-				SalesDetail sd = details.get(i);
-				SalesDetail oldDetail = oldDetailMap.get(sd.getId());
-				String action = null;
-				String oldSaleStatus = null;
-				if(oldDetail==null){
-					action = ACTION_NEW;
-				}else{
-					action = ACTION_UPDATE;
-					oldSaleStatus = oldDetail.getSaleStatus();
-				}
-				int stockChanged = updateStock(action, sd, p, oldSaleStatus);
-				if(StringUtils.isNotBlank(p.getWarning())){
-					msgs.add(p.getWarning());
-					
-					if(msgs.size() > 0){ // 原本是收集所有錯誤之後一次丟出，現在改為一發現有誤，立刻針對該筆庫存丟出錯誤，此舉是為了簡化連動庫存處理的複雜性
-						String errMsg = "<h4>異動銷售明細時修改庫存狀態有誤:</h4>";
-						errMsg += msgs.stream().map(m->"<h4>" + m + "</h4>").collect(Collectors.joining());
-						throw new RuntimeException(errMsg);
-					}
-				}
-				if(stockChanged != 0){// 不一定每個銷售明細對應的商品庫存都有異動，有異動才更新
-					productsUpdated.add(p);
-				}
-			});
+			}
+			if(stockChanged != 0){// 不一定每個銷售明細對應的商品庫存都有異動，有異動才更新
+				productsUpdated.add(p);
+			}
+		}
 		
 		productKendoUiService.batchSaveOrMerge(productsUpdated, null, s);
 		return details;
@@ -153,6 +155,10 @@ public class SalesDetailKendoUiService extends
 		Set<String> existedIds = new HashSet<>(modelIds);
 		existedIds.remove(null);
 		existedIds.remove("");
+		
+		if(existedIds.isEmpty()){
+			return Collections.emptyList();
+		}
 		
 		String q = "SELECT DISTINCT p FROM " + Product.class.getName() + " p WHERE p.modelId IN (:ids)";
 		List<Product> founds = s.createQuery(q).setParameterList("ids", existedIds).list();
@@ -258,6 +264,9 @@ public class SalesDetailKendoUiService extends
 		String msgTitle = "銷售明細" + saleId;
 		
 		if(StringUtils.isNotBlank(msg)){
+			if(ACTION_NEW.equals(action)){
+				msgTitle = msgTitle.replace(saleId, ""); // 這邊的錯誤會被丟出，所以新增時產生的id也會被rollback，為了讓前端取得錯誤訊息不要混淆，這裡移除id
+			}
 			msg = msgTitle + "_" + msg;
 			p.setWarning(msg);// 這種格式就不會觸動Product模組內建檢核異動庫存機制，畢竟銷售明細處理庫存的方式不一樣
 		}
