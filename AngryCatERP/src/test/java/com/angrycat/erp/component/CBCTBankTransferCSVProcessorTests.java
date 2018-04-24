@@ -72,6 +72,15 @@ public class CBCTBankTransferCSVProcessorTests {
 		System.out.println(o2);
 	}
 	@Test
+	public void toDateFromROCTime(){
+		String t1 = "106/10/29 10:32:21";
+		Date o1 = CBCTBankTransferCSVProcessor.toSqlDateFromROCTime(t1);
+		System.out.println(o1);
+		String t2 = "105/2/29 10:32:21";
+		Date o2 = CBCTBankTransferCSVProcessor.toSqlDateFromROCTime(t2);
+		System.out.println(o2);
+	}
+	@Test
 	public void retrieveTransferAccountCheck(){
 		String t1 = "0052035180045400";
 		String o1 = CBCTBankTransferCSVProcessor.retrieveTransferAccountCheck(t1);
@@ -142,6 +151,10 @@ public class CBCTBankTransferCSVProcessorTests {
 		String t5 = "";
 		Matcher m5 = CBCTBankTransferCSVProcessor.FIND_DATE.matcher(t5);
 		assertFalse(m5.matches());
+		
+		String t6 = "107/04/23 09:21:49";
+		Matcher m6 = CBCTBankTransferCSVProcessor.FIND_DATE.matcher(t6);
+		assertTrue(m6.matches());
 	}
 	@Test
 	public void removeCommaWithinNumber(){
@@ -164,6 +177,22 @@ public class CBCTBankTransferCSVProcessorTests {
 	public void importBytes() throws IOException {
 		String path = "C:\\Users\\JerryLin\\Desktop\\交易明細查詢.csv";
 		processor.importBytes(Files.readAllBytes(Paths.get(path)));
+	}
+	@Test
+	public void importBytesFromChunghwaPost() throws IOException {
+		String path = "C:\\Users\\JerryLin\\Desktop\\交易明細查詢.csv";
+		processor.importBytes(Files.readAllBytes(Paths.get(path)));
+		List<CBCTBankTransfer> csv = processor.getCsvData();
+		for(CBCTBankTransfer c : csv){
+			System.out.print(c.lineCount);
+			System.out.print("|" + c.transferDate);
+			System.out.print("|" + c.transferAmount);
+			System.out.print("|" + c.transferAccountCheck);
+			
+			
+			
+			System.out.println("-------------------------");
+		}
 	}
 	@Test
 	public void sqlDateStr(){
