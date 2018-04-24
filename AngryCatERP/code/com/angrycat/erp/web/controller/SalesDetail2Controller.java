@@ -111,11 +111,14 @@ public class SalesDetail2Controller extends
 			produces={"application/xml", "application/json"},
 			headers="Accept=*/*")
 	public @ResponseBody List<SalesDetail> batchSaveOrMerge(@RequestBody List<SalesDetail> models){
-		List<SalesDetail> results = models.stream().map(m->{// 如果用Stream的話，代表想要一筆一筆做為交易單位處理；如果直接呼叫batchSaveOrMerge的話，代表整批當作交易單位
+		// 一筆一筆做為交易單位處理；如果透過batchSaveOrMerge直接處理models的話，代表整批當作交易單位
+		/*
+		for(SalesDetail m : models){
 			salesDetailKendoUiService.batchSaveOrMerge(Arrays.asList(m), beforeSaveOrMerge());
-			return m;
-		}).collect(Collectors.toList());
-		return results;
+		}*/
+		salesDetailKendoUiService.batchSaveOrMerge(models, beforeSaveOrMerge());
+		
+		return models;
 	}
 	@Override
 	@RequestMapping(value="/deleteByIds",
