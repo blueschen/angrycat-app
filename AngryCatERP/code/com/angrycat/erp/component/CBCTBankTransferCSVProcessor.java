@@ -24,8 +24,6 @@ import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 import org.apache.commons.lang3.StringUtils;
-import org.apache.commons.lang3.builder.ReflectionToStringBuilder;
-import org.apache.commons.lang3.builder.ToStringStyle;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
@@ -56,7 +54,9 @@ public class CBCTBankTransferCSVProcessor {
 	static final Pattern ONLY_ACCOUNT = Pattern.compile(".+\\d{5}$");
 	static final Pattern ONLY_NUM_OR_COMMA = Pattern.compile("\\d+,?\\d*");
 	static final Pattern FIND_NUM_WITH_COMMA = Pattern.compile("(\"\\d+(,\\d+){1,}\")");
+	// 中國信託時間格式為106/05/01，郵局時間格式為107/04/23 09:21:49
 	static final Pattern FIND_DATE = Pattern.compile("\\d{3}/\\d{2}/\\d{2}");
+	static final Pattern FIND_DATETIME = Pattern.compile("\\d{3}/\\d{2}/\\d{2}\\s\\d{2}:\\d{2}:\\d{2}");
 	
 	@Autowired
 	private SessionFactoryWrapper sfw;
@@ -98,7 +98,9 @@ public class CBCTBankTransferCSVProcessor {
 				String depositAmount = data.get(存款金額);
 				String txDate = data.get(交易日期);
 				
-				if(!FIND_DATE.matcher(txDate).matches() // 應該有民國年交易日期
+				boolean withDate = FIND_DATE.matcher(txDate).matches(); // 民國年日期
+				boolean withDatetime  = FIND_DATETIME.matcher(txDate).matches(); // 民國年日期時間
+				if((!withDate && !withDatetime)
 				|| memo.length() < 6
 				|| !ONLY_ACCOUNT.matcher(memo).matches() // 備註要符合存款帳號後五碼格式
 				|| StringUtils.isBlank(depositAmount)
@@ -109,7 +111,12 @@ public class CBCTBankTransferCSVProcessor {
 				
 				CBCTBankTransfer cbct = new CBCTBankTransfer();
 				cbct.lineCount = count;
-				cbct.transferDate = toSqlDateFromROC(txDate);
+				if(withDate){
+					cbct.transferDate = toSqlDateFromROC(txDate);
+				}else{
+					cbct.transferDate = toSqlDateFromROCTime(txDate);
+				}
+				
 				cbct.rocDate = txDate;
 				cbct.transferAmount = formatNumber(depositAmount).intValue();
 				cbct.transferAccountCheck = retrieveTransferAccountCheck(memo);
@@ -155,14 +162,14 @@ public class CBCTBankTransferCSVProcessor {
 			
 			String exactQuery = "SELECT t "
 				+ "FROM " + TransferReply.class.getName() + " t "
-				+ "WHERE t.transferAccountCheck = :transferAccountCheck"
+				+ "WHERE t.transferAccountCheck LIKE :transferAccountCheck"
 				+ " AND t.transferAmount = :transferAmount"
 				+ " AND t.transferDate = :transferDate"
 				+ " AND t.billChecked = :billChecked";
 			int billCheckedCount = 0;		
 			for(CBCTBankTransfer d : data){
 				List<TransferReply> exactFound = s.createQuery(exactQuery)
-					.setString("transferAccountCheck", d.transferAccountCheck)
+					.setString("transferAccountCheck", "%" + d.transferAccountCheck)
 					.setInteger("transferAmount", d.transferAmount)
 					.setDate("transferDate", d.transferDate)
 					.setBoolean("billChecked", false) // 尚未對帳成功
@@ -187,14 +194,14 @@ public class CBCTBankTransferCSVProcessor {
 			
 			String dateOnlyNotMatch = "SELECT t "
 				+ "FROM " + TransferReply.class.getName() + " t "
-				+ "WHERE t.transferAccountCheck = :transferAccountCheck"
+				+ "WHERE t.transferAccountCheck LIKE :transferAccountCheck"
 				+ " AND t.transferAmount = :transferAmount"
 				+ " AND t.billChecked = :billChecked"
 				+ excludeIds;
 			
 			String amountOnlyNotMatch = "SELECT t "
 				+ "FROM " + TransferReply.class.getName() + " t "
-				+ "WHERE t.transferAccountCheck = :transferAccountCheck"
+				+ "WHERE t.transferAccountCheck LIKE :transferAccountCheck"
 				+ " AND t.transferDate = :transferDate"
 				+ " AND t.billChecked = :billChecked"
 				+ excludeIds;
@@ -212,7 +219,7 @@ public class CBCTBankTransferCSVProcessor {
 			
 			for(CBCTBankTransfer d : remainings){
 				List<TransferReply> dateOnlyNotMatchFound = s.createQuery(dateOnlyNotMatch)
-					.setString("transferAccountCheck", d.transferAccountCheck)
+					.setString("transferAccountCheck", "%" + d.transferAccountCheck)
 					.setInteger("transferAmount", d.transferAmount)
 					.setBoolean("billChecked", false)
 					.list();
@@ -317,6 +324,20 @@ public class CBCTBankTransferCSVProcessor {
         Locale locale = Locale.getDefault(Locale.Category.FORMAT);
         Chronology chrono = MinguoChronology.INSTANCE;
         String pattern = "yyy/M/d";
+        DateTimeFormatter df = new DateTimeFormatterBuilder().parseLenient()
+                              .appendPattern(pattern)
+                              .toFormatter()
+                              .withChronology(chrono)
+                              .withDecimalStyle(DecimalStyle.of(locale));
+        TemporalAccessor temporal = df.parse(text);
+        ChronoLocalDate cDate = chrono.date(temporal);
+        LocalDate ld = LocalDate.from(cDate);
+        return Date.valueOf(ld);
+	}
+	static Date toSqlDateFromROCTime(String text) {
+        Locale locale = Locale.getDefault(Locale.Category.FORMAT);
+        Chronology chrono = MinguoChronology.INSTANCE;
+        String pattern = "yyy/MM/dd HH:mm:ss";
         DateTimeFormatter df = new DateTimeFormatterBuilder().parseLenient()
                               .appendPattern(pattern)
                               .toFormatter()
