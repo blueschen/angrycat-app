@@ -227,7 +227,8 @@
 				{label: '會員', value: 'com.angrycat.erp.model.Member'}, 
 				{label: '銷售明細', value: 'com.angrycat.erp.model.SalesDetail'},
 				{label: '題庫', value: 'com.angrycat.erp.model.Exam'},
-				{label: '進貨', value: 'com.angrycat.erp.model.PurchaseBill'}
+				{label: '進貨', value: 'com.angrycat.erp.model.PurchaseBill'},
+				{label: '匯款回條', value: 'com.angrycat.erp.model.TransferReply'}
 			];
 			
 			self.queryAll = function(){
