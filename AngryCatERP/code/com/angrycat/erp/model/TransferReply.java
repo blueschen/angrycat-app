@@ -38,6 +38,10 @@ public class TransferReply {
 	private boolean billChecked;
 	private String computerBillCheckNote;
 	
+	// 工作註記(後台使用)
+	private String workNote;
+	
+	
 	@Id
 	@Column(name="id")
 	@GenericGenerator(name = "angrycat_transferreply_id", strategy = "com.angrycat.erp.ds.TimeUID")
@@ -173,5 +177,12 @@ public class TransferReply {
 	}
 	public void setComputerBillCheckNote(String computerBillCheckNote) {
 		this.computerBillCheckNote = computerBillCheckNote;
+	}
+	@Column(name="workNote", columnDefinition="工作註記")
+	public String getWorkNote() {
+		return workNote;
+	}
+	public void setWorkNote(String workNote) {
+		this.workNote = workNote;
 	}
 }
