@@ -106,12 +106,14 @@
 						["transferAmount",		"匯款金額",			150,			"number",	"gte"],
 						
 						["billChecked",			"對帳是否成功",		180,			"boolean",	"eq",					null,			changeBooleanFilter,			null,			kendo.template('<strong>#= billChecked ? "<span style=\'color: green;\'>'+billCheckIsTrue+'</span>" : "<span style=\'color: red;\'>'+billCheckIsFalse+'</span>" #</strong>')],
+						["workNote",			"Note",				150,			"string",	"contains",				null],
 						["computerBillCheckNote","電腦對帳",			180,			"string",	"contains"],
 						
 						["fbNickname",			"FB顯示名稱",			150,			"string",	"contains",				null],
+						["name",				"收件人真實姓名",		150,			"string",	"contains",				null],
 						["mobile",				"手機號碼",			150,			"string",	"contains"],
 						["tel",					"備用聯絡電話",		150,			"string",	"contains"],
-		       			["name",				"收件人真實姓名",		150,			"string",	"contains",				null],
+		       			
 		       			["postalCode",			"郵遞區號",			150,			"string",	"contains"],
 						["address",				"掛號收件地址",		150,			"string",	"contains"],						
 						
