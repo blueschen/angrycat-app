@@ -93,17 +93,21 @@ public class FormatListFactory {
 		f.add(new PropertyFormat("購買明細", "productDetails"));		
 		f.add(new PropertyFormat("寄送方式", "shipment"));
 		
-		f.add(new PropertyFormat("匯款至", "transferTo"));
 		f.add(new PropertyFormat("匯款帳號後5碼", "transferAccountCheck"));
 		PropertyFormat transferDate = new PropertyFormat("匯款日期", "transferDate");
 		transferDate.setDateFormat(dateFormat);
 		f.add(transferDate);
 		f.add(new PropertyFormat("匯款金額", "transferAmount"));
 		
+		f.add(new PropertyFormat("對帳是否成功", "billChecked"));
+		f.add(new PropertyFormat("Note", "workNote"));
+		f.add(new PropertyFormat("電腦對帳", "computerBillCheckNote"));
+		
 		f.add(new PropertyFormat("FB顯示名稱", "fbNickname"));
+		f.add(new PropertyFormat("收件人真實姓名", "name"));
 		f.add(new PropertyFormat("手機號碼", "mobile"));
 		f.add(new PropertyFormat("備用聯絡電話", "tel"));
-		f.add(new PropertyFormat("收件人真實姓名", "name"));
+		
 		f.add(new PropertyFormat("郵遞區號", "postalCode"));
 		f.add(new PropertyFormat("掛號收件地址", "address"));
 		
@@ -111,9 +115,8 @@ public class FormatListFactory {
 		createDate.setDateFormat(dateFormat);
 		f.add(createDate);
 		f.add(new PropertyFormat("其他備註", "note"));
+		f.add(new PropertyFormat("匯款至", "transferTo"));
 		
-		f.add(new PropertyFormat("對帳是否成功", "billChecked"));
-		f.add(new PropertyFormat("電腦對帳備註", "computerBillCheckNote"));
 		
 		return f;
 	}
