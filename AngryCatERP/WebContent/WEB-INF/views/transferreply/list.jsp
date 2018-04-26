@@ -117,7 +117,7 @@
 		       			["postalCode",			"郵遞區號",			150,			"string",	"contains"],
 						["address",				"掛號收件地址",		150,			"string",	"contains"],						
 						
-		       			["note",				"其他備註",			150,			"string",	"contains",				null,				hidden],
+		       			["note",				"其他備註",			150,			"string",	"contains",				null],
 						["createDate",			"填單時間",			150,			"date",		"gte"],
 						[opts.pk,				"TransferReply ID",	150,			"string",	"gte",					uneditable,			hidden]
 					];
@@ -271,7 +271,9 @@
 			}
 			kendoGridService.fieldsReady(fieldsReadyHandler, afterGridInitHandler);
 		})(jQuery, kendo, angrycat);
-		
+		setTimeout(function(){
+			console.log(JSON.stringify($("#mainGrid").data("kendoGrid").getOptions()));
+		}, 3000);
 	</script>
 </body>
 </html>
