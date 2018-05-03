@@ -646,7 +646,7 @@
 				if(msg){
 					console.log(msg);	
 				}
-				var successModal = $modal({content: '成功送出匯款回條', placement: defaultPlacement});
+				var successModal = $modal({content: '<h2 style="color: green;">成功送出匯款回條</h2>', placement: defaultPlacement, html: true});
 			}
 			function alertSaveFail(data){
 				//var regex = /<body><h1>.*Exception:\s(.*)<\/h1>/;
