@@ -538,7 +538,7 @@
 					jqlite.addClass(oriCss);
 				}, 3000);
 			}
-			var defaultPlacement = 'top'; // this config not working because of css definition '.modal.center .modal-dialog'
+			
 			/*
 			function alertSaveSuccess(msg){
 				var alertService = 
@@ -554,7 +554,7 @@
 					console.log(msg);	
 				}
 				submitResults('儲存成功', 'btn btn-success');
-			}*/
+			}
 			function alertSaveFail(msg){
 				var alertService = 
 					$alert({
@@ -602,7 +602,7 @@
 					console.log(msg);
 				}
 			}
-			
+			*/
 			var contactFilled = moduleName + '_contact_filled',
 				shipFilled = moduleName + '_ship_filled';
 			function assignVal(){
@@ -641,11 +641,39 @@
 				var shipCopy =  copyProp(['shipment', 'name', 'postalCode', 'address']);
 				$cookies.putObject(shipFilled, shipCopy);
 			}
+			var defaultPlacement = 'center'; // this config not working because of css definition '.modal.center .modal-dialog'
 			function alertSaveSuccess(msg){
 				if(msg){
 					console.log(msg);	
 				}
-				var myModal = $modal({content: '成功送出匯款回條', placement: 'center'});
+				var successModal = $modal({content: '成功送出匯款回條', placement: defaultPlacement});
+			}
+			function alertSaveFail(data){
+				//var regex = /<body><h1>.*Exception:\s(.*)<\/h1>/;
+				var regex = /<b>root cause<\/b><\/p><pre>.*Exception:\s(.*)(\r\n|\n|\r)/g;
+				var msg = '';
+				var rs;
+				var dataArray = [];
+				while(rs = regex.exec(data)){
+					if(rs && rs.length >= 2){
+						var txt = document.createElement("textarea");
+					    txt.innerHTML = rs[1];
+					    var d = '<br /><span>' + txt.value + '</span>';
+					    if(dataArray.indexOf(d) == -1){
+					    	dataArray.push(d);
+					    }
+					}
+				}
+				if(dataArray.length > 0){
+					msg = dataArray.join('');
+				}else{
+					msg = data;
+				}
+				
+				var failModal = $modal({content: '<h2 style="color: red;">儲存失敗:</h2>' + msg, placement: defaultPlacement, html: true});
+			}
+			function alertLastFillNotFound(){
+				var lastNotFound = $modal({content: '沒有最後填寫記錄', placement: defaultPlacement});
 			}
 			self.addNew = function(){
 				self.transferReply.id = null;
@@ -667,7 +695,7 @@
 						self.fieldsDisabled = true;
 					},
 					function(errResponse){
-						alertSaveFail(JSON.stringify(errResponse));
+						alertSaveFail(errResponse.data);
 					});
 			};
 			self.login = login;
