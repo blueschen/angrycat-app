@@ -936,6 +936,17 @@
 						dataItem = mainGrid.dataItem(editRow);
 					if(addRowInit && (typeof addRowInit === "function")){
 						addRowInit(dataItem, editRow);
+						// 直接修改dataItem，畫面上會出現dirty flag
+						// 但以tab鍵跳到下一個cell編輯模式，原來的dirty flag會消失，與預設新增的行為不同
+						// 下面這段code可以保持dirty flag
+						// 做法是替td加上k-dirty-cell
+						var cells = $("span.k-dirty").parent();
+						cells.each(function(i){
+							var ele = $(this);
+							if(ele.is("td") && !ele.is(".k-dirty-cell")){
+								ele.addClass("k-dirty-cell");
+							}
+						});
 					}
 				});
 				
