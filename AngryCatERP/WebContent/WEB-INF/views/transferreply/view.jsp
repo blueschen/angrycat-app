@@ -68,6 +68,19 @@
 	/*fix angularstrap modal background not transparent*/
 	.modal-backdrop{
 		opacity: .5;
+	}
+	/*
+		by default, angularstrap alert service don't support center position,
+		with this css definition, it can adjust position to center.
+		this css would exclude the placement config.
+	*/
+	.modal.center .modal-dialog{
+    	position:fixed;
+    	top:40%;
+    	left:50%;
+    	width:30%;
+    	-webkit-transform:translateX(-50%) translateY(-50%);
+    	transform:translateX(-50%) translateY(-50%)
 	}	
 	</style>
 </head>
@@ -525,6 +538,7 @@
 					jqlite.addClass(oriCss);
 				}, 3000);
 			}
+			var defaultPlacement = 'top'; // this config not working because of css definition '.modal.center .modal-dialog'
 			/*
 			function alertSaveSuccess(msg){
 				var alertService = 
@@ -534,7 +548,7 @@
 						show: true,
 						duration: 3,
 						container: '.alerts-container',
-						placement: 'top'});
+						placement: defaultPlacement});
 				alertService.init();
 				if(msg){
 					console.log(msg);	
@@ -550,7 +564,7 @@
 						duration: 3,
 						animation: 'am-fade-and-slide-top',
 						container: '.alerts-container',
-						placement: 'top'});
+						placement: defaultPlacement});
 				alertService.init();
 				if(msg){
 					console.log(msg);	
@@ -566,7 +580,7 @@
 						duration: 3,
 						animation: 'am-fade-and-slide-top',
 						container: '.alerts-container',
-						placement: 'top'});
+						placement: defaultPlacement});
 				alertService.init();
 			}
 			function alertMsg(msg, opts){
@@ -577,7 +591,7 @@
 					duration: 3,
 					animation: 'am-fade-and-slide-top',
 					container: '.alerts-container',
-					placement: 'top'
+					placement: defaultPlacement
 				};
 				if(opts){
 					angular.copy(opts, defaultOps);
