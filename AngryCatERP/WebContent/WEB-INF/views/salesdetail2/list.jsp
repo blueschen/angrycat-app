@@ -76,6 +76,8 @@
 					lastSelectedCondition: lastSelectedCondition,
 					addRowInit: function(dataItem, editRow){
 						dataItem.set("orderDate", new Date());
+						dataItem.set("saleStatus", parameters["銷售狀態"][0].nameDefault);
+						dataItem.set("salePoint", parameters["銷售點"][1].nameDefault);
 					},
 					lockedFlag: lockedFlag,
 					docType: "${docType}"
@@ -203,9 +205,11 @@
 				//console.log("paramFEditors: " + (paramFEditors["銷售狀態"]["filterable"]["cell"]["template"]));
 				return fields;
 			}
+			function afterGridInitHandler(mainGrid){
+			}
 			angrycat.kendoGridService
 				.init(opts)
-				.fieldsReady(fieldsReadyHandler);
+				.fieldsReady(fieldsReadyHandler, afterGridInitHandler);
 		})(jQuery, kendo, angrycat);			
 	</script>
 </body>
