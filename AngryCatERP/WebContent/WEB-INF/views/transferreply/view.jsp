@@ -673,7 +673,7 @@
 				var failModal = $modal({content: '<h2 style="color: red;">儲存失敗:</h2>' + msg, placement: defaultPlacement, html: true});
 			}
 			function alertLastFillNotFound(){
-				var lastNotFound = $modal({content: '沒有最後填寫記錄', placement: defaultPlacement});
+				var lastNotFound = $modal({content: '<h4 style="color: red;">沒有最後填寫記錄</h4>', placement: defaultPlacement, html: true});
 			}
 			self.addNew = function(){
 				self.transferReply.id = null;
