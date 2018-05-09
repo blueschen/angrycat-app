@@ -2,7 +2,42 @@
     pageEncoding="UTF-8"%>
 <%@ taglib uri="http://java.sun.com/jsp/jstl/core" prefix="c"%>
 <%@ taglib uri="http://www.springframework.org/tags/form" prefix="sf"%>
-<%@ taglib uri="http://www.springframework.org/tags" prefix="s"%>    
+<%@ taglib uri="http://www.springframework.org/tags" prefix="s"%>
+<script type="text/javascript">
+<!--
+	(function(version){
+		function getCookie(cname) {
+		    var name = cname + "=";
+		    var decodedCookie = decodeURIComponent(document.cookie);
+		    var ca = decodedCookie.split(';');
+		    for(var i = 0; i <ca.length; i++) {
+		        var c = ca[i];
+		        while (c.charAt(0) == ' ') {
+		            c = c.substring(1);
+		        }
+		        if (c.indexOf(name) == 0) {
+		            return c.substring(name.length, c.length);
+		        }
+		    }
+		    return "";
+		}
+		
+		function setCookie(cname, cvalue, exdays) {
+		    var d = new Date();
+		    d.setTime(d.getTime() + (exdays*24*60*60*1000));
+		    var expires = "expires="+ d.toUTCString();
+		    document.cookie = cname + "=" + cvalue + ";" + expires + ";path=/";
+		}
+		
+		var v_name = "deploy_version",
+			v = getCookie(v_name);
+		if(version !== v){
+			setCookie(v_name, version, 365);
+			window.location.reload(true);
+		}
+	})("${version}")
+//-->
+</script>    
 <div style="margin-bottom: 15px;">
 	<nav role="navigation" class="navbar navbar-default navbar-fixed-top" id="navbarDiv">
 		<div class="container">
