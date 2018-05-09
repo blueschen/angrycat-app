@@ -764,6 +764,122 @@
 				}
 			}
 		}
+		function markDirty(grid){
+			var headersLocked = grid.element.find('.k-grid-header-locked .k-header'),
+				headersUnlocked = grid.element.find('.k-grid-header-wrap .k-header'),
+				fieldsUnlocked = {},
+				fieldsLocked = headersLocked.length > 0 ? {} : null;
+			
+			headersLocked.each(function(i){
+				fieldsLocked[$(this).attr('data-field')] = i;
+			});
+			//console.log('headersLocked: ' + JSON.stringify(headersLocked));
+			
+			headersUnlocked.each(function(i){
+				fieldsUnlocked[$(this).attr('data-field')] = i;
+			});
+			//console.log('headersUnlocked: ' + JSON.stringify(headersUnlocked));
+			
+			var ds = grid.dataSource,
+				pristines = ds._pristineData,
+				rows = ds.data(),
+				idField = 'id';
+			
+			for(var i = 0; i < rows.length; i++){
+				var row = rows[i];
+				if(!row.dirty){
+					continue;
+				}
+
+				var trs = grid.element.find("tr[data-uid='" + row.uid + "']"); // tr可能有一或兩個
+				var rowId = row.id;
+				if(trs.length == 1){ // 沒有locked欄位						
+					if(!rowId){// 新增					
+						for(var f in fieldsUnlocked){
+							if(fieldsUnlocked.hasOwnProperty(f) && row[f]){
+								var targetIdx = fieldsUnlocked[f];
+								var td = $(trs[0]).find('td:eq('+targetIdx+')');
+								if(!td.is('.k-dirty-cell')){
+									td.addClass('k-dirty-cell')
+									  .prepend('<span class="k-dirty"></span>');
+								}
+							}
+						}
+					}else{ // 修改
+						var old = null;
+						for(var j = 0; j < pristines.length; j++){ // 找到對應的舊資料
+							var p = pristines[j];
+							if(rowId === p[idField]){
+								old = p;
+								break;
+							}
+						}
+						for(var f in fieldsUnlocked){
+							if(fieldsUnlocked.hasOwnProperty(f) && row[f] !== old[f]){
+								var targetIdx = fieldsUnlocked[f];
+								var td = $(trs[0]).find('td:eq('+targetIdx+')');
+								if(!td.is('.k-dirty-cell')){
+									td.addClass('k-dirty-cell')
+									  .prepend('<span class="k-dirty"></span>');
+								}
+							}
+						}
+					}
+				}else{ // 有locked欄位
+					if(!rowId){							
+						for(var f in fieldsUnlocked){
+							if(fieldsUnlocked.hasOwnProperty(f) && row[f]){
+								var targetIdx = fieldsUnlocked[f];
+								var td = $(trs[1]).find('td:eq('+targetIdx+')');
+								if(!td.is('.k-dirty-cell')){
+									td.addClass('k-dirty-cell')
+									  .prepend('<span class="k-dirty"></span>');
+								}
+							}
+						}
+						for(var f in fieldsLocked){
+							if(fieldsLocked.hasOwnProperty(f) && row[f]){
+								var targetIdx = fieldsLocked[f];
+								var td = $(trs[0]).find('td:eq('+targetIdx+')');
+								if(!td.is('.k-dirty-cell')){
+									td.addClass('k-dirty-cell')
+									  .prepend('<span class="k-dirty"></span>');
+								}
+							}
+						}
+					}else{
+						var old = null;
+						for(var j = 0; j < pristines.length; j++){
+							var p = pristines[j];
+							if(rowId === p[idField]){
+								old = p;
+								break;
+							}
+						}
+						for(var f in fieldsUnlocked){
+							if(fieldsUnlocked.hasOwnProperty(f) && row[f] !== old[f]){
+								var targetIdx = fieldsUnlocked[f];
+								var td = $(trs[1]).find('td:eq('+targetIdx+')');
+								if(!td.is('.k-dirty-cell')){
+									td.addClass('k-dirty-cell')
+									  .prepend('<span class="k-dirty"></span>');
+								}
+							}
+						}
+						for(var f in fieldsLocked){
+							if(fieldsLocked.hasOwnProperty(f) && row[f] !== old[f]){
+								var targetIdx = fieldsLocked[f];
+								var td = $(trs[0]).find('td:eq('+targetIdx+')');
+								if(!td.is('.k-dirty-cell')){
+									td.addClass('k-dirty-cell')
+									  .prepend('<span class="k-dirty"></span>');
+								}
+							}
+						}
+					}						
+				}
+			}			
+		}
 		function fieldsReady(callback, afterGridInit){
 			var context = this,
 				getScrollDimensions = 
@@ -940,13 +1056,17 @@
 						// 但以tab鍵跳到下一個cell編輯模式，原來的dirty flag會消失，與預設新增的行為不同
 						// 下面這段code可以保持dirty flag
 						// 做法是替td加上k-dirty-cell
+						/*
 						var cells = $("span.k-dirty").parent();
 						cells.each(function(i){
 							var ele = $(this);
 							if(ele.is("td") && !ele.is(".k-dirty-cell")){
 								ele.addClass("k-dirty-cell");
 							}
-						});
+						});*/
+						// 在連續新增的情境下，這個版本預設行為會洗掉上一個新增以及其他修改的dirty flag
+						// 所以必須自行偵測重新標示
+						markDirty(mainGrid);
 					}
 				});
 				
