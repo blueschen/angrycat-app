@@ -16,15 +16,13 @@
 	<link rel="stylesheet" href='<c:url value="/vendor/bootstrap/3.3.5/css/bootstrap-theme.css"/>'/>
 	<link rel="stylesheet" href='<c:url value="/common/spinner/spinner.css"/>'/>
 	
-	<script type="text/javascript">
-		<%@ include file="/vendor/angularjs/1.4.3/angular.min.js" %>
-		<%@ include file="/vendor/angularjs/1.4.3/i18n/angular-locale_zh-tw.js" %>
-		<%@ include file="/vendor/angular-bootstrap/ui-bootstrap-tpls-0.13.0.min.js" %>
-		<%@ include file="/common/spinner/spinner-service.js" %>
-		<%@ include file="/common/fileupload/fileupload-service.js" %>
-		<%@ include file="/common/fileupload/fileupload-ajax-directive.js" %>
-		<%@ include file="/common/ajax/ajax-service.js" %>
-	</script>
+	<script type="text/javascript" src="<c:url value="/vendor/angularjs/1.4.3/angular.min.js"/>"></script>
+	<script type="text/javascript" src="<c:url value="/vendor/angularjs/1.4.3/i18n/angular-locale_zh-tw.js"/>"></script>
+	<script type="text/javascript" src="<c:url value="/vendor/angular-bootstrap/ui-bootstrap-tpls-0.13.0.min.js"/>"></script>
+	<script type="text/javascript" src="<c:url value="/common/spinner/spinner-service.js"/>"></script>
+	<script type="text/javascript" src="<c:url value="/common/fileupload/fileupload-service.js"/>"></script>
+	<script type="text/javascript" src="<c:url value="/common/fileupload/fileupload-ajax-directive.js"/>"></script>
+	<script type="text/javascript" src="<c:url value="/common/ajax/ajax-service.js"/>"></script>
 	<script type="text/javascript" src="<c:url value="/vendor/angular-strap/2.3.1/angular-strap.min.js"/>"></script>
 	<script type="text/javascript" src="<c:url value="/vendor/angular-strap/2.3.1/angular-strap.tpl.min.js"/>"></script>
 	
