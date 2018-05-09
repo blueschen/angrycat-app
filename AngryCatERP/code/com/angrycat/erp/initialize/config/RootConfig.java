@@ -1,6 +1,7 @@
 package com.angrycat.erp.initialize.config;
 
 import java.io.File;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -42,6 +43,8 @@ import com.mchange.v2.c3p0.ComboPooledDataSource;
 public class RootConfig {
 	public static final String DEFAULT_BATCH_SIZE = "100";
 	
+	public static final String VERSION = LocalDateTime.now().toString();
+	
 	private static final String SEP = File.separator;
 	private static final String LOCAL_TOMCAT_PATH = "C:/dts/apache-tomcat-8.0.23".replace("/", SEP);
 	private static final String NAS_TOMCAT_PRODUCTION_PATH = "/usr/local/apache-tomcat-8.0.23".replace("/", SEP);
@@ -59,9 +62,9 @@ public class RootConfig {
 		//  catalina.home目前是提供log4j2設定用。如果是不啟動Tomcat的本地端測試，也可以透過這個參數，設定要操作的是本地還是NAS資料庫，dataSource會根據這個值調整拿資料庫設定，讓改變設定的地方集中在此。
 		String serverRoot = System.getProperty(CATALINA_HOME);
 		if(StringUtils.isBlank(serverRoot)){
-//			System.setProperty("catalina.home", NAS_TOMCAT_PRODUCTION_PATH);
+			//System.setProperty("catalina.home", NAS_TOMCAT_PRODUCTION_PATH);
 			System.setProperty(CATALINA_HOME, LOCAL_TOMCAT_PATH);
-//			System.setProperty("catalina.home", NAS_TOMCAT_TEST1_PATH);
+			//System.setProperty("catalina.home", NAS_TOMCAT_TEST1_PATH);
 		}
 		// 新增流水號產生器: 美國團訂單
 		GenSerialUtil.addGenerator(new DefaultSerialGenerator(AmericanGroupBuyOrderForm.SALESNO_GENERATOR_ID, sessionFactory(dataSource()).getObject()));
@@ -230,5 +233,11 @@ public class RootConfig {
 	@Scope("prototype")
 	public SqlRoot getSqlRoot(){
 		return SqlRoot.getInstance();
+	}
+	
+	@Bean
+	@Scope("prototype")
+	public String version(){
+		return VERSION;
 	}
 }
