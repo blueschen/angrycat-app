@@ -40,7 +40,6 @@
 <jsp:include page="/WEB-INF/views/navigation.jsp"></jsp:include>
 
 <div class="container-fluid">
-</div>
 	<span id="updateInfoWindow" style="display:none;"></span>
 	<div id="mainGrid"></div>
 	<div id="updateNoti"></div>
@@ -186,8 +185,8 @@
 				};
 				mainGrid.bind("saveChanges", function(e){
 					var ds = mainGrid.dataSource,
-						undirty = ds._pristineData,
-						dirty = ds._data,
+						undirty = ds._pristineData, // 代表尚未修改前的所有資料
+						dirty = ds._data, // 代表修改後的所有資料
 						undirtyTotalQty = {},
 						dirtyTotalQty = {},
 						undirtyTaobaoQty = {},
