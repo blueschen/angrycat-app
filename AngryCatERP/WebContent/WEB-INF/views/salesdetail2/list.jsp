@@ -26,14 +26,13 @@
 	<meta content="width=device-width, initial-scale=1.0" name="viewport">
 	<title>Kendo UI Grid實作銷售明細</title>
 	
-	<link rel="stylesheet" href="${kendouiStyle}/kendo.common.min.css">
-	<link rel="stylesheet" href="${kendouiStyle}/kendo.default.min.css">
+	<link rel="stylesheet" href="<c:url value="/vendor/kendoui/professional.2016.1.226.trial/styles/kendo.common.min.css"/>">
+	<link rel="stylesheet" href="<c:url value="/vendor/kendoui/professional.2016.1.226.trial/styles/kendo.default.min.css"/>">
 	
-	<link rel="stylesheet" href="${angrycatStyle}/kendo.grid.css">
+	<link rel="stylesheet" href="<c:url value="/common/angrycat/styles/kendo.grid.css"/>">
 	
-	<link rel="stylesheet" href="${bootstrapCss}/bootstrap.css">
-	<link rel="stylesheet" href="${bootstrapCss}/bootstrap-theme.css">
-	
+	<link rel="stylesheet" href="<c:url value="/vendor/bootstrap/3.3.5/css/bootstrap.css"/>">
+	<link rel="stylesheet" href="<c:url value="/vendor/bootstrap/3.3.5/css/bootstrap-theme.css"/>">
 </head>
 <body>
 
@@ -44,18 +43,18 @@
 	<div id="mainGrid"></div>
 	<div id="updateNoti"></div>
 </div>
-	<script type="text/javascript" src="${kendouiJs}/jquery.min.js"></script>
-	<script type="text/javascript" src="${kendouiJs}/kendo.web.min.js"></script>
-	<script type="text/javascript" src="${kendouiJs}/messages/kendo.messages.zh-TW.min.js"></script>
-	<script type="text/javascript" src="${bootstrapJs}/bootstrap.min.js"></script>
+	<script type="text/javascript" src="<c:url value="/vendor/kendoui/professional.2016.1.226.trial/js/jquery.min.js"/>"></script>
+	<script type="text/javascript" src="<c:url value="/vendor/kendoui/professional.2016.1.226.trial/js/kendo.web.min.js"/>"></script>
+	<script type="text/javascript" src="<c:url value="/vendor/kendoui/professional.2016.1.226.trial/js/messages/kendo.messages.zh-TW.min.js"/>"></script>
+	<script type="text/javascript" src="<c:url value="/vendor/bootstrap/3.3.5/js/bootstrap.min.js"/>"></script>
 	
-	<script type="text/javascript" src="${angrycatJs}/angrycat.js"></script>
-	<script type="text/javascript" src="${angrycatJs}/angrycat.kendo.grid.js"></script>	
+	<script type="text/javascript" src="<c:url value="/common/angrycat/js/angrycat.js"/>"></script>
+	<script type="text/javascript" src="<c:url value="/common/angrycat/js/angrycat.kendo.grid.js"/>"></script>	
 	<script type="text/javascript">
 		(function($, kendo, angrycat){"use strict"
 			var lastKendoData = ${sessionScope[kendoDataKey] == null ? "null" : sessionScope[kendoDataKey]},
 				lastSelectedCondition = ${sessionScope[selectedCondition] == null ? "null" : sessionScope[selectedCondition]},
-				parameters = ${requestScope[parameters] == null ? "null" : requestScope[parameters]},
+				parameters = ${requestScope[parameters] == null ? "null" : requestScope[parameters]},				
 				lockedFlag = true,
 				opts = {
 					moduleName: "${moduleName}",
