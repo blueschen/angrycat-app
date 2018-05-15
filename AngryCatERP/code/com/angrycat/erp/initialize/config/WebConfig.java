@@ -24,7 +24,10 @@ import org.springframework.web.multipart.support.StandardServletMultipartResolve
 import org.springframework.web.servlet.ViewResolver;
 import org.springframework.web.servlet.config.annotation.DefaultServletHandlerConfigurer;
 import org.springframework.web.servlet.config.annotation.EnableWebMvc;
+import org.springframework.web.servlet.config.annotation.ResourceHandlerRegistry;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurerAdapter;
+import org.springframework.web.servlet.resource.CssLinkResourceTransformer;
+import org.springframework.web.servlet.resource.VersionResourceResolver;
 import org.springframework.web.servlet.view.InternalResourceViewResolver;
 import org.springframework.web.servlet.view.JstlView;
 
@@ -150,5 +153,30 @@ public class WebConfig extends WebMvcConfigurerAdapter {
 		converters.add(new ByteArrayHttpMessageConverter());
 		converters.add(jacksonMessageConverter());
 		super.configureMessageConverters(converters);
+	}
+	
+	// ref. http://www.baeldung.com/cachable-static-assets-with-spring-mvc
+	// ref. https://blog.csdn.net/xiejx618/article/details/40478275
+	@Override
+	public void addResourceHandlers(ResourceHandlerRegistry registry) {
+		int oneYear = 60 * 60 * 24 * 365;
+		// origin: /js/test.js
+		// ContentVersionStrategy: /js/test-69ea0cf3b5941340f06ea65583193168.js
+		// FixedVersionStrategy: /v1.2.3/js/test.js
+	    registry.addResourceHandler("/vendor/**", "/common/**")
+	            .addResourceLocations("/vendor/", "/common/")
+	            .setCachePeriod(oneYear)
+	            .resourceChain(false)
+	            .addResolver(
+	            		new VersionResourceResolver()
+	            			.addContentVersionStrategy("/**")
+	            			//.addFixedVersionStrategy("0.0.1", "/**") // 目前使用FixedVersionStrategry某些css似乎會遇到問題
+	            )
+	            .addTransformer(new CssLinkResourceTransformer()); // css有時會@import其他的css，透過這個轉換器，可以重寫他 
+
+	    // 除了在這邊設定之外，還要加上org.springframework.web.servlet.resource.ResourceUrlEncodingFilter
+	    // 這個Filter目前是加在SecurityInitializer中
+	    
+	    // 在前端使用c:url標籤就可寫出被轉換的uri
 	}
 }
