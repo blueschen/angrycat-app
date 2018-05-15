@@ -1,8 +1,11 @@
 package com.angrycat.erp.web.controller;
 
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 import javax.servlet.ServletOutputStream;
 import javax.servlet.http.HttpServletRequest;
@@ -45,11 +48,18 @@ public class ShippingController {
 		if(shippingDate != null && !"".equals(shippingDate.trim())){
 			options = new HashMap<>();
 			options.put("shippingDate", shippingDate.trim());
-		}		
-		byte[] outputData = uploadTargetFixed != null && uploadTargetFixed.length > 0 
-			? ShippingDetailsProcessor.renderXlsx(uploadTargetFixed, options)
-			: ShippingDetailsProcessor.renderAgeteXlsx(uploadTargetSpecified, options); // TODO considering the possibility of not clearing up tmp file
+		}
 		
+		List<String> warnings = new ArrayList<>();
+		byte[] outputData = uploadTargetFixed != null && uploadTargetFixed.length > 0 
+			? ShippingDetailsProcessor.renderXlsx(uploadTargetFixed, options, warnings)
+			: ShippingDetailsProcessor.renderAgeteXlsx(uploadTargetSpecified, options, warnings); // TODO considering the possibility of not clearing up tmp file
+		
+		if(!warnings.isEmpty()){
+			System.out.println("warnings:" + warnings);
+			throw new RuntimeException(warnings.stream().map(w->"<h4>"+w+"</h4>").collect(Collectors.joining()));
+		}	
+			
 		String fileName = "details.xlsx";
 		response.setContentType(BaseQueryController.getMimeType(fileName));
 		response.setHeader("Pragma", "");
