@@ -146,10 +146,105 @@ public class MitakeSMSHttpPost {
 	/**
 	 * 只寄給自己看看簡訊對不對
 	 */
-	private static void testSendSelf(){
+	private static void testSendSortToSelf(){
 		AnnotationConfigApplicationContext acac = new AnnotationConfigApplicationContext(RootConfig.class);
 		MitakeSMSHttpPost bean = acac.getBean(MitakeSMSHttpPost.class);
 		bean.sendPostShortMsg("11/5-11/11 OHM誠品敦南專櫃滿5000送500，VIP再享9折優惠，詳情請洽02-27716304");
+		acac.close();
+	}
+	private static void testSendLongToSelf(){
+		AnnotationConfigApplicationContext acac = new AnnotationConfigApplicationContext(RootConfig.class);
+		MitakeSMSHttpPost bean = acac.getBean(MitakeSMSHttpPost.class);
+		
+		
+		String subject = "測試簡訊";
+		String content = "這是測試簡訊";
+		
+		Member m1 = new Member();
+		m1.setMobile("0972981126");
+		m1.setName("JerryLin");
+		
+		List<Member> members = Arrays.asList(m1);
+		
+		final StringBuffer sb = new StringBuffer();
+		
+		bean.sendPostShortMsg(out->{
+			int currentCount = 0;
+			int effectiveCount = 0;
+			int runtimeErrCount = 0;
+			
+			sb.append("發送清單:\n");
+			for(int i = 0; i < members.size(); i++){
+				Member member = members.get(i);
+				String mobile = member.getMobile();
+				String name = member.getName();
+				currentCount++;
+				if(bean.isMobile(mobile)){
+					++effectiveCount;
+					try{
+						byte[] config = bean.getRequiredConfig(effectiveCount, mobile, content);
+						out.write(config);
+//						out.write("".getBytes(sEncoding));
+						sb.append(name + "|" + mobile + "\n");
+					}catch(Throwable e){
+						throw new RuntimeException(e);
+					}
+				}
+				
+			}
+			bean.memberCount = currentCount;
+			sb.append("查詢結果: " + currentCount + " 筆，有效資料: " + effectiveCount + "筆，執行錯誤: " + runtimeErrCount + "筆\n");
+			System.out.println("查詢結果: " + currentCount + " 筆，有效資料: " + effectiveCount + "筆，執行錯誤: " + runtimeErrCount + "筆");
+		},buReader->{
+			String msg = null;
+			sb.append("發送簡訊後回傳訊息:\n");
+			String STATUS_INSTANT_SUCCESS = "1"; // 即時簡訊發送成功
+			String STATUS_RESERV_SUCCESS = "0"; // 預約簡訊發送成功
+			String statuscode = "";
+			String duplicate = "";
+			while((msg = buReader.readLine()) != null){
+				System.out.println(msg);
+				sb.append(msg + "\n");
+				if(msg.contains("statuscode")){
+					String[] s = msg.split("=");
+					statuscode = s[1];
+				}
+				if(msg.contains("Duplicate")){
+					String[] s = msg.split("=");
+					duplicate = s[1];
+				}
+				if(msg.contains("AccountPoint")
+				&& !duplicate.equals("Y") // 代表不是重複發送
+				&& (statuscode.equals(STATUS_INSTANT_SUCCESS)
+					|| statuscode.equals(STATUS_RESERV_SUCCESS))){
+					String[] s = msg.split("=");
+					String remainingPoints = s[1];
+					int remaining = Integer.parseInt(remainingPoints);
+					System.out.println("remainingPoints: " + remainingPoints + ", remaining: " + remaining);
+					if(remaining <= 500){						
+						String sendMsg = "簡訊點數即將用完，請盡快儲值，剩餘點數: " + remainingPoints;
+						SimpleMailMessage simpleMailMessage = new SimpleMailMessage(bean.templateMessage);
+						simpleMailMessage.setTo(JOYCE);
+						simpleMailMessage.setText(sendMsg);
+						simpleMailMessage.setSubject("簡訊點數即將用完請協助儲值");
+						String[] cc = new String[]{IFLY,
+													BLUES,
+													JERRY};
+						simpleMailMessage.setCc(cc);
+						bean.mailSender.send(simpleMailMessage);
+					}
+				}
+			}
+		});
+		
+			
+		String sendMsg = sb.toString();
+		if(sendMsg.contains(NO_DATA_FOUND_STOP_SEND_SHORT_MSG)){
+			subject += "沒有找到符合資格的會員";
+		}else{
+			subject += "簡訊發送後訊息";
+		}
+		
 		acac.close();
 	}
 	public static void main(String[]args){
@@ -159,10 +254,11 @@ public class MitakeSMSHttpPost {
 //		testGetLocalDateTime();
 //		testQueryMembers();
 //		testSendShortMsgToBirthMonth();
-//		testSendSelf();
+//		testSendSortToSelf();
+		testSendLongToSelf();
 //		testSendShortMsg();
 //		shortMsgNotify20160401Activity();
-		shortMsgNotifyForTesting();
+//		shortMsgNotifyForTesting();
 //		strLen();
 //		shortMsgNotify20160429Activity(); // 4/29活動簡訊
 //		shortMsgNotify20160530Activity(); // 5/30活動簡訊
@@ -172,6 +268,16 @@ public class MitakeSMSHttpPost {
 //		shortMsgNotify20160826Activity();
 //		testUrlEncodeToBig5();
 //		uuidLen();
+//		shortMsgNotify20161028Activity();
+//		shortMsgNotify20170113Activity();
+//		shortMsgNotify20170410Activity(); // 4/10 12:00打開來發簡訊，要更改testMode
+//		shortMsgNotify20170505Activity();
+//		shortMsgNotify20170712Activity();
+//		shortMsgNotify20170815Activity(); // 注意: '爲'字在Big-5下無法轉換，應替代為'為'字
+//		shortMsgNotify20171018Activity();
+//		shortMsgNotify20171222Activity();
+//		shortMsgNotify20180222Activity();
+//		shortMsgNotify20180611Activity();
 	}
 	
 	private static void uuidLen(){
@@ -196,8 +302,13 @@ public class MitakeSMSHttpPost {
 	}
 	
 	private static void strLen(){
-		String content = "OHM周年慶倒數6天，所有墜子88折/ VIP 8折只到8/31，誠品專櫃及社團優惠同步中，詳情請洽02-27761505";
-		System.out.println(content.length());
+		String content = "OHM限時活動，即日起至6/17，消費滿8888贈一顆秘密琉璃，滿16888贈兩顆，網路商店與專櫃同步，詳情洽粉絲團或02-27761505";
+		int len = content.length();
+		if(len > 70){
+			System.out.println("字數: " + len + "超過70字為長簡訊扣一點以上");
+		}else{
+			System.out.println("字數: " + len + "未超過70字為短簡訊扣一點");
+		}
 	}
 	
 	private static String betweenBraces(String name){
@@ -697,6 +808,79 @@ public class MitakeSMSHttpPost {
 			simpleMailMessage.setCc(cc);
 			mailSender.send(simpleMailMessage);
 		}
+	}
+	private static void shortMsgNotify20180611Activity(){
+		BaseTest.executeApplicationContext(acac->{
+			MitakeSMSHttpPost service = acac.getBean(MitakeSMSHttpPost.class);
+			service.setTestMode(true);
+			service.shortMsgNotifyAllMembers("OHM限時滿額贈秘密琉璃", "OHM限時活動，即日起至6/17，消費滿8888贈一顆秘密琉璃，滿16888贈兩顆，網路商店與專櫃同步，詳情洽粉絲團或02-27761505");
+		});
+	}
+	private static void shortMsgNotify20180222Activity(){
+		BaseTest.executeApplicationContext(acac->{
+			MitakeSMSHttpPost service = acac.getBean(MitakeSMSHttpPost.class);
+			service.setTestMode(true);
+			service.shortMsgNotifyAllMembers("OHM慶新春買五送一", "OHM慶新春 2/21-2/27 買五送一VIP再9折，新入會加贈串珠鑰匙圈一個，詳情洽FB粉絲團或02-27761505");
+		});
+	}
+	private static void shortMsgNotify20171222Activity(){
+		BaseTest.executeApplicationContext(acac->{
+			MitakeSMSHttpPost service = acac.getBean(MitakeSMSHttpPost.class);
+			service.setTestMode(true);
+			// 這個'爲'字送簡訊似乎會出現亂碼 ==> 應該用'為'
+			service.shortMsgNotifyAllMembers("OHM Beads限量黑色大字報墜子活動", "即日起至12/29 OHM消費滿12800NT贈限量黑色大字報墜子一顆，滿50000NT送一套，詳洽OHM粉絲團或專櫃02-27761505");
+		});
+	}
+	private static void shortMsgNotify20171018Activity(){
+		BaseTest.executeApplicationContext(acac->{
+			MitakeSMSHttpPost service = acac.getBean(MitakeSMSHttpPost.class);
+			service.setTestMode(true);
+			// 這個'爲'字送簡訊似乎會出現亂碼 ==> 應該用'為'
+			service.shortMsgNotifyAllMembers("OHM Beads歡樂慶", "10/23-27 OHM Beads歡樂慶 消費滿萬送純銀手鏈, 專櫃及網路商店同步，詳情請洽專櫃或粉絲團02-27761505");
+		});
+	}
+	private static void shortMsgNotify20170815Activity(){
+		BaseTest.executeApplicationContext(acac->{
+			MitakeSMSHttpPost service = acac.getBean(MitakeSMSHttpPost.class);
+			service.setTestMode(true);
+			// 這個'爲'字送簡訊似乎會出現亂碼 ==> 應該用'為'
+			service.shortMsgNotifyAllMembers("OHM九周年生日慶", "8/16-31 OHM九周年生日慶，VIP單筆消費滿萬/新客滿16800贈限量皇冠銀墜，數量有限贈完爲止。詳洽FB或02-27761505");
+		});
+	}
+	private static void shortMsgNotify20170712Activity(){
+		BaseTest.executeApplicationContext(acac->{
+			MitakeSMSHttpPost service = acac.getBean(MitakeSMSHttpPost.class);
+			service.setTestMode(true);
+			service.shortMsgNotifyAllMembers("暑假期間OHM延長週五營業時間至晚上8點", "暑假期間OHM延長週五營業時間至晚上8點，7/12-7/21 結帳金額滿6000NT現折500NT，歡迎蒞臨賞珠。");
+		});
+	}
+	private static void shortMsgNotify20170505Activity(){
+		BaseTest.executeApplicationContext(acac->{
+			MitakeSMSHttpPost service = acac.getBean(MitakeSMSHttpPost.class);
+			service.setTestMode(true);
+			service.shortMsgNotifyAllMembers("OHM Taiwan Party", "OHM Taiwan Party!一年一度的OHM特別活動就在5/20。期待與您見面。報名請見http://bit.ly/2pB3du0");
+		});
+	}
+	private static void shortMsgNotify20170410Activity(){
+		BaseTest.executeApplicationContext(acac->{
+			MitakeSMSHttpPost service = acac.getBean(MitakeSMSHttpPost.class);
+			service.setTestMode(true);
+			service.shortMsgNotifyAllMembers("OHM新櫃開幕慶簡訊", "OHM新櫃開幕慶,4/10~24滿6000折500,滿10000折1000再贈OHM T-Shirt或珠寶盤,詳洽02-27761505");
+		});
+	}	
+	private static void shortMsgNotify20170113Activity(){
+		BaseTest.executeApplicationContext(acac->{
+			MitakeSMSHttpPost service = acac.getBean(MitakeSMSHttpPost.class);
+			service.setTestMode(true);
+			service.shortMsgNotifyAllMembers("OHM新年活動簡訊", "OHM過新年！即日起單筆消費滿5888NT就可以獲得一顆的神秘琉璃，每人限贈一次，送完爲止先搶先贏，詳情請洽OHM FB粉絲頁或02-27761505。");
+		});
+	}
+	private static void shortMsgNotify20161028Activity(){
+		BaseTest.executeApplicationContext(acac->{
+			MitakeSMSHttpPost service = acac.getBean(MitakeSMSHttpPost.class);
+			service.setTestMode(true);
+			service.shortMsgNotifyAllMembers("10月OHM年終滿額贈鏈活動簡訊發送", "OHM Beads年終滿額贈鏈活動10/28-11/10單筆滿6600NT贈純銀手鏈一條，詳情請參考http://angrycat.com.tw/1024620");
+		});
 	}
 	private static void shortMsgNotify20160826Activity(){
 		BaseTest.executeApplicationContext(acac->{
