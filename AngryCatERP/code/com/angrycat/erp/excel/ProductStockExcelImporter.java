@@ -32,13 +32,17 @@ import com.angrycat.erp.test.BaseTest;
 @Component
 @Scope("prototype")
 public class ProductStockExcelImporter {
-	private static final String COLUMN_NAME_型號 = "型號";
-	private static final String COLUMN_NAME_英文名字 = "英文名字";
-	private static final String COLUMN_NAME_定價 = "定價";
-	private static final String COLUMN_NAME_總庫存 = "總庫存";
-	private static final String COLUMN_NAME_系列名 = "系列名";
-	private static final String COLUMN_NAME_品名 = "品名";
-	private static final String COLUMN_NAME_專櫃售價 = "專櫃售價";
+	private static final String COLUMN_NAME_型號			= "型號";
+	private static final String COLUMN_NAME_英文名字 		= "英文名字";
+	private static final String COLUMN_NAME_品名 		= "品名";
+	private static final String COLUMN_NAME_定價 		= "定價";
+	private static final String COLUMN_NAME_總庫存 		= "庫存";
+	private static final String COLUMN_NAME_Taobao庫存 	= "Taobao庫存";
+	private static final String COLUMN_NAME_人民幣 		= "人民幣";
+	private static final String COLUMN_NAME_系列名 		= "系列名";
+	
+	private static final String COLUMN_NAME_專櫃售價 		= "專櫃售價";
+	private static final String COLUMN_NAME_售價 		= "售價";
 		
 	@Autowired
 	private SessionFactoryWrapper sfw;
@@ -63,8 +67,10 @@ public class ProductStockExcelImporter {
 	private void persistAsProduct(Session s, Workbook wb, String...sheetNames){
 		String queryByModelId = "SELECT p FROM " + Product.class.getName() + " p WHERE p.modelId = :modelId";
 		List<String> priceChangeds = new ArrayList<>();
+		
 		for(String sheetName : sheetNames){
 			XSSFProcessor processor = initProcessor(wb, sheetName);
+			List<String> taobaoStockIsMore = new ArrayList<>();
 			
 			processor.iteratorBypassHeader();
 			while(processor.hasNext()){
@@ -74,9 +80,18 @@ public class ProductStockExcelImporter {
 					continue;
 				}
 				int totalStockQty = processor.getIntValu(COLUMN_NAME_總庫存);
+				int taobaoStockQty = processor.getIntValu(COLUMN_NAME_Taobao庫存);
+				
+				if(taobaoStockQty > totalStockQty){
+					taobaoStockIsMore.add(modelId + "淘寶庫存("+ taobaoStockQty +")大於總庫存("+ totalStockQty +")");
+					//throw new RuntimeException(modelId + "淘寶庫存("+ taobaoStockQty +")大於總庫存("+ totalStockQty +")");
+				}
+				
 				String nameEng = processor.getStrVal(COLUMN_NAME_英文名字);
 				double price = processor.getDoubleVal(COLUMN_NAME_定價);
-				price = price != 0 ? price : processor.getDoubleVal(COLUMN_NAME_專櫃售價); 
+				price = price != 0 ? price : processor.getDoubleVal(COLUMN_NAME_專櫃售價);
+				price = price != 0 ? price : processor.getDoubleVal(COLUMN_NAME_售價); 
+				Double priceAsRMB = processor.getDouble(COLUMN_NAME_人民幣);
 				String name = processor.getStrVal(COLUMN_NAME_品名);
 				String seriesName = processor.getStrVal(COLUMN_NAME_系列名);
 				
@@ -86,6 +101,7 @@ public class ProductStockExcelImporter {
 					p.setModelId(modelId);
 					p.setNameEng(nameEng);
 					p.setSuggestedRetailPrice(price);
+					p.setPriceAsRMB(priceAsRMB);
 					
 					p.setSeriesName(seriesName); // collection商品
 					p.setName(name); // 保養品
@@ -99,6 +115,7 @@ public class ProductStockExcelImporter {
 					}
 				}
 				p.setTotalStockQty(totalStockQty);
+				p.setTaobaoStockQty(taobaoStockQty);
 				
 				if(!mergeDisabled){
 					s.saveOrUpdate(p);
@@ -109,7 +126,17 @@ public class ProductStockExcelImporter {
 				s.clear();
 			}
 			System.out.println(sheetName + " toalCount: " + processor.getCurrentRowIdx());
-			System.out.println("priceChangeds: " + priceChangeds.stream().collect(Collectors.joining(",")));
+			if(priceChangeds.size() > 0){
+				System.out.println("priceChangeds: " + priceChangeds.stream().collect(Collectors.joining(",")));
+			}
+			
+			if(taobaoStockIsMore.size() > 0){
+				System.out.println("淘寶庫存大於總庫存：");
+				for(String msg : taobaoStockIsMore){
+					System.out.println(msg);
+				}
+			}
+			System.out.println("========================");
 		}
 	}
 	/**
@@ -117,13 +144,26 @@ public class ProductStockExcelImporter {
 	 * TODO 重新思考方法名稱
 	 */
 	@Transactional
-	public void resolveToDB(){
+	public void resolveOHMToDB(){
 		
 		try(BufferedInputStream bis = new BufferedInputStream(new FileInputStream(new File(src)));
 			Workbook wb = WorkbookFactory.create(bis);){
 			
 			Session s = sfw.currentSession();
-			persistAsProduct(s, wb, "一般商品", "Collection 商品", "手環手鏈項鏈", "保養品");
+			persistAsProduct(s, wb, "一般商品", "Collection商品", "手環手鏈項鏈戒指");
+			
+		}catch(Throwable e){
+			throw new RuntimeException(e);
+		}
+	}
+	@Transactional
+	public void resolveTowntalkToDB(){
+		
+		try(BufferedInputStream bis = new BufferedInputStream(new FileInputStream(new File(src)));
+			Workbook wb = WorkbookFactory.create(bis);){
+			
+			Session s = sfw.currentSession();
+			persistAsProduct(s, wb, "工作表1");
 			
 		}catch(Throwable e){
 			throw new RuntimeException(e);
