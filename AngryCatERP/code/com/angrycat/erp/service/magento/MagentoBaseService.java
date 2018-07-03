@@ -11,6 +11,8 @@ import java.nio.charset.StandardCharsets;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import javax.annotation.PostConstruct;
+
 import org.jboss.logging.Logger;
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -48,9 +50,14 @@ public class MagentoBaseService implements Serializable{
 	public static final String LOCALHOST_BASE_URL = "http://localhost/magento/index.php";
 	public static final String SERVER_LOCAL_BASE_URL = "http://127.0.0.1/magento/index.php";
 	private String baseUrl = LOCALHOST_BASE_URL;
-	String linodeDomain = env.getProperty("linode.host.domain") + "magento/index.php";
+	String linodeDomain;
 	private String controller = "";
 	private String module = "";
+	
+	@PostConstruct
+	public void init(){
+		linodeDomain = env.getProperty("linode.host.domain") + "magento/index.php";
+	}
 	public void setBaseUrl(String baseUrl){
 		this.baseUrl = baseUrl;
 	}
