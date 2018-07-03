@@ -94,6 +94,9 @@ public class XSSFProcessor {
 		Double doubleVal = parseCellNumericVal(row, columnIdx);
 		return doubleVal;
 	}
+	public Double getDouble(String columnName){
+		return getDouble(currentRow, columnName);
+	}
 	public double getDoubleVal(Row row, String columnName){
 		Double doubleVal = getDouble(row, columnName);
 		return doubleVal != null ? doubleVal : 0;
