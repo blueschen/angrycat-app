@@ -102,6 +102,7 @@ public class ProductStockExcelImporter {
 					p.setNameEng(nameEng);
 					p.setSuggestedRetailPrice(price);
 					p.setPriceAsRMB(priceAsRMB);
+					p.setMainCategory(sheetName);
 					
 					p.setSeriesName(seriesName); // collection商品
 					p.setName(name); // 保養品
@@ -150,7 +151,7 @@ public class ProductStockExcelImporter {
 			Workbook wb = WorkbookFactory.create(bis);){
 			
 			Session s = sfw.currentSession();
-			persistAsProduct(s, wb, "一般商品", "Collection商品", "手環手鏈項鏈戒指");
+			persistAsProduct(s, wb, "手環手鏈項鏈戒指", "Collection商品", "一般商品");
 			
 		}catch(Throwable e){
 			throw new RuntimeException(e);
