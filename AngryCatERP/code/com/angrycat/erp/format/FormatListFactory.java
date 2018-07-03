@@ -76,6 +76,7 @@ public class FormatListFactory {
 		f.add(new PropertyFormat("商品類別", "productCategory.code"));
 		f.add(new PropertyFormat("總庫存", "totalStockQty"));
 		f.add(new PropertyFormat("淘寶庫存", "taobaoStockQty"));
+		f.add(new PropertyFormat("人民幣售價", "priceAsRMB"));
 		f.add(new PropertyFormat("總庫存修改備註", "totalStockChangeNote"));
 		
 		return f;
