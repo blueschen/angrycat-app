@@ -48,7 +48,7 @@ public class MagentoBaseService implements Serializable{
 	public static final String LOCALHOST_BASE_URL = "http://localhost/magento/index.php";
 	public static final String SERVER_LOCAL_BASE_URL = "http://127.0.0.1/magento/index.php";
 	private String baseUrl = LOCALHOST_BASE_URL;
-	String linodeDomain = env.getProperty("linode.host.domain");
+	String linodeDomain = env.getProperty("linode.host.domain") + "magento/index.php";
 	private String controller = "";
 	private String module = "";
 	public void setBaseUrl(String baseUrl){
