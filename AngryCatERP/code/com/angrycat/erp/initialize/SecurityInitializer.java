@@ -5,7 +5,6 @@ import javax.servlet.ServletContext;
 import javax.servlet.ServletException;
 
 import org.springframework.web.WebApplicationInitializer;
-import org.springframework.web.servlet.resource.ResourceUrlEncodingFilter;
 
 public class SecurityInitializer implements WebApplicationInitializer {
 
@@ -14,10 +13,10 @@ public class SecurityInitializer implements WebApplicationInitializer {
 		FilterRegistration.Dynamic securityFilter = 
 			servletContext.addFilter("securityFilter", SecurityFilter.class);
 		securityFilter.addMappingForUrlPatterns(null, false, "/*");
-		
-		FilterRegistration.Dynamic resourceUrlEncodingFilter = 
-				servletContext.addFilter("resourceUrlEncodingFilter", ResourceUrlEncodingFilter.class);
-		resourceUrlEncodingFilter.addMappingForUrlPatterns(null, false, "/*");
+		// 目前沒有啟用的急迫性
+		//FilterRegistration.Dynamic resourceUrlEncodingFilter = 
+				//servletContext.addFilter("resourceUrlEncodingFilter", ResourceUrlEncodingFilter.class);
+		//resourceUrlEncodingFilter.addMappingForUrlPatterns(null, false, "/*");
 	}
 
 }
