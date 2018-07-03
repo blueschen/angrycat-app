@@ -32,6 +32,7 @@ public class Product {
 	private String warning;
 	
 	private Double priceAsRMB;
+	private String mainCategory;
 	
 	@Id
 	@Column(name="id", columnDefinition="ID")
@@ -159,5 +160,12 @@ public class Product {
 	}
 	public void setPriceAsRMB(Double priceAsRMB) {
 		this.priceAsRMB = priceAsRMB;
+	}
+	@Column(name="mainCategory", columnDefinition="主分類")
+	public String getMainCategory() {
+		return mainCategory;
+	}
+	public void setMainCategory(String mainCategory) {
+		this.mainCategory = mainCategory;
 	}
 }
