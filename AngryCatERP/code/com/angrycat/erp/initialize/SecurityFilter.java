@@ -21,7 +21,7 @@ import com.angrycat.erp.web.WebUtils;
 import com.angrycat.erp.web.controller.LoginController;
 
 public class SecurityFilter implements Filter {
-	private static final List<String> ADMINS = Arrays.asList("root", "mikowang", "iflywang", "slowlywu", "admin");
+	private static final List<String> ADMINS = Arrays.asList("iflywang", "admin", "jerry");
 	private Set<String> allowPathStart = new HashSet<>();
 	private Set<String> allowPathEqual = new HashSet<>();
 
