@@ -42,12 +42,13 @@ public class MagentoBaseService implements Serializable{
 	BeanFactory beanFactory;
 	@Autowired
 	private MailService mailService;
+	
 	private boolean debug;
-	public static final String INTERET_BASE_URL = "http://211.75.15.139/magento/index.php";
-	public static final String INTRANET_BASE_URL = "http://192.168.1.15/magento/index.php";
+	public static final String INTRANET_BASE_URL = "http://192.168.1.2/magento/index.php";
 	public static final String LOCALHOST_BASE_URL = "http://localhost/magento/index.php";
 	public static final String SERVER_LOCAL_BASE_URL = "http://127.0.0.1/magento/index.php";
 	private String baseUrl = LOCALHOST_BASE_URL;
+	String linodeDomain = env.getProperty("linode.host.domain");
 	private String controller = "";
 	private String module = "";
 	public void setBaseUrl(String baseUrl){
