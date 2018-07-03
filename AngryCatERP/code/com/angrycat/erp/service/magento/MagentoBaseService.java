@@ -39,7 +39,7 @@ public class MagentoBaseService implements Serializable{
 	private static final Logger LOG = Logger.getLogger(MagentoBaseService.class.getName());
 
 	@Autowired
-	private Environment env;
+	Environment env;
 	@Autowired
 	BeanFactory beanFactory;
 	@Autowired
@@ -49,15 +49,11 @@ public class MagentoBaseService implements Serializable{
 	public static final String INTRANET_BASE_URL = "http://192.168.1.2/magento/index.php";
 	public static final String LOCALHOST_BASE_URL = "http://localhost/magento/index.php";
 	public static final String SERVER_LOCAL_BASE_URL = "http://127.0.0.1/magento/index.php";
-	private String baseUrl = LOCALHOST_BASE_URL;
+	String baseUrl = LOCALHOST_BASE_URL;
 	String linodeDomain;
 	private String controller = "";
 	private String module = "";
 	
-	@PostConstruct
-	public void init(){
-		linodeDomain = env.getProperty("linode.host.domain") + "magento/index.php";
-	}
 	public void setBaseUrl(String baseUrl){
 		this.baseUrl = baseUrl;
 	}

@@ -7,6 +7,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
+import javax.annotation.PostConstruct;
+
 import org.apache.commons.lang.StringUtils;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Service;
@@ -18,11 +20,16 @@ import com.angrycat.erp.component.JsonNodeWrapper;
 public class MagentoOrderService extends MagentoBaseService {
 	private static final long serialVersionUID = -1221976777524113169L;
 	public MagentoOrderService(){
-		setBaseUrl(SERVER_LOCAL_BASE_URL);
 		setModule("angrycatorder");
 		setController("api");
 	}
-	
+	@PostConstruct
+	public void init(){
+		if(linodeDomain == null){
+			linodeDomain = env.getProperty("linode.host.domain") + "magento/index.php";
+		}
+		setBaseUrl(linodeDomain);
+	}
 	/*
 	 * Magento提供查詢訂單的API，可回傳相當多欄位，以下是比較重要且共通的舉例
 	 * increment_id		:訂單編號

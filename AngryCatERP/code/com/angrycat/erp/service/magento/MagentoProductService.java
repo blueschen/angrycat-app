@@ -9,6 +9,8 @@ import java.util.function.BiPredicate;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
+import javax.annotation.PostConstruct;
+
 import org.apache.commons.lang.StringUtils;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Service;
@@ -21,9 +23,15 @@ import com.angrycat.erp.model.Product;
 public class MagentoProductService extends MagentoBaseService {
 	private static final long serialVersionUID = 8322835412340989148L;
 	public MagentoProductService(){
-		setBaseUrl(linodeDomain);
 		setModule("angrycatproduct");
 		setController("api");
+	}
+	@PostConstruct
+	public void init(){
+		if(linodeDomain == null){
+			linodeDomain = env.getProperty("linode.host.domain") + "magento/index.php";
+		}
+		setBaseUrl(linodeDomain);
 	}
 	public String listAllProductsResponse(){
 		String result = connect("listAllProductsResponse");
