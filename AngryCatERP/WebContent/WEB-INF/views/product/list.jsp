@@ -137,6 +137,7 @@
 						["imgDir",						"圖片",			100,			"string",	"contains",				uneditable,				imgColumn],
 						["totalStockQty",				"總庫存",			100,			"number",	"eq"],
 						["taobaoStockQty",				"淘寶庫存",		100,			"number",	"eq"],
+						["priceAsRMB",					"人民幣",			100,			"number",	"eq"],
 						["barcode",						"條碼號",			150,			"string",	"contains",				null,					hidden],
 						["seriesName",					"系列名",			150,			"string",	"contains",				uneditable,				hidden],
 						["totalStockChangeNote",		"總庫存修改備註",	150,			"string",	"contains",				null,					hidden],
