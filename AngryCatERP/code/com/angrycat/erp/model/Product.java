@@ -30,6 +30,9 @@ public class Product {
 	
 	private String totalStockChangeNote;
 	private String warning;
+	
+	private Double priceAsRMB;
+	
 	@Id
 	@Column(name="id", columnDefinition="ID")
 	@GenericGenerator(name="angrycat_product_id", strategy="com.angrycat.erp.ds.TimeUID")
@@ -149,5 +152,12 @@ public class Product {
 	}
 	public void setWarning(String warning) {
 		this.warning = warning;
+	}
+	@Column(name="priceAsRMB", columnDefinition="人民幣售價")
+	public Double getPriceAsRMB() {
+		return priceAsRMB;
+	}
+	public void setPriceAsRMB(Double priceAsRMB) {
+		this.priceAsRMB = priceAsRMB;
 	}
 }
