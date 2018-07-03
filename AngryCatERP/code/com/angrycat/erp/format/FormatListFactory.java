@@ -67,13 +67,14 @@ public class FormatListFactory {
 		FormatList f = new FormatList();
 		f.setDocTitle("modelId");
 		
+		f.add(new PropertyFormat("主分類", "mainCategory"));
 		f.add(new PropertyFormat("型號", "modelId"));
 		f.add(new PropertyFormat("定價", "suggestedRetailPrice"));
 		f.add(new PropertyFormat("中文名字", "name"));
 		f.add(new PropertyFormat("英文名字", "nameEng"));
 		f.add(new PropertyFormat("系列名", "seriesName"));
 		f.add(new PropertyFormat("條碼號", "barcode"));
-		f.add(new PropertyFormat("商品類別", "productCategory.code"));
+//		f.add(new PropertyFormat("商品類別", "productCategory.code"));
 		f.add(new PropertyFormat("總庫存", "totalStockQty"));
 		f.add(new PropertyFormat("淘寶庫存", "taobaoStockQty"));
 		f.add(new PropertyFormat("人民幣售價", "priceAsRMB"));
