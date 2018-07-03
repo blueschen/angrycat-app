@@ -64,6 +64,7 @@
     	<li>只轉換名稱為"內容"的sheet</li>
     	<li>以第一欄為分隔出貨明細基準</li>    	
     </ul>
+    <!-- ref. https://stackoverflow.com/questions/29511873/show-spinner-and-disable-page-while-waiting-for-ajax-request -->
     <div id="ajax_loader" class="ajax_loader" style="display: none;"><img src="<c:url value="/common/spinner/ajax-loader.gif"/>"></div>
 	<form action="${urlPrefix}/uploadShippingRawData" method="post" enctype="multipart/form-data" id="form_convert">
 		<fieldset>
