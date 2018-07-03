@@ -130,6 +130,7 @@
 					}),
 					fields = [
 		       			//0fieldName					1column title	2column width	3field type	4column filter operator	5field custom			6column custom			7column editor
+		       			["mainCategory",				"主分類",			150,			"string",	"contains"],
 		       			["modelId",						"型號",			150,			"string",	"contains"], // TODO 型號於新增時應檢查是否重覆
 		       			["nameEng",						"英文名字",		200,			"string",	"contains"],
 						["name",						"中文名字",		100,			"string",	"contains"],
@@ -141,7 +142,7 @@
 						["barcode",						"條碼號",			150,			"string",	"contains",				null,					hidden],
 						["seriesName",					"系列名",			150,			"string",	"contains",				uneditable,				hidden],
 						["totalStockChangeNote",		"總庫存修改備註",	150,			"string",	"contains",				null,					hidden],
-						[productCategoryFieldName,		"商品類別代號",	150,			"string",	"contains",				productCategoryField,	productCategoryColumn,	productCategoryEditor],
+						//[productCategoryFieldName,		"商品類別代號",	150,			"string",	"contains",				productCategoryField,	productCategoryColumn,	productCategoryEditor],
 						["warning",						"訊息",			150,			"string",	"eq",					null,					hidden],
 						[opts.pk,						"Product ID",	150,			"string",	"eq",					uneditable,				hidden]
 					];
