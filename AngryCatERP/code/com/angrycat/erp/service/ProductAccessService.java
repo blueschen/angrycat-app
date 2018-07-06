@@ -54,7 +54,7 @@ import com.angrycat.erp.service.http.HttpService;
 @Scope("prototype")
 public class ProductAccessService {
 	public static final String JPG_POSTFIX = "-o-a.jpg";
-	public static final String URL_TEMPLATE = "http://ohmbeads.com/ohm2/media/import/{no}" + JPG_POSTFIX;
+	public static final String URL_TEMPLATE = "http://www.ohmbeads.com/ohm2/media/import/{no}" + JPG_POSTFIX;
 	
 	@Autowired
 	private ProductExcelImporter productExcelImporter;
