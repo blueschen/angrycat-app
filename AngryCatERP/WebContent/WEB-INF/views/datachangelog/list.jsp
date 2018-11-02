@@ -117,7 +117,7 @@
  	</div>
  	<div class="form-group">
  		 <label class="col-sm-2 control-label" for="pDocTitle" >
- 			識別
+ 			更動對象
  		</label>
  		<div class="col-sm-6"> 
  			<input type="text" ng-model="mainCtrl.conditionConfig.conds.condition_pDocTitle" id="pDocTitle" class="form-control">
