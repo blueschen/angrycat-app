@@ -957,7 +957,11 @@
 					var id = dataItem[pk];
 					if(id && docType){
 						var url = rootPath + "/datachangelog/list?docId=" + id + "&docType=" + docType;
-						window.location.href = url;
+						(function (url) {
+							newwindow=window.open(url,'name','height=600,width=800');
+							if (window.focus) {newwindow.focus()}
+							return false;
+						})(url)
 					}
 				}
 				var mainGrid = $(gridId).kendoGrid({

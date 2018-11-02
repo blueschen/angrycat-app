@@ -115,6 +115,14 @@
  			<input type="text" ng-model="mainCtrl.conditionConfig.conds.condition_pUserId" id="pUserId" class="form-control">
  		</div>
  	</div>
+ 	<div class="form-group">
+ 		 <label class="col-sm-2 control-label" for="pDocTitle" >
+ 			識別
+ 		</label>
+ 		<div class="col-sm-6">
+ 			<input type="text" ng-model="mainCtrl.conditionConfig.conds.condition_pDocTitle" id="pDocTitle" class="form-control">
+ 		</div>
+ 	</div> 	
  	 <div class="btn-toolbar" role="toolbar">
  	<div class="btn-group" role="group">
  		<input type="submit" ng-click="mainCtrl.queryByConds()" class="btn btn-default" value="查詢" ng-disabled="datachangelogListForm.$dirty && datachangelogListForm.$invalid"/>
@@ -228,7 +236,8 @@
 				{label: '銷售明細', value: 'com.angrycat.erp.model.SalesDetail'},
 				{label: '題庫', value: 'com.angrycat.erp.model.Exam'},
 				{label: '進貨', value: 'com.angrycat.erp.model.PurchaseBill'},
-				{label: '匯款回條', value: 'com.angrycat.erp.model.TransferReply'}
+				{label: '匯款回條', value: 'com.angrycat.erp.model.TransferReply'},
+				{label: '商品', value: 'com.angrycat.erp.model.Product'}
 			];
 			
 			self.queryAll = function(){

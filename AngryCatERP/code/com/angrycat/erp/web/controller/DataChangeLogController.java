@@ -41,6 +41,7 @@ public class DataChangeLogController extends BaseQueryController<DataChangeLog, 
 			.addWhere(putStr("p.action = :pAction"))
 			.addWhere(putStrCaseInsensitive("p.userName LIKE :pUserName", MatchMode.ANYWHERE))
 			.addWhere(putStrCaseInsensitive("p.userId LIKE :pUserId", MatchMode.ANYWHERE))
+			.addWhere(putStrCaseInsensitive("p.docTitle LIKE :pDocTitle", MatchMode.ANYWHERE))
 			;
 	}
 	
