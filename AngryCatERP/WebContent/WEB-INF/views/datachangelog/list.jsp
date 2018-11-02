@@ -119,7 +119,7 @@
  		 <label class="col-sm-2 control-label" for="pDocTitle" >
  			識別
  		</label>
- 		<div class="col-sm-6">
+ 		<div class="col-sm-6"> 
  			<input type="text" ng-model="mainCtrl.conditionConfig.conds.condition_pDocTitle" id="pDocTitle" class="form-control">
  		</div>
  	</div> 	
