@@ -195,6 +195,8 @@ public class FormatListFactory {
 		f.add(new PropertyFormat("順序", "priority"));
 		f.add(new PropertyFormat("其他備註", "otherNote"));
 		
+		f.add(new PropertyFormat("訂單編號", "orderNo"));
+		
 		return f;
 	}
 	
