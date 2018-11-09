@@ -7,16 +7,20 @@ import java.util.Map;
 import java.util.function.BiFunction;
 import java.util.stream.Collectors;
 
+import javax.servlet.http.HttpServletRequest;
+
 import org.apache.commons.lang3.StringUtils;
 import org.hibernate.Session;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Controller;
+import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.ResponseBody;
 
+import com.angrycat.erp.common.CommonUtil;
 import com.angrycat.erp.excel.SalesDetailExcelExporter;
 import com.angrycat.erp.excel.SalesDetailExcelImporter;
 import com.angrycat.erp.model.Member;
@@ -128,5 +132,12 @@ public class SalesDetail2Controller extends
 	public @ResponseBody List<?> deleteByIds(@RequestBody List<String> ids){
 		List<?> deletedItems = salesDetailKendoUiService.deleteByIds(ids);
 		return deletedItems;
+	}
+	@RequestMapping(value="/add",
+			method=RequestMethod.GET)
+	public String add(HttpServletRequest request, Model model){
+		request.setAttribute("moduleName", moduleName);
+		request.setAttribute(moduleName + "Parameters", CommonUtil.parseToJson(kendoUiGridService.listParameters(getParameterCatNames())));
+		return moduleName + "/view";
 	}
 }
