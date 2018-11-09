@@ -53,6 +53,8 @@ public class SalesDetail {
 	private String payType;
 	private String payStatus;
 	
+	private String orderNo;
+	
 	@Id
 	@Column(name="id", columnDefinition="ID")
 	@GenericGenerator(name="angrycat_salesdetail_id", strategy="com.angrycat.erp.ds.TimeUID")
@@ -245,5 +247,12 @@ public class SalesDetail {
 	}
 	public void setPayStatus(String payStatus) {
 		this.payStatus = payStatus;
+	}
+	@Column(name="orderNo", columnDefinition="訂單編號")
+	public String getOrderNo() {
+		return orderNo;
+	}
+	public void setOrderNo(String orderNo) {
+		this.orderNo = orderNo;
 	}
 }
