@@ -189,6 +189,7 @@
 						["sendMethod",		"郵寄方式",			150,			"string",	"eq",					null,				paramFEditors["郵寄方式"],paramEditors["郵寄方式"]],
 						["registrant",		"登單者",				150,			"string",	"contains"],
 						["note",			"備註",				150,			"string",	"contains"],
+						["orderNo",			"訂單編號",			150,			"string",	"startswith"],
 						[mobileFieldName,	"手機",				150,			"string",	"contains",				mobileField],
 						["idNo",			"身份證",				150,			"string",	"contains"],
 						["checkBillStatus",	"對帳狀態",			150,			"string",	"contains"],
