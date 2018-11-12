@@ -48,7 +48,10 @@
 						<a href="${pageContext.request.contextPath}/salesdetail/list">銷售明細查詢</a>
 					</li> -->
 					<li ${moduleName == "salesdetail2" ? "class='active'" : ""}>
-						<a href="${pageContext.request.contextPath}/salesdetail2/list">銷售明細新介面</a>
+						<a href="${pageContext.request.contextPath}/salesdetail2/list">銷售明細</a>
+					</li>
+					<li>
+						<a href="${pageContext.request.contextPath}/salesdetail2/add">專櫃新訂單</a>
 					</li>
 					<li class="dropdown">
 						<!-- 直接使用angular-strap的指令bs-dropdown -->
