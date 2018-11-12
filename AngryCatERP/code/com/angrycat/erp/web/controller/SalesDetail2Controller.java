@@ -5,7 +5,6 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.function.BiFunction;
-import java.util.stream.Collectors;
 
 import javax.servlet.http.HttpServletRequest;
 
@@ -26,9 +25,11 @@ import com.angrycat.erp.excel.SalesDetailExcelImporter;
 import com.angrycat.erp.model.Member;
 import com.angrycat.erp.model.Product;
 import com.angrycat.erp.model.SalesDetail;
+import com.angrycat.erp.security.User;
 import com.angrycat.erp.service.MemberQueryService;
 import com.angrycat.erp.service.ProductKendoUiService;
 import com.angrycat.erp.service.SalesDetailKendoUiService;
+import com.angrycat.erp.web.WebUtils;
 import com.angrycat.erp.web.component.ConditionConfig;
 
 @Controller
@@ -136,6 +137,10 @@ public class SalesDetail2Controller extends
 	@RequestMapping(value="/add",
 			method=RequestMethod.GET)
 	public String add(HttpServletRequest request, Model model){
+		Object u = WebUtils.currentSession().getAttribute(WebUtils.SESSION_USER);
+		if(u != null && u instanceof User){
+			request.setAttribute("user", ((User)(u)).getUserId());
+		}
 		request.setAttribute("moduleName", moduleName);
 		request.setAttribute(moduleName + "Parameters", CommonUtil.parseToJson(kendoUiGridService.listParameters(getParameterCatNames())));
 		return moduleName + "/view";
