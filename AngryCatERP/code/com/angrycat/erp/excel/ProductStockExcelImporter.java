@@ -115,6 +115,20 @@ public class ProductStockExcelImporter {
 						priceChangeds.add(priceChanged);
 					}
 				}
+				
+				if(StringUtils.isNotBlank(nameEng) && StringUtils.isBlank(name)){
+					p.setNameEng(nameEng);
+					p.setName(nameEng);
+				}else if(StringUtils.isNotBlank(name) && StringUtils.isBlank(nameEng)){
+					p.setNameEng(name);
+					p.setName(name);
+				}else if(StringUtils.isNotBlank(name) && StringUtils.isNotBlank(nameEng)){
+					p.setNameEng(nameEng);
+					p.setName(name);
+				}else{
+					throw new RuntimeException("name and nameEng both not found value");
+				}
+				
 				p.setTotalStockQty(totalStockQty);
 				p.setTaobaoStockQty(taobaoStockQty);
 				
