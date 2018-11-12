@@ -22,16 +22,7 @@
 	<link rel="stylesheet" href='<c:url value="/vendor/jquery-ui-1.12.1.custom/jquery-ui.min.css"/>'/>
 	<link rel="stylesheet" href='<c:url value="/vendor/jquery-ui-1.12.1.custom/jquery-ui.structure.min.css"/>'/>
 	<link rel="stylesheet" href='<c:url value="/vendor/jquery-ui-1.12.1.custom/jquery-ui.theme.min.css"/>'/>
-    
-    <script type="text/javascript" src="<c:url value="/vendor/angularjs/1.4.3/angular.min.js"/>"></script>
-	<script type="text/javascript" src="<c:url value="/vendor/angularjs/1.4.3/i18n/angular-locale_zh-tw.js"/>"></script>
-	<script type="text/javascript">
-		<%@ include file="/common/ajax/ajax-service.js" %>
-		<%@ include file="/common/date/date-service.js" %>
-	</script>
-	<script type="text/javascript" src="<c:url value="/vendor/angular-strap/2.3.1/angular-strap.min.js"/>"></script>
-	<script type="text/javascript" src="<c:url value="/vendor/angular-strap/2.3.1/angular-strap.tpl.min.js"/>"></script>
-	
+    	
 	<script type="text/javascript" src="<c:url value="/vendor/jquery/2.1.1/jquery.min.js"/>"></script>
 	<script type="text/javascript" src="<c:url value="/vendor/jquery-ui-1.12.1.custom/jquery-ui.min.js"/>"></script>
 
@@ -57,14 +48,34 @@
 		.f-group {
 			margin-bottom: 3px;
 		}
+		.alert-center {
+			margin: auto; 
+			width: 50%; 
+			border: 3px solid; 
+			padding: 70px 0;	
+		}
 	</style>
 </head>
 <body>
 
 <div class="container" id="container" style="display: block;">
+
+<div class="row">
 	<div class="col-sm-offset-2">
 		<h2>新訂單-[<span id="orderNo"></span>]</h2>
 	</div>
+</div>
+
+<div class="pull-right">
+	<div class="btn-group">
+		<button type="button" class="btn btn-default" onclick="window.location.href='${urlPrefix}/add'">新訂單</button>
+	</div>
+	<div class="btn-group">
+		<button type="button" class="btn btn-default" onclick="window.location.href='${urlPrefix}/list'">關閉</button>
+	</div>	
+</div>
+
+	
 <form class="form-horizontal" name="memberForm">
  	<div class="form-group f-group">
  		<div class="form-group col-xs-5 f-group">
@@ -116,7 +127,7 @@
 			<label class="col-xs-5 control-label">
  			</label>			
 			<div class="col-xs-7">
-				<input type="button" id="addDetail" class="btn btn-default form-control" onclick="addSalesDetail()" value="新增商品" title="Some tooltip text!"/>
+				<input type="button" id="addDetail" class="btn btn-default form-control" onclick="addSalesDetail()" value="新增商品" title="快速鍵: Alt + R"/>
 			</div>		
  		</div>
  	</div>
@@ -146,18 +157,26 @@
 		<div class="col-xs-1"><b><span id="totalMemberPrice">0</span></b></div>
 	</div>
 </div>
+
 <div class="pull-right">
 	<div class="btn-group">
-		<button type="button" class="btn btn-lg btn-primary" onclick="printSalesDetails()">列印</button>
+		<button type="button" class="btn btn-default" onclick="printSalesDetails()">列印</button>
 	</div>
 	<div class="btn-group">
-		<button type="button" class="btn btn-lg btn-primary" onclick="saveSalesDetails()">儲存</button>
+		<button type="button" class="btn btn-default" onclick="saveSalesDetails()" id="saveBtn">儲存</button>
 	</div>	
 </div>
-
 </div>
+
+<script id="alert-template" type="text/template">
+	<div class="alert alert-{type} alert-dismissible" role="alert" style="display: none; text-align: center;">
+  		<button type="button" class="close" data-dismiss="alert" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+  		{content}
+	</div>
+</script>
+
 <script id="salesDetailTmpl" type="text/template">
-	<tr id="salesDetail-{group-mark}" class="salesDetail">
+	<tr id="salesDetail-{group-mark}" class="salesDetail" rowId="{group-mark}">
 		<th scope="row">
 			<input type="hidden" name="id" />
 			<span name="row-serial">{group-serial}</span>
@@ -172,14 +191,14 @@
 			</select>
 		</td>
 		<td><input type="text" class="form-control t-input save-field" name="note"/></td>
-		<td><input type="button" class="btn btn-default btn-block" name="remove" value="移除" onclick="removeSalesDetail('#salesDetail-{group-mark}')"/></td>
+		<td name="removeBtn"><input type="button" class="btn btn-default btn-block" name="remove" value="移除" onclick="removeSalesDetail('#salesDetail-{group-mark}')" style="display: none;"/></td>
 	</tr>
 </script>
+<script type="text/javascript" src="<c:url value="/vendor/bootstrap/3.3.5/js/bootstrap.min.js"/>"></script>
 <script type="text/javascript">
-// TODO 清除頁面沒用到程式碼，譬如angularjs
-// TODO 彈跳視窗是否要選用jquery widget，譬如noty??
-// TODO 考量日後可能有修改的需求
-	(function($, moduleBaseUrl, win, parameters, rootPath){ // TODO move out some functions??
+// TODO 實付(總)金額是否要存到資料庫 ==> 這樣每一筆銷售明細都要存??
+// TODO 日後需要按照訂單編號修改的需求 ??
+	(function($, moduleBaseUrl, win, parameters, rootPath, user){ // TODO move out some functions??
 		function current(m){// ex. 2018-09-11 12:09 -> 201809111209
 			function pad(n){ // ex. 9 -> '09'
 			    var upper = 10, p = "0", v = "" + n;
@@ -257,12 +276,12 @@
 			    	txt.innerHTML = rs[1];
 					msg = txt.value;	
 				}
-				alert(msg);
+				popup('danger', msg, '60000');
 			};
 		var defaultStatusHandler = 
 			{
-				404: function() {
-					alert( "page not found" );
+				401: function() {
+					popup('danger', 'timeout: it would be logged out');
 					window.location.href = rootPath + "/login.jsp";
 				}
 			};
@@ -379,9 +398,9 @@
 		
 		var groupCount = 0;
 		win.addSalesDetail = function(){
-			++groupCount; 
-			var groupMark = "product-field-" + groupCount;
+			++groupCount;
 			var proId = uniqueId();
+			var groupMark = "product-field-" + proId;
 			var tmpl = 
 				$("#salesDetailTmpl")
 					.html()
@@ -389,7 +408,14 @@
 					.replace(/\{group\-serial\}/g, "" + groupCount)
 					.replace(/\{group\-mark\}/g, "" + proId)
 					.replace("{discount-select-options}", discountOpts);
-			$("#salesDetailsContent").append(tmpl);
+			var row = $(tmpl);
+			row.find('td[name=removeBtn]')
+				.hover(function(){
+					$(this).find('input[name=remove]').show();
+				}, function(){
+					$(this).find('input[name=remove]').hide();
+				});
+			$("#salesDetailsContent").append(row);
 			
 			waitElement('input[product-group-name=modelId-'+ proId +']', function(ele){
 				ele.focus();
@@ -413,9 +439,15 @@
 				});
 			}
 		};
+		var idsForRemoved = [];
 		win.removeSalesDetail = function(rowId){
 			--groupCount;
 			var row = document.querySelector(rowId);
+			var id = row.querySelector('input[name=id]').value;
+			if (id) {
+				idsForRemoved.push(id);
+			}
+			
 			row.parentElement.removeChild(row);
 			var remainings = win.document.querySelectorAll('span[name=row-serial]');
 			for (var i = 0; i < remainings.length; i++) {
@@ -426,9 +458,29 @@
 			if(!v){return null;} // input dom value default empty string, we want null
 			return v;
 		}
-		win.saveSalesDetails = function(){
+		/*
+		* 使用bootstrap alert實作彈跳視窗
+		* ref. https://getbootstrap.com/docs/3.3/components/#alerts
+		* 
+		* @param {string} type		彈跳視窗類型，對應bootstrap 3.x的alert元件，ex. success, info, warning, danger
+		* @param {string} content	訊息內容，可嵌入html tag
+		*/
+		function popup(type, content, dur){
+			var duration = dur ? dur : '3000';// 預設顯示三秒
+			$($('#alert-template').html()
+				.replace('{type}', type)
+				.replace('{content}', content))
+			.appendTo(document.body)
+			.fadeIn('500', function(){
+				$(this).delay(duration) 
+					.fadeOut('3000', function(){ // 三秒內消失
+						$(this).remove();
+					});
+			});
+		}
+		win.saveSalesDetails = function(){// 包含「新增」、「修改」、「刪除」
 			var rows = $('.salesDetail');
-			if(rows.length == 0){
+			if(rows.length == 0 && idsForRemoved.length == 0){
 				console.log('No Item Found');
 				return;
 			}
@@ -446,7 +498,8 @@
 				});
 				collects.push(sd);
 				
-				var id				= null;
+				var id				= strDefault(row.find('input[name=id]').val());
+				var rowId			= row.attr('rowId');
 				var salePoint		= '專櫃';
 				var saleStatus		= '99. 已出貨';
 				var activity		= null;
@@ -458,7 +511,7 @@
 				var sendMethod		= null;
 				var payDate			= today;
 				var contactInfo		= null;
-				var registrant		= null;
+				var registrant		= user;
 				var payType			= null;
 				var payStatus		= null;
 
@@ -470,6 +523,7 @@
 				var orderNo 		= $('#orderNo').html();
 				
 				sd['id']				= id;
+				sd['rowId']				= rowId;
 				sd['salePoint'] 		= salePoint;
 				sd['saleStatus'] 		= saleStatus;
 				sd['activity'] 			= activity;
@@ -493,20 +547,46 @@
 				}
 				sd['orderNo'] = orderNo;
 			});
-			$.ajax(moduleBaseUrl + '/batchSaveOrMerge.json', {
-				data: JSON.stringify(collects),
-				dataType: 'json',
-				contentType: 'application/json;charset=utf-8',
-				traditional: true,
-				method: 'POST',
-				cache: false,
-				success: function(ret, textStatus, jqxhr){
-					console.log('success:\n' + JSON.stringify(ret));
-					// TODO 後續處理??
-				},
-				error: defaultErrorHandler,
-				statusCode: defaultStatusHandler
-			});
+			
+			if(idsForRemoved.length > 0){// 「刪除」
+				$.ajax(moduleBaseUrl + '/deleteByIds.json', {
+					data: JSON.stringify(idsForRemoved),
+					dataType: 'json',
+					contentType: 'application/json;charset=utf-8',
+					traditional: true,
+					method: 'POST',
+					cache: false,
+					success: function(ret, textStatus, jqxhr){
+						//console.log('success:\n' + JSON.stringify(ret));
+						idsForRemoved = [];
+						popup('success', '刪除成功', '3000');
+					},
+					error: defaultErrorHandler,
+					statusCode: defaultStatusHandler
+				});
+			}
+			
+			if(collects.length > 0){// 包含「新增」、「修改」
+				$.ajax(moduleBaseUrl + '/batchSaveOrMerge.json', {
+					data: JSON.stringify(collects),
+					dataType: 'json',
+					contentType: 'application/json;charset=utf-8',
+					traditional: true,
+					method: 'POST',
+					cache: false,
+					success: function(ret, textStatus, jqxhr){
+						//console.log('success:\n' + JSON.stringify(ret));
+						// 存到後端之後產生id，將id存到頁面就可以修改
+						for(var j = 0; j < ret.length; j++) {
+							$('tr[rowId='+ret[j].rowId+']').find('input[name=id]').val(ret[j].id);
+						}
+						popup('success', $('#saveBtn').html() + '成功', '5000');
+						$('#saveBtn').html('修改');
+					},
+					error: defaultErrorHandler,
+					statusCode: defaultStatusHandler
+				});	
+			}		
 		};
 		// Bootstrap版面列印會遇到問題，可參考一些做法
 		// ref. https://stackoverflow.com/questions/12302819/how-to-create-a-printable-twitter-bootstrap-page
@@ -553,7 +633,8 @@
 	'${urlPrefix}', 
 	window, 
 	${requestScope[parameters] == null ? "null" : requestScope[parameters]}, 
-	"${rootPath}");
+	'${rootPath}',
+	'${user}');
 
 
 </script>
