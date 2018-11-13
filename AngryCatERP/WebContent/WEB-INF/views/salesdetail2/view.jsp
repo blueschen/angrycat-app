@@ -160,7 +160,7 @@
 </div>
 <div>
 	<div class="row">
-		<div class="col-xs-2 col-xs-offset-3"><b>實付金額</b></div>
+		<div class="col-xs-2 col-xs-offset-4"><b>實付金額</b></div>
 		<div class="col-xs-1"><b><span id="totalPrice">0</span></b></div>
 		<div class="col-xs-1"><b><span id="totalMemberPrice">0</span></b></div>
 	</div>
