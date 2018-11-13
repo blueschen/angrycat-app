@@ -22,6 +22,7 @@ import org.springframework.web.bind.annotation.ResponseBody;
 import com.angrycat.erp.common.CommonUtil;
 import com.angrycat.erp.excel.SalesDetailExcelExporter;
 import com.angrycat.erp.excel.SalesDetailExcelImporter;
+import com.angrycat.erp.genserial.GenSerialUtil;
 import com.angrycat.erp.model.Member;
 import com.angrycat.erp.model.Product;
 import com.angrycat.erp.model.SalesDetail;
@@ -144,5 +145,28 @@ public class SalesDetail2Controller extends
 		request.setAttribute("moduleName", moduleName);
 		request.setAttribute(moduleName + "Parameters", CommonUtil.parseToJson(kendoUiGridService.listParameters(getParameterCatNames())));
 		return moduleName + "/view";
+	}
+	private BiFunction<SalesDetail, Session, SalesDetail> beforeSave(){
+		return new BiFunction<SalesDetail, Session, SalesDetail>(){
+			private String no;
+			@Override
+			public SalesDetail apply(SalesDetail sd, Session s) {
+				if(no == null){
+					no = GenSerialUtil.getNext(SalesDetail.ORDERNO_GENERATOR_ID, s);
+				}
+				if(StringUtils.isBlank(sd.getOrderNo())){
+					sd.setOrderNo(no);
+				}
+				return sd;
+			}
+		};
+	}
+	@RequestMapping(value="/batchSave",
+			method=RequestMethod.POST,
+			produces={"application/xml", "application/json"},
+			headers="Accept=*/*")
+	public @ResponseBody List<SalesDetail> batchSave(@RequestBody List<SalesDetail> models){
+		salesDetailKendoUiService.batchSaveOrMerge(models, beforeSave());
+		return models;
 	}
 }
