@@ -21,6 +21,8 @@ public class SalesDetail {
 	public static final String SALE_POINT_ESLITE_DUNNAN = "敦南誠品";
 	@Transient
 	public static final String SALE_POINT_TAOBAO = "淘寶";
+	@Transient // 新增訂單編號產生器SQL可參考：SalesDetailSerialGeneratorTest
+	public static final String ORDERNO_GENERATOR_ID = "ORDERNO_GENERATOR";
 	
 	private String id;
 	private Member member;
