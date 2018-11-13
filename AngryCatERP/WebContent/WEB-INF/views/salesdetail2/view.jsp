@@ -62,16 +62,16 @@
 
 <div class="row">
 	<div class="col-sm-offset-2">
-		<h2>新訂單-[<span id="orderNo"></span>]</h2>
+		<h2>新訂單-[<span id="orderNo"></span><span id="tmpOrderNo"></span>]</h2>
 	</div>
 </div>
 
 <div class="pull-right">
 	<div class="btn-group">
-		<button type="button" class="btn btn-default" onclick="window.location.href='${urlPrefix}/add'">新訂單</button>
+		<button type="button" class="btn btn-default print-not-required" onclick="window.location.href='${urlPrefix}/add'">新訂單</button>
 	</div>
 	<div class="btn-group">
-		<button type="button" class="btn btn-default" onclick="window.location.href='${urlPrefix}/list'">關閉</button>
+		<button type="button" class="btn btn-default print-not-required" onclick="window.location.href='${urlPrefix}/list'">關閉</button>
 	</div>	
 </div>
 
@@ -127,23 +127,31 @@
 			<label class="col-xs-5 control-label">
  			</label>			
 			<div class="col-xs-7">
-				<input type="button" id="addDetail" class="btn btn-default form-control" onclick="addSalesDetail()" value="新增商品" title="快速鍵: Alt + R"/>
+				<input type="button" id="addDetail" class="btn btn-default form-control print-not-required" onclick="addSalesDetail()" value="新增商品" title="快速鍵: Alt + R"/>
 			</div>		
  		</div>
  	</div>
+ 	<div class="form-group f-group">
+ 	</div>
+ 	 <div class="form-group f-group">
+ 	</div>
+ 	<div class="form-group f-group">
+ 	</div>
+ 	<div class="form-group f-group">
+ 	</div>
 </form>
 <div class="table-responsive">
-    <table class="table table-bordered table-dark">
+    <table class="table">
     	<thead>
     		<tr>
     			<th scope="col" class="col-xs-1">序號</th>
-    			<th scope="col" class="col-xs-2">商品型號</th>
-    			<th scope="col" class="col-xs-3">商品名稱</th>
+    			<th scope="col" class="col-xs-2">型號</th>
+    			<th scope="col" class="col-xs-3">名稱</th>
     			<th scope="col" class="col-xs-1">價格</th>
-    			<th scope="col" class="col-xs-1">實收金額</th>
-    			<th scope="col" class="col-xs-2">折扣說明</th>
+    			<th scope="col" class="col-xs-1">實收</th>
+    			<th scope="col" class="col-xs-2">折扣</th>
     			<th scope="col" class="col-xs-1">備註</th>
-    			<th scope="col" class="col-xs-1">功能</th>
+    			<th scope="col" class="col-xs-1 remove-btn">功能</th>
     		</tr>    		
     	</thead>
       <tbody id="salesDetailsContent">
@@ -152,7 +160,7 @@
 </div>
 <div>
 	<div class="row">
-		<div class="col-xs-2 col-xs-offset-4"><b>實付金額</b></div>
+		<div class="col-xs-2 col-xs-offset-3"><b>實付金額</b></div>
 		<div class="col-xs-1"><b><span id="totalPrice">0</span></b></div>
 		<div class="col-xs-1"><b><span id="totalMemberPrice">0</span></b></div>
 	</div>
@@ -160,10 +168,10 @@
 
 <div class="pull-right">
 	<div class="btn-group">
-		<button type="button" class="btn btn-default" onclick="printSalesDetails()">列印</button>
+		<button type="button" class="btn btn-default print-not-required" onclick="printSalesDetails()">列印</button>
 	</div>
 	<div class="btn-group">
-		<button type="button" class="btn btn-default" onclick="saveSalesDetails()" id="saveBtn">儲存</button>
+		<button type="button" class="btn btn-default print-not-required" onclick="saveSalesDetails()" id="saveBtn">儲存</button>
 	</div>	
 </div>
 </div>
@@ -186,12 +194,13 @@
 		<td><input type="text" class="form-control t-input {group} save-field" name="price" product-name="suggestedRetailPrice" product-group-name="suggestedRetailPrice-{group-mark}" disabled="disabled" id="price-{group-mark}" save-field-type="number"/></td>
 		<td><input type="text" class="form-control t-input save-field" name="memberPrice" id="memberPrice-{group-mark}" save-field-type="number"/></td>
 		<td>
-			<select class="form-control save-field" name="discountType" id="discount-{group-mark}" onchange="updateMemberPriceById('#memberPrice-{group-mark}', '#price-{group-mark}', this.options[this.selectedIndex].getAttribute('discount'))">
+			<select class="form-control save-field discount-select" name="discountType" id="discount-{group-mark}" onchange="updateMemberPriceById('#memberPrice-{group-mark}', '#price-{group-mark}', this.options[this.selectedIndex], '#discount-print-{group-mark}')">
 				{discount-select-options}
 			</select>
+			<input type="text" class="form-control discount-print" style="display: none;" id="discount-print-{group-mark}"/>
 		</td>
 		<td><input type="text" class="form-control t-input save-field" name="note"/></td>
-		<td name="removeBtn"><input type="button" class="btn btn-default btn-block" name="remove" value="移除" onclick="removeSalesDetail('#salesDetail-{group-mark}')" style="display: none;"/></td>
+		<td name="removeBtn" class="remove-btn"><input type="button" class="btn btn-default btn-block" name="remove" value="移除" onclick="removeSalesDetail('#salesDetail-{group-mark}')" style="display: none;"/></td>
 	</tr>
 </script>
 <script type="text/javascript" src="<c:url value="/vendor/bootstrap/3.3.5/js/bootstrap.min.js"/>"></script>
@@ -213,7 +222,7 @@
 			if(m == 1){
 				c = YYYY + '-' + pad(MM) + '-' + pad(DD) + 'T00:00:00.000Z';
 			}else{
-				c = YYYY + pad(MM) + pad(DD) + pad(hh) + pad(mm);
+				c = YYYY + pad(MM) + pad(DD);
 			}
 			return c;
 		}
@@ -230,7 +239,7 @@
 		    return s;
 		}
 		// ex. 201811081707-URod
-		document.getElementById('orderNo').innerHTML = current() + '-' + randLetter(4);
+		document.getElementById('tmpOrderNo').innerHTML = current();
 		
 		// discount select options(dropdown)
 		var discounts = parameters["折扣別"];
@@ -247,7 +256,7 @@
 			})
 			.join("");
 		// add no discount as first option
-		discountOpts = "<option value='' discount='1'>無</option>" + discountOpts;
+		discountOpts = "<option value='無' discount='1'>無</option>" + discountOpts;
 		vipIdx++;
 		var nonVipIdx = 0;
 		
@@ -459,7 +468,7 @@
 			return v;
 		}
 		/*
-		* 使用bootstrap alert實作彈跳視窗
+		* 使用bootstrap alert實作彈跳視窗  // TODO 換成jquery dialog元件可調整選項較多?? ref. http://api.jqueryui.com/dialog/
 		* ref. https://getbootstrap.com/docs/3.3/components/#alerts
 		* 
 		* @param {string} type		彈跳視窗類型，對應bootstrap 3.x的alert元件，ex. success, info, warning, danger
@@ -485,6 +494,13 @@
 				return;
 			}
 			var collects = [], today = current(1);
+			
+			var fbName		= strDefault($('#fbNickname').val()); // TODO if there's no fbName, only name ??
+			var mobile		= strDefault($('#mobile').val());
+			var idNo		= strDefault($('#idNo').val());
+			var memberId 	= strDefault($('#memberId').val());
+			var orderNo 	= $('#orderNo').html();
+			
 			rows.each(function(idx){
 				var row = $(this);
 				if(!row.find('input[name=modelId]').val()){
@@ -515,13 +531,6 @@
 				var payType			= null;
 				var payStatus		= null;
 
-				var fbName			= strDefault($('#fbNickname').val()); // TODO if there's no fbName, only name ??
-				var mobile			= strDefault($('#mobile').val());
-				var idNo			= strDefault($('#idNo').val());
-				var memberId 		= strDefault($('#memberId').val());
-				
-				var orderNo 		= $('#orderNo').html();
-				
 				sd['id']				= id;
 				sd['rowId']				= rowId;
 				sd['salePoint'] 		= salePoint;
@@ -538,6 +547,7 @@
 				sd['registrant'] 		= registrant;
 				sd['payType'] 			= payType;
 				sd['payStatus'] 		= payStatus;
+				
 				sd['fbName'] 			= fbName;
 				sd['mobile'] 			= mobile;
 				sd['idNo'] 				= idNo;
@@ -548,7 +558,8 @@
 				sd['orderNo'] = orderNo;
 			});
 			
-			if(idsForRemoved.length > 0){// 「刪除」
+			if(idsForRemoved.length > 0){// 刪除
+				console.log('idsForRemoved: ' + idsForRemoved);
 				$.ajax(moduleBaseUrl + '/deleteByIds.json', {
 					data: JSON.stringify(idsForRemoved),
 					dataType: 'json',
@@ -566,27 +577,63 @@
 				});
 			}
 			
-			if(collects.length > 0){// 包含「新增」、「修改」
-				$.ajax(moduleBaseUrl + '/batchSaveOrMerge.json', {
-					data: JSON.stringify(collects),
-					dataType: 'json',
-					contentType: 'application/json;charset=utf-8',
-					traditional: true,
-					method: 'POST',
-					cache: false,
-					success: function(ret, textStatus, jqxhr){
-						//console.log('success:\n' + JSON.stringify(ret));
-						// 存到後端之後產生id，將id存到頁面就可以修改
-						for(var j = 0; j < ret.length; j++) {
-							$('tr[rowId='+ret[j].rowId+']').find('input[name=id]').val(ret[j].id);
-						}
-						popup('success', $('#saveBtn').html() + '成功', '5000');
-						$('#saveBtn').html('修改');
-					},
-					error: defaultErrorHandler,
-					statusCode: defaultStatusHandler
-				});	
+			if(collects.length > 0){
+				if(!orderNo){// 新增訂單
+					$.ajax(moduleBaseUrl + '/batchSave.json', {
+						data: JSON.stringify(collects),
+						dataType: 'json',
+						contentType: 'application/json;charset=utf-8',
+						traditional: true,
+						method: 'POST',
+						cache: false,
+						success: function(ret, textStatus, jqxhr){
+							//console.log('success:\n' + JSON.stringify(ret));
+							// 存到後端之後產生id，將id存到頁面就可以修改
+							for(var j = 0; j < ret.length; j++) {
+								$('tr[rowId='+ret[j].rowId+']').find('input[name=id]').val(ret[j].id);
+							}
+							popup('success', '儲存成功', '5000');
+							
+							$('#saveBtn').html('修改');
+							$('#orderNo').html(ret[0].orderNo);
+							$('#tmpOrderNo').remove();
+						},
+						error: defaultErrorHandler,
+						statusCode: defaultStatusHandler
+					});
+				}else{//修改訂單
+					$.ajax(moduleBaseUrl + '/batchSaveOrMerge.json', {
+						data: JSON.stringify(collects),
+						dataType: 'json',
+						contentType: 'application/json;charset=utf-8',
+						traditional: true,
+						method: 'POST',
+						cache: false,
+						success: function(ret, textStatus, jqxhr){
+							//console.log('success:\n' + JSON.stringify(ret));
+							// 存到後端之後產生id，將id存到頁面就可以修改
+							for(var j = 0; j < ret.length; j++) {
+								$('tr[rowId='+ret[j].rowId+']').find('input[name=id]').val(ret[j].id);
+							}
+							popup('success', '修改成功', '5000');
+						},
+						error: defaultErrorHandler,
+						statusCode: defaultStatusHandler
+					});
+				}
 			}		
+		};
+		win.onbeforeprint = function(){
+			$('.print-not-required').hide();
+			$('.discount-select').hide();
+			//$('.remove-btn').hide();
+			$('.discount-print').addClass('t-input').show();
+		};
+		win.onafterprint = function(){
+			$('.print-not-required').show();
+			$('.discount-select').show();
+			//$('.remove-btn').show();
+			$('.discount-print').removeClass('t-input').hide();
 		};
 		// Bootstrap版面列印會遇到問題，可參考一些做法
 		// ref. https://stackoverflow.com/questions/12302819/how-to-create-a-printable-twitter-bootstrap-page
@@ -598,7 +645,8 @@
 			}
 			win.print();
 		};
-		win.updateMemberPriceById = function(memberPrice, price, discount){
+		win.updateMemberPriceById = function(memberPrice, price, option, discountPrint){
+			var discount = option.getAttribute('discount');
 			var originalPrice = $(price).val();
 			if ($.isNumeric(originalPrice) && $.isNumeric(discount)){
 				var r = parseFloat(originalPrice) * parseFloat(discount);
@@ -622,7 +670,9 @@
 				}				
 			});
 			$('#totalMemberPrice').html(totalMemberPrice);
+			$(discountPrint).val(option.getAttribute('value'));
 		};
+		// 設定快速鍵
 		$(win.document.body).keydown(function(e){
 			var altKey = e.altKey, keyCode = e.keyCode;
 			if(altKey && keyCode == 82){// Alt + R 直接觸發 Add new record	
