@@ -32,6 +32,7 @@ import com.angrycat.erp.common.CommonUtil;
 import com.angrycat.erp.genserial.DefaultSerialGenerator;
 import com.angrycat.erp.genserial.GenSerialUtil;
 import com.angrycat.erp.model.AmericanGroupBuyOrderForm;
+import com.angrycat.erp.model.SalesDetail;
 import com.angrycat.erp.sql.SqlRoot;
 import com.mchange.v2.c3p0.ComboPooledDataSource;
 
@@ -62,12 +63,13 @@ public class RootConfig {
 		//  catalina.home目前是提供log4j2設定用。如果是不啟動Tomcat的本地端測試，也可以透過這個參數，設定要操作的是本地還是NAS資料庫，dataSource會根據這個值調整拿資料庫設定，讓改變設定的地方集中在此。
 		String serverRoot = System.getProperty(CATALINA_HOME);
 		if(StringUtils.isBlank(serverRoot)){
-			//System.setProperty("catalina.home", NAS_TOMCAT_PRODUCTION_PATH);
+//			System.setProperty("catalina.home", NAS_TOMCAT_PRODUCTION_PATH);
 			System.setProperty(CATALINA_HOME, LOCAL_TOMCAT_PATH);
 			//System.setProperty("catalina.home", NAS_TOMCAT_TEST1_PATH);
 		}
 		// 新增流水號產生器: 美國團訂單
 		GenSerialUtil.addGenerator(new DefaultSerialGenerator(AmericanGroupBuyOrderForm.SALESNO_GENERATOR_ID, sessionFactory(dataSource()).getObject()));
+		GenSerialUtil.addGenerator(new DefaultSerialGenerator(SalesDetail.ORDERNO_GENERATOR_ID, sessionFactory(dataSource()).getObject()));
 	}
 	
 	@Bean(destroyMethod="close")
