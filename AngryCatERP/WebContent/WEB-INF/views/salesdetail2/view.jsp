@@ -22,6 +22,8 @@
 	<link rel="stylesheet" href='<c:url value="/vendor/jquery-ui-1.12.1.custom/jquery-ui.min.css"/>'/>
 	<link rel="stylesheet" href='<c:url value="/vendor/jquery-ui-1.12.1.custom/jquery-ui.structure.min.css"/>'/>
 	<link rel="stylesheet" href='<c:url value="/vendor/jquery-ui-1.12.1.custom/jquery-ui.theme.min.css"/>'/>
+	
+	<link rel="stylesheet" href='<c:url value="/vendor/gistfile1.css"/>'/>
     	
 	<script type="text/javascript" src="<c:url value="/vendor/jquery/2.1.1/jquery.min.js"/>"></script>
 	<script type="text/javascript" src="<c:url value="/vendor/jquery-ui-1.12.1.custom/jquery-ui.min.js"/>"></script>
@@ -44,7 +46,10 @@
 			border-radius: 0 !important; 
 			line-height: 1 !important;
 		}
-		td {margin: 0 !important; padding: 0 !important;}
+		td {
+			margin: 0 !important; 
+			padding: 0 !important;
+ 		}
 		.f-group {
 			margin-bottom: 3px;
 		}
@@ -54,6 +59,7 @@
 			border: 3px solid; 
 			padding: 70px 0;	
 		}
+		
 	</style>
 </head>
 <body>
@@ -144,14 +150,14 @@
     <table class="table">
     	<thead>
     		<tr>
-    			<th scope="col" class="col-xs-1">序號</th>
-    			<th scope="col" class="col-xs-2">型號</th>
-    			<th scope="col" class="col-xs-3">名稱</th>
-    			<th scope="col" class="col-xs-1">價格</th>
-    			<th scope="col" class="col-xs-1">實收</th>
-    			<th scope="col" class="col-xs-2">折扣</th>
-    			<th scope="col" class="col-xs-1">備註</th>
-    			<th scope="col" class="col-xs-1 remove-btn">功能</th>
+    			<th scope="col" class="col-sm-1">序號</th>
+    			<th scope="col" class="col-sm-2">型號</th>
+    			<th scope="col" class="col-sm-3">名稱</th>
+    			<th scope="col" class="col-sm-1">價格</th>
+    			<th scope="col" class="col-sm-1">實收</th>
+    			<th scope="col" class="col-sm-2">折扣</th>
+    			<th scope="col" class="col-sm-1">備註</th>
+    			<th scope="col" class="col-sm-1 remove-btn">功能</th>
     		</tr>    		
     	</thead>
       <tbody id="salesDetailsContent">
@@ -160,9 +166,9 @@
 </div>
 <div>
 	<div class="row">
-		<div class="col-xs-2 col-xs-offset-4"><b>實付金額</b></div>
-		<div class="col-xs-1"><b><span id="totalPrice">0</span></b></div>
-		<div class="col-xs-1"><b><span id="totalMemberPrice">0</span></b></div>
+		<div class="col-sm-2 col-sm-offset-4"><b>實付金額</b></div>
+		<div class="col-sm-1" style="padding-left: 0px;"><b><span id="totalPrice">0</span></b></div>
+		<div class="col-sm-1" style="padding-left: 0px;"><b><span id="totalMemberPrice">0</span></b></div>
 	</div>
 </div>
 
@@ -189,17 +195,16 @@
 			<input type="hidden" name="id" />
 			<span name="row-serial">{group-serial}</span>
 		</th>
-		<td><input type="text" class="form-control t-input {group} save-field" name="modelId" product-name="modelId" product-group-name="modelId-{group-mark}"/></td>
-		<td><input type="text" class="form-control t-input {group} save-field" name="productName" product-name="nameEng" product-group-name="nameEng-{group-mark}"/></td>
-		<td><input type="text" class="form-control t-input {group} save-field" name="price" product-name="suggestedRetailPrice" product-group-name="suggestedRetailPrice-{group-mark}" disabled="disabled" id="price-{group-mark}" save-field-type="number"/></td>
-		<td><input type="text" class="form-control t-input save-field" name="memberPrice" id="memberPrice-{group-mark}" save-field-type="number"/></td>
-		<td>
-			<select class="form-control save-field discount-select" name="discountType" id="discount-{group-mark}" onchange="updateMemberPriceById('#memberPrice-{group-mark}', '#price-{group-mark}', this.options[this.selectedIndex], '#discount-print-{group-mark}')">
+		<td class="input-td"><input type="text" class="form-control t-input {group} save-field" name="modelId" product-name="modelId" product-group-name="modelId-{group-mark}"/></td>
+		<td class="input-td"><input type="text" class="form-control t-input {group} save-field" name="productName" product-name="nameEng" product-group-name="nameEng-{group-mark}"/></td>
+		<td class="input-td"><input type="text" class="form-control t-input {group} save-field" name="price" product-name="suggestedRetailPrice" product-group-name="suggestedRetailPrice-{group-mark}" disabled="disabled" id="price-{group-mark}" save-field-type="number"/></td>
+		<td class="input-td"><input type="text" class="form-control t-input save-field" name="memberPrice" id="memberPrice-{group-mark}" save-field-type="number"/></td>
+		<td class="select-td">
+			<select class="form-control save-field discount-select" name="discountType" id="discount-{group-mark}" onchange="updateMemberPriceById('#memberPrice-{group-mark}', '#price-{group-mark}', this.options[this.selectedIndex])">
 				{discount-select-options}
 			</select>
-			<input type="text" class="form-control discount-print" style="display: none;" id="discount-print-{group-mark}"/>
 		</td>
-		<td><input type="text" class="form-control t-input save-field" name="note"/></td>
+		<td class="input-td"><input type="text" class="form-control t-input save-field" name="note"/></td>
 		<td name="removeBtn" class="remove-btn"><input type="button" class="btn btn-default btn-block" name="remove" value="移除" onclick="removeSalesDetail('#salesDetail-{group-mark}')" style="display: none;"/></td>
 	</tr>
 </script>
@@ -207,6 +212,12 @@
 <script type="text/javascript">
 // TODO 實付(總)金額是否要存到資料庫 ==> 這樣每一筆銷售明細都要存??
 // TODO 日後需要按照訂單編號修改的需求 ??
+// TODO bootstrap版型在列印時是使用最小瀏覽的結果，如果有個別欄位很長，畫面上看起來沒問題，列印有時會變得擠在一起
+// 在bootstrap 3.x 列印時他會自動使用col-xs，讓很多東西擠在一起
+// 處理方法是
+// 1. 直接使用col-xs定義欄寬 --> 不過這樣在很多情境下會失去用bootstrap的好處
+// 2. 使用第三方css例如gistfile1.css修正這個問題 ==> https://blog.donnierayjones.com/2014/10/fix-bootstrap3-printing/
+// 3. 在table內使用input，雖然獲得排版上容易對齊的便利，但同時如果字太多他不會像正常table自動換行
 	(function($, moduleBaseUrl, win, parameters, rootPath, user){ // TODO move out some functions??
 		function current(m){// ex. 2018-09-11 12:09 -> 201809111209
 			function pad(n){ // ex. 9 -> '09'
@@ -623,29 +634,59 @@
 				}
 			}		
 		};
-		win.onbeforeprint = function(){
-			$('.print-not-required').hide();
-			$('.discount-select').hide();
-			//$('.remove-btn').hide();
-			$('.discount-print').addClass('t-input').show();
-		};
-		win.onafterprint = function(){
-			$('.print-not-required').show();
-			$('.discount-select').show();
-			//$('.remove-btn').show();
-			$('.discount-print').removeClass('t-input').hide();
+		// win.onbeforeprint = function(){};
+		win.onafterprint = function(){			
+			$('#container').show();
+			$('#container-print').remove();
 		};
 		// Bootstrap版面列印會遇到問題，可參考一些做法
 		// ref. https://stackoverflow.com/questions/12302819/how-to-create-a-printable-twitter-bootstrap-page
-		win.printSalesDetails = function(){
+		win.printSalesDetails = function(){			
 			var rows = $('.salesDetail');
 			if(rows.length == 0){
 				console.log('No Item Found');
 				return;
 			}
+						
+			// 在列印前，複製頁面節點，修改他讓他更適合列印版面
+			// 最主要的問題是input和select適合輸入，但不適合列印版面，譬如文字內容太長會被截掉，無法自動換行
+			// 做法是: 在td中，用input和select的「值」替換掉input和select自己
+			var original = $('.container');
+			var originalSelects = original.find('select');
+			var clone = original.clone();
+			clone.removeAttr('id').attr('id', 'container-print');
+			
+			// clone的時候，不會複製textarea和selected，所以要自己帶過來
+			clone.find('select').each(function(idx, ele){
+				$(ele).val(originalSelects.eq(idx).val());
+			});
+			
+			clone.find('.print-not-required').remove();
+			
+			clone.find('.input-td').each(function(idx, ele){
+				var input = $(ele).find('input');
+				var v = input.val();
+				input.remove();
+				$(ele).css('vertical-align', 'middle')
+					.html(v);
+			});
+			
+			clone.find('.select-td').each(function(idx, ele){
+				var select = $(ele).find('select');
+				var v = select.find('option:selected').val();
+				
+				select.remove();
+				$(ele).css('vertical-align', 'middle')
+					.html(v);
+			});
+			
+			clone.appendTo(win.document.body);
+			original.hide();
+
 			win.print();
 		};
-		win.updateMemberPriceById = function(memberPrice, price, option, discountPrint){
+		win.updateMemberPriceById = function(memberPrice, price, option){
+			option.selected = true;
 			var discount = option.getAttribute('discount');
 			var originalPrice = $(price).val();
 			if ($.isNumeric(originalPrice) && $.isNumeric(discount)){
@@ -670,7 +711,6 @@
 				}				
 			});
 			$('#totalMemberPrice').html(totalMemberPrice);
-			$(discountPrint).val(option.getAttribute('value'));
 		};
 		// 設定快速鍵
 		$(win.document.body).keydown(function(e){
