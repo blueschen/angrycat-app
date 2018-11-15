@@ -72,6 +72,9 @@
 	</div>
 </div>
 
+
+<div id="operation-container">
+
 <div class="pull-right">
 	<div class="btn-group">
 		<button type="button" class="btn btn-default print-not-required" onclick="window.location.href='${urlPrefix}/add'">新訂單</button>
@@ -82,7 +85,7 @@
 </div>
 
 	
-<form class="form-horizontal" name="memberForm">
+<form class="form-horizontal">
  	<div class="form-group f-group">
  		<div class="form-group col-xs-5 f-group">
 			<label class="col-xs-5 control-label" for="name">
@@ -157,19 +160,18 @@
     			<th scope="col" class="col-sm-1">實收</th>
     			<th scope="col" class="col-sm-2">折扣</th>
     			<th scope="col" class="col-sm-1">備註</th>
-    			<th scope="col" class="col-sm-1 remove-btn">功能</th>
+    			<th scope="col" class="col-sm-1">功能</th>
     		</tr>    		
     	</thead>
       <tbody id="salesDetailsContent">
       </tbody>
     </table>
 </div>
-<div>
-	<div class="row">
-		<div class="col-sm-2 col-sm-offset-4"><b>實付金額</b></div>
-		<div class="col-sm-1" style="padding-left: 0px;"><b><span id="totalPrice">0</span></b></div>
-		<div class="col-sm-1" style="padding-left: 0px;"><b><span id="totalMemberPrice">0</span></b></div>
-	</div>
+
+<div class="row">
+	<div class="col-sm-2 col-sm-offset-4"><b>實付金額</b></div>
+	<div class="col-sm-1" style="padding-left: 0px;"><b><span id="totalPrice">0</span></b></div>
+	<div class="col-sm-1" style="padding-left: 0px;"><b><span id="totalMemberPrice">0</span></b></div>
 </div>
 
 <div class="pull-right">
@@ -180,6 +182,98 @@
 		<button type="button" class="btn btn-default print-not-required" onclick="saveSalesDetails()" id="saveBtn">儲存</button>
 	</div>	
 </div>
+
+</div>
+
+<div id="print-container" style="display: none;">
+
+<form class="form-horizontal">
+ 	<div class="form-group f-group">
+ 		<div class="form-group col-xs-5 f-group">
+			<label class="col-xs-5 control-label" for="print-member-name">
+ 				客戶名字
+ 			</label>
+ 			<div class="col-xs-7">
+ 				<input type="text" id="print-member-name" class="form-control"/>
+ 			</div>
+ 		</div>
+ 		<div class="form-group col-xs-5 f-group">
+			<label class="col-xs-5 control-label" for="print-member-fbName">
+ 				FB名字
+ 			</label>
+ 			<div class="col-xs-7">
+ 				<input type="text" id="print-member-fbName" class="form-control"/>
+ 			</div>
+ 		</div>
+ 	</div>
+ 	<div class="form-group f-group">
+ 		<div class="form-group col-xs-5 f-group">
+			<label class="col-xs-5 control-label" for="print-member-mobile">
+ 				手機號碼
+ 			</label>
+ 			<div class="col-xs-7">
+ 				<input type="text" id="print-member-mobile" class="form-control"/>
+ 			</div>
+ 		</div>
+ 		<div class="form-group col-xs-5 f-group">
+			<label class="col-xs-5 control-label" for="print-member-idNo">
+ 				身分證字號
+ 			</label>
+ 			<div class="col-xs-7">
+ 				<input type="text" id="print-member-idNo" class="form-control"/>
+ 			</div>
+ 		</div>
+ 	</div>
+ 	<div class="form-group f-group">
+ 		<div class="form-group col-xs-5 f-group">
+			<label class="col-xs-5 control-label" for="print-member-important">
+ 				客戶分類
+ 			</label>
+ 			<div class="col-xs-7">
+ 				<input type="text" id="print-member-important" class="form-control"/>
+ 			</div>
+ 		</div>
+ 		<div class="form-group col-xs-5 f-group">
+			<label class="col-xs-5 control-label">
+ 			</label>			
+			<div class="col-xs-7"></div>
+ 		</div>
+ 	</div>
+ 	<div class="form-group f-group">
+ 	</div>
+ 	 <div class="form-group f-group">
+ 	</div>
+ 	<div class="form-group f-group">
+ 	</div>
+ 	<div class="form-group f-group">
+ 	</div>
+</form>
+<div class="table-responsive">
+    <table class="table">
+    	<thead>
+    		<tr>
+    			<th scope="col" class="col-sm-1">序號</th>
+    			<th scope="col" class="col-sm-2">型號</th>
+    			<th scope="col" class="col-sm-5">名稱</th>
+    			<th scope="col" class="col-sm-1">價格</th>
+    			<th scope="col" class="col-sm-1">實收</th>
+    			<th scope="col" class="col-sm-1">折扣</th>
+    			<th scope="col" class="col-sm-1">備註</th>
+    		</tr>    		
+    	</thead>
+      <tbody id="print-salesDetailsContent">
+      </tbody>
+    </table>
+</div>
+
+<div class="row">
+	<div class="col-sm-2 col-sm-offset-6"><b>實付金額</b></div>
+	<div class="col-sm-1" style="padding-left: 0px;"><b><span id="print-totalPrice">0</span></b></div>
+	<div class="col-sm-1" style="padding-left: 0px;"><b><span id="print-totalMemberPrice">0</span></b></div>
+</div>
+
+</div>
+
 </div>
 
 <script id="alert-template" type="text/template">
@@ -205,9 +299,24 @@
 			</select>
 		</td>
 		<td class="input-td"><input type="text" class="form-control t-input save-field" name="note"/></td>
-		<td name="removeBtn" class="remove-btn"><input type="button" class="btn btn-default btn-block" name="remove" value="移除" onclick="removeSalesDetail('#salesDetail-{group-mark}')" style="display: none;"/></td>
+		<td name="removeBtn"><input type="button" class="btn btn-default btn-block" name="remove" value="移除" onclick="removeSalesDetail('#salesDetail-{group-mark}')" style="display: none;"/></td>
 	</tr>
 </script>
+
+<script id="print-salesDetailTmpl" type="text/template">
+	<tr class="salesDetail" >
+		<th scope="row">
+			<span>{row-serial}</span>
+		</th>
+		<td style="vertical-align: middle;">{print-modelId}</td>
+		<td style="vertical-align: middle;">{print-productName}</td>
+		<td style="vertical-align: middle;">{print-price}</td>
+		<td style="vertical-align: middle;">{print-memberPrice}</td>
+		<td style="vertical-align: middle;">{print-discountType}</td>
+		<td style="vertical-align: middle;">{print-note}</td>
+	</tr>
+</script>
+
 <script type="text/javascript" src="<c:url value="/vendor/bootstrap/3.3.5/js/bootstrap.min.js"/>"></script>
 <script type="text/javascript">
 // TODO 實付(總)金額是否要存到資料庫 ==> 這樣每一筆銷售明細都要存??
@@ -478,6 +587,10 @@
 			if(!v){return null;} // input dom value default empty string, we want null
 			return v;
 		}
+		function defaultEmptyStr(v){
+			if(!v){return "";}
+			return v;
+		}
 		/*
 		* 使用bootstrap alert實作彈跳視窗  // TODO 換成jquery dialog元件可調整選項較多?? ref. http://api.jqueryui.com/dialog/
 		* ref. https://getbootstrap.com/docs/3.3/components/#alerts
@@ -498,21 +611,27 @@
 					});
 			});
 		}
-		win.saveSalesDetails = function(){// 包含「新增」、「修改」、「刪除」
-			var rows = $('.salesDetail');
-			if(rows.length == 0 && idsForRemoved.length == 0){
-				console.log('No Item Found');
-				return;
-			}
-			var collects = [], today = current(1);
+		
+		function collectData(){
+			var data = {details: []};
+			var collects = data.details, today = current(1);
 			
+			var name		= strDefault($('#name').val());
 			var fbName		= strDefault($('#fbNickname').val()); // TODO if there's no fbName, only name ??
 			var mobile		= strDefault($('#mobile').val());
 			var idNo		= strDefault($('#idNo').val());
 			var memberId 	= strDefault($('#memberId').val());
+			
 			var orderNo 	= $('#orderNo').html();
 			
-			rows.each(function(idx){
+			data.name		= name;
+			data.fbName		= fbName;
+			data.mobile		= mobile;
+			data.idNo		= idNo;
+			data.memberId	= memberId;
+			data.orderNo	= orderNo;
+			
+			$('.salesDetail').each(function(idx){
 				var row = $(this);
 				if(!row.find('input[name=modelId]').val()){
 					return; // 'return' represents continue, 'return false' represents break
@@ -568,7 +687,17 @@
 				}
 				sd['orderNo'] = orderNo;
 			});
-			
+			return data;
+		}
+		
+		win.saveSalesDetails = function(){// 包含「新增」、「修改」、「刪除」
+			var rows = $('.salesDetail');
+			if(rows.length == 0 && idsForRemoved.length == 0){
+				console.log('No Item Found');
+				return;
+			}
+			var data = collectData(), collects = data.details, orderNo = data.orderNo;
+			console.log('orderNo: ' +orderNo+'==');
 			if(idsForRemoved.length > 0){// 刪除
 				console.log('idsForRemoved: ' + idsForRemoved);
 				$.ajax(moduleBaseUrl + '/deleteByIds.json', {
@@ -636,9 +765,14 @@
 		};
 		// win.onbeforeprint = function(){};
 		win.onafterprint = function(){			
-			$('#container').show();
-			$('#container-print').remove();
+			$('#operation-container').show();
+			$('#print-container').hide();
 		};
+		var printItems = 
+			{
+				member: ['name', 'fbName', 'mobile', 'idNo'],
+				salesDetail: ['modelId', 'productName', 'price', 'memberPrice', 'discountType', 'note']
+			};
 		// Bootstrap版面列印會遇到問題，可參考一些做法
 		// ref. https://stackoverflow.com/questions/12302819/how-to-create-a-printable-twitter-bootstrap-page
 		win.printSalesDetails = function(){			
@@ -647,41 +781,34 @@
 				console.log('No Item Found');
 				return;
 			}
-						
-			// 在列印前，複製頁面節點，修改他讓他更適合列印版面
-			// 最主要的問題是input和select適合輸入，但不適合列印版面，譬如文字內容太長會被截掉，無法自動換行
-			// 做法是: 在td中，用input和select的「值」替換掉input和select自己
-			var original = $('.container');
-			var originalSelects = original.find('select');
-			var clone = original.clone();
-			clone.removeAttr('id').attr('id', 'container-print');
 			
-			// clone的時候，不會複製textarea和selected，所以要自己帶過來
-			clone.find('select').each(function(idx, ele){
-				$(ele).val(originalSelects.eq(idx).val());
-			});
+			var data = collectData(), memberItems = printItems.member, detailItems = printItems.salesDetail, details = data.details;
+			for (var i = 0; i < memberItems.length; i++) {
+				var memberItem = memberItems[i];
+				document.getElementById('print-member-' + memberItem).value = data[memberItem];	
+			}
 			
-			clone.find('.print-not-required').remove();
+			var rowContent = $('#print-salesDetailsContent');
+			rowContent.empty();
 			
-			clone.find('.input-td').each(function(idx, ele){
-				var input = $(ele).find('input');
-				var v = input.val();
-				input.remove();
-				$(ele).css('vertical-align', 'middle')
-					.html(v);
-			});
+			for (var j = 0; j < details.length; j++) {
+				var detail = details[j];
+				var tmpl = 
+					$('#print-salesDetailTmpl')
+						.html()
+						.replace('{row-serial}', j+1);
+				for (var k = 0; k < detailItems.length; k++) {
+					var prop = detailItems[k];
+					tmpl = tmpl.replace('{print-'+ prop +'}', defaultEmptyStr(detail[prop]));
+				}
+				rowContent.append(tmpl);
+			}
 			
-			clone.find('.select-td').each(function(idx, ele){
-				var select = $(ele).find('select');
-				var v = select.find('option:selected').val();
-				
-				select.remove();
-				$(ele).css('vertical-align', 'middle')
-					.html(v);
-			});
+			document.getElementById('print-totalPrice').innerHTML = document.getElementById('totalPrice').innerHTML;
+			document.getElementById('print-totalMemberPrice').innerHTML = document.getElementById('totalMemberPrice').innerHTML;
 			
-			clone.appendTo(win.document.body);
-			original.hide();
+			$('#operation-container').hide();
+			$('#print-container').show();
 
 			win.print();
 		};
