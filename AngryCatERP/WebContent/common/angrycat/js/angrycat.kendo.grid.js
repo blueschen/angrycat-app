@@ -181,7 +181,7 @@
 					},
 					parameterMap: function(data, type){
 						if(type === "read"){
-							//console.log("data: " + JSON.stringify(data));
+							// console.log("data: " + JSON.stringify(data.filter));
 							var r = {
 								conds: {
 									kendoData: {
@@ -958,10 +958,10 @@
 					if(id && docType){
 						var url = rootPath + "/datachangelog/list?docId=" + id + "&docType=" + docType;
 						(function (url) {
-							newwindow=window.open(url,'name','height=600,width=800');
-							if (window.focus) {newwindow.focus()}
+							var dcl =window.open(url,'name','height=600,width=800');
+							if (dcl.focus) {dcl.focus();}
 							return false;
-						})(url)
+						})(url);
 					}
 				}
 				var mainGrid = $(gridId).kendoGrid({
