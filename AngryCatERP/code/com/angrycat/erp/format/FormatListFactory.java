@@ -159,7 +159,28 @@ public class FormatListFactory {
 	}
 	private static FormatList ofSalesBase(String dateFormat){
 		FormatList f = new FormatList();
-		f.setDocTitle("rowId");
+		/* *
+		 * 目前銷售明細至少有三種資料來源
+		 * 1. Excel匯入
+		 * 2. salesdetail2/list.jsp(銷售明細)
+		 * 3. salesdetail2/view.jsp(專櫃新訂單) 
+		 * 
+		 * 在異動記錄希望有一個具備可讀性、易辨識的編碼
+		 * 理想上應該有訂單編號搭配個別明細序號
+		 * 但Excel匯入和銷售明細並不適合提供訂單編號
+		 * 
+		 * 專櫃新訂單能夠提供理想的識別碼(訂單編號+序號)
+		 * 
+		 * 考量到上述各種情況
+		 * 原生的內建id雖然可讀性較低
+		 * 其格式yyyyMMdd-HHmmssSSS-五碼亂碼
+		 * 範例為20170224-121335127-dOaHV
+		 * 
+		 * 形式與專櫃新訂單的訂單編號相近
+		 * 故在此採用id做為異動記錄的識別碼
+		 * 
+		 * */
+		f.setDocTitle("id");
 		
 		PropertyFormat orderDate = new PropertyFormat("銷售日", "orderDate");
 		orderDate.setDateFormat(dateFormat);
