@@ -18,7 +18,8 @@
 	<title>訂單新增</title>
 
 	<link rel="stylesheet" href='<c:url value="/vendor/bootstrap/3.3.5/css/bootstrap.css"/>'/>
-	<link rel="stylesheet" href='<c:url value="/vendor/bootstrap/3.3.5/css/bootstrap-theme.css"/>'/>
+	<link rel="stylesheet" href="<c:url value="/vendor/bootstrap/3.3.5/css/bootstrap-theme.css"/>">
+	
 	<link rel="stylesheet" href='<c:url value="/vendor/jquery-ui-1.12.1.custom/jquery-ui.min.css"/>'/>
 	<link rel="stylesheet" href='<c:url value="/vendor/jquery-ui-1.12.1.custom/jquery-ui.structure.min.css"/>'/>
 	<link rel="stylesheet" href='<c:url value="/vendor/jquery-ui-1.12.1.custom/jquery-ui.theme.min.css"/>'/>
@@ -77,10 +78,10 @@
 
 <div class="pull-right">
 	<div class="btn-group">
-		<button type="button" class="btn btn-default print-not-required" onclick="window.location.href='${urlPrefix}/add'">新訂單</button>
+		<button type="button" class="btn btn-default" onclick="window.location.href='${urlPrefix}/add'">新訂單</button>
 	</div>
 	<div class="btn-group">
-		<button type="button" class="btn btn-default print-not-required" onclick="window.location.href='${urlPrefix}/list'">關閉</button>
+		<button type="button" class="btn btn-default" onclick="window.location.href='${urlPrefix}/list'">關閉</button>
 	</div>	
 </div>
 
@@ -136,7 +137,7 @@
 			<label class="col-xs-5 control-label">
  			</label>			
 			<div class="col-xs-7">
-				<input type="button" id="addDetail" class="btn btn-default form-control print-not-required" onclick="addSalesDetail()" value="新增商品" title="快速鍵: Alt + R"/>
+				<input type="button" id="addDetail" class="btn btn-default form-control " onclick="addSalesDetail()" value="新增商品" title="快速鍵: Alt + R"/>
 			</div>		
  		</div>
  	</div>
@@ -149,8 +150,9 @@
  	<div class="form-group f-group">
  	</div>
 </form>
+
 <div class="table-responsive">
-    <table class="table">
+    <table class="table table-hover">
     	<thead>
     		<tr>
     			<th scope="col" class="col-sm-1">序號</th>
@@ -176,10 +178,10 @@
 
 <div class="pull-right">
 	<div class="btn-group">
-		<button type="button" class="btn btn-default print-not-required" onclick="printSalesDetails()">列印</button>
+		<button type="button" class="btn btn-default" onclick="printSalesDetails()">列印</button>
 	</div>
 	<div class="btn-group">
-		<button type="button" class="btn btn-default print-not-required" onclick="saveSalesDetails()" id="saveBtn">儲存</button>
+		<button type="button" class="btn btn-default" onclick="saveSalesDetails()" id="saveBtn">儲存</button>
 	</div>	
 </div>
 
@@ -544,6 +546,7 @@
 				}, function(){
 					$(this).find('input[name=remove]').hide();
 				});
+			
 			$("#salesDetailsContent").append(row);
 			
 			waitElement('input[product-group-name=modelId-'+ proId +']', function(ele){
@@ -621,6 +624,7 @@
 			var mobile		= strDefault($('#mobile').val());
 			var idNo		= strDefault($('#idNo').val());
 			var memberId 	= strDefault($('#memberId').val());
+			var important 	= strDefault($('#important').val());
 			
 			var orderNo 	= $('#orderNo').html();
 			
@@ -629,6 +633,7 @@
 			data.mobile		= mobile;
 			data.idNo		= idNo;
 			data.memberId	= memberId;
+			data.important	= important;
 			data.orderNo	= orderNo;
 			
 			$('.salesDetail').each(function(idx){
@@ -770,7 +775,7 @@
 		};
 		var printItems = 
 			{
-				member: ['name', 'fbName', 'mobile', 'idNo'],
+				member: ['name', 'fbName', 'mobile', 'idNo', 'important'],
 				salesDetail: ['modelId', 'productName', 'price', 'memberPrice', 'discountType', 'note']
 			};
 		// Bootstrap版面列印會遇到問題，可參考一些做法
