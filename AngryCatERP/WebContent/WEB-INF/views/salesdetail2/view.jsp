@@ -68,8 +68,8 @@
 <div class="container" id="container" style="display: block;">
 
 <div class="row">
-	<div class="col-sm-offset-2">
-		<h2>新訂單-[<span id="orderNo"></span><span id="tmpOrderNo"></span>]</h2>
+	<div class="col-sm-offset-4">
+		<h2>新訂單&nbsp;-&nbsp;[<span id="orderNo"></span><span id="tmpOrderNo"></span>]</h2>
 	</div>
 </div>
 
