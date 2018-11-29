@@ -74,7 +74,7 @@
 					lastSelectedCondition: lastSelectedCondition,
 					addRowInit: function(dataItem, editRow){
 						dataItem.set("orderDate", new Date());
-						dataItem.set("saleStatus", parameters["銷售狀態"][0].nameDefault);
+						dataItem.set("saleStatus", parameters["銷售狀態"][1].nameDefault);
 						dataItem.set("salePoint", parameters["銷售點"][1].nameDefault);
 					},
 					lockedFlag: lockedFlag,
@@ -182,17 +182,17 @@
 						["memberPrice",		"實收",				100,			"number",	"gte"],
 						["discountType",	"折扣別",				150,			"string",	"contains",				null,				paramFEditors["折扣別"],	paramEditors["折扣別"]],						
 						["orderDate",		"銷售日",				150,			"date",		"gte"],
-						["payDate",			"付款日",				150,			"date",		"gte"],
-						["payType",			"付款別",				150,			"string",	"contains",				null,				paramFEditors["付款別"],	paramEditors["付款別"]],
-						["payStatus",		"付款狀態",			150,			"string",	"contains",				null,				paramFEditors["付款狀態"],paramEditors["付款狀態"]],
+						["checkBillStatus",	"對帳狀態",			150,			"string",	"contains"],
+						//["payDate",			"付款日",				150,			"date",		"gte"],
+						//["payType",			"付款別",				150,			"string",	"contains",				null,				paramFEditors["付款別"],	paramEditors["付款別"]],
+						//["payStatus",		"付款狀態",			150,			"string",	"contains",				null,				paramFEditors["付款狀態"],paramEditors["付款狀態"]],
 						["shippingDate",	"出貨日",				150,			"date",		"gte"],
 						["sendMethod",		"郵寄方式",			150,			"string",	"eq",					null,				paramFEditors["郵寄方式"],paramEditors["郵寄方式"]],
-						["registrant",		"登單者",				150,			"string",	"contains"],
+						//["registrant",		"登單者",				150,			"string",	"contains"],
 						["note",			"備註",				150,			"string",	"contains"],
 						["orderNo",			"訂單編號",			150,			"string",	"startswith"],
 						[mobileFieldName,	"手機",				150,			"string",	"contains",				mobileField],
-						["idNo",			"身份證",				150,			"string",	"contains"],
-						["checkBillStatus",	"對帳狀態",			150,			"string",	"contains"],
+						["idNo",			"身份證",				150,			"string",	"contains"],						
 						["arrivalStatus",	"已到貨",				150,			"string",	"eq",					null,				hidden],
 						["contactInfo",		"郵寄地址電話",		150,			"string",	"contains",				null,				hidden],
 						["activity",		"活動",				150,			"string",	"contains",				null,				hidden],
