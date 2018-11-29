@@ -31,7 +31,7 @@ public class ParameterInsertService {
 	@Transactional
 	public void execute(){
 //		clearAllParams();
-		initSalesDetailParams();
+//		initSalesDetailParams();
 		initTestParams();
 	}
 	@Transactional
@@ -68,7 +68,6 @@ public class ParameterInsertService {
 			.add("98. 作廢")
 		
 		,new Parameters("銷售點", s)
-			.add("敦南誠品")
 			.add("FB社團")
 			.add("粉絲團")
 			.add("商店")
