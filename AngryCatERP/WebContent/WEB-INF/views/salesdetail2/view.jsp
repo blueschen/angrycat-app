@@ -465,8 +465,12 @@
 						success: function(ret, textStatus, jqxhr){
 							//console.log('success:\n' + JSON.stringify(ret));
 							resp($.map(ret.results, function(v, i){
+								var extra = '';
+								if(targetField == 'modelId'){ // 特別針對型號欄位，附註總庫存資訊
+									// extra += '[:'+v.totalStockQty+']'; // TODO 考量串起更多資訊，讓使用者可以更快速判斷合適的選項，另一個考量點是畫面簡潔
+								}
 								return {
-									label: v[targetField], // TODO 考量串起更多資訊，讓使用者可以更快速判斷合適的選項，另一個考量點是畫面簡潔
+									label: v[targetField] + extra, 
 									value: v[targetField],
 									info: v // 這邊設定select事件所需物件
 								};
@@ -488,7 +492,18 @@
 						selectExtra(sel, keyField, ui.item.info);
 					}
 				}
-			});
+			})/* 
+				this can be used to customize item with html
+				ref. https://api.jqueryui.com/autocomplete/#method-_renderItem
+			.data( "ui-autocomplete" )._renderItem = function( ul, item ) {
+		        var inner_html = '<h3>'+item.label+'</h3>';
+		        inner_html = '<table><tr><td><span width="100px;">'+item.label+'</span></td><td><img src="http://www.ohmbeads.com/ohm2/media/import/AAA001-o-a.jpg" weight="50" height="50"/></td></tr></table>';
+		        return $("<li></li>")
+		                .data("item.autocomplete", item)
+		                .append(inner_html)
+		                .appendTo(ul);
+		    }*/
+			;
 		}
 		
 		var memberKeyField = "member-name";
