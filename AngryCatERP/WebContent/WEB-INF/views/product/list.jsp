@@ -293,6 +293,14 @@
 					}
 					
 				});
+				// 
+				mainGrid.dataSource.bind("change", function(e){
+					if (e.action != 'itemchange' && e.field != 'priceAsRMB'){
+						return;
+					}
+					var items = e.items;
+				});
+				
 				/*
 				function totalStockQtyChangeHandler(e){
 					var field = e.field,
