@@ -51,7 +51,7 @@
 						<a href="${pageContext.request.contextPath}/salesdetail2/list">銷售明細</a>
 					</li>
 					<li>
-						<a href="${pageContext.request.contextPath}/salesdetail2/add">專櫃新訂單</a>
+						<a href="#" onclick="window.open('${pageContext.request.contextPath}/salesdetail2/add','salesdetailAdd','height='+screen.height+',width='+screen.width).focus();">建立新訂單</a>
 					</li>
 					<li class="dropdown">
 						<!-- 直接使用angular-strap的指令bs-dropdown -->
