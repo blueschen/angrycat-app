@@ -25,7 +25,7 @@
 	<link rel="stylesheet" href='<c:url value="/vendor/jquery-ui-1.12.1.custom/jquery-ui.theme.min.css"/>'/>
 	
 	<link rel="stylesheet" href='<c:url value="/vendor/gistfile1.css"/>'/>
-    	
+    
 	<script type="text/javascript" src="<c:url value="/vendor/jquery/2.1.1/jquery.min.js"/>"></script>
 	<script type="text/javascript" src="<c:url value="/vendor/jquery-ui-1.12.1.custom/jquery-ui.min.js"/>"></script>
 
@@ -78,10 +78,10 @@
 
 <div class="pull-right">
 	<div class="btn-group">
-		<button type="button" class="btn btn-default" onclick="window.location.href='${urlPrefix}/add'">新訂單</button>
+		<button type="button" class="btn btn-default" onclick="newOrderHandler();">新訂單</button>
 	</div>
 	<div class="btn-group">
-		<button type="button" class="btn btn-default" onclick="window.location.href='${urlPrefix}/list'">關閉</button>
+		<button type="button" class="btn btn-default" onclick="closeHandler();">關閉</button>
 	</div>	
 </div>
 
@@ -134,13 +134,30 @@
  			</div>
  		</div>
  		<div class="form-group col-xs-5 f-group">
-			<label class="col-xs-5 control-label">
+			<label class="col-xs-5 control-label" for="salePointSelects">
+				銷售點
  			</label>			
 			<div class="col-xs-7">
-				<input type="button" id="addDetail" class="btn btn-default form-control " onclick="addSalesDetail()" value="新增商品" title="快速鍵: Alt + R"/>
+				<select id="salePointSelects" name="salePoint" class="form-control">
+				</select>
 			</div>		
  		</div>
  	</div>
+ 	<div class="form-group f-group">
+ 		<div class="form-group col-xs-5 f-group">
+			<label class="col-xs-5 control-label">
+ 			</label>
+ 			<div class="col-xs-7">
+ 				<input type="button" id="addDetail" class="btn btn-default form-control " onclick="addSalesDetail()" value="新增商品" title="快速鍵: Alt + R"/>
+ 			</div>
+ 		</div>
+ 		<div class="form-group col-xs-5 f-group">
+			<label class="col-xs-5 control-label">
+ 			</label>			
+			<div class="col-xs-7">
+			</div>		
+ 		</div>
+ 	</div> 	
  	<div class="form-group f-group">
  	</div>
  	 <div class="form-group f-group">
@@ -278,6 +295,26 @@
 
 </div>
 
+<!-- ref. https://getbootstrap.com/docs/3.3/javascript/#modals -->
+<div class="modal fade in" id="confirmModal" tabindex="-1" role="dialog" aria-labelledby="confirmModalLabel">
+  <div class="modal-dialog" role="document">
+    <div class="modal-content">
+      <div class="modal-header">
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+        <h4 class="modal-title" id="confirmModalLabel">請確認</h4>
+      </div>
+      <div class="modal-body">
+        <span id="confirmContent"></span>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-default" data-dismiss="modal">取消</button>
+        <button type="button" class="btn btn-primary" id="confirmYes">確認</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+
 <script id="alert-template" type="text/template">
 	<div class="alert alert-{type} alert-dismissible" role="alert" style="display: none; text-align: center;">
   		<button type="button" class="close" data-dismiss="alert" aria-label="Close"><span aria-hidden="true">&times;</span></button>
@@ -381,6 +418,18 @@
 		discountOpts = "<option value='無' discount='1'>無</option>" + discountOpts;
 		vipIdx++;
 		var nonVipIdx = 0;
+		
+		var salesPoints = parameters["銷售點"];
+		option = "<option value='{value}'>{label}</option>";
+		var salesPointOpts = 
+			$.map(salesPoints, function(v, i){
+				return option.replace('{value}', v.nameDefault)
+					.replace('{label}', v.nameDefault);				
+			})
+			.join("");
+		var DEFAULT_SALES_POINT = '專櫃';
+		salesPointOpts = "<option value='"+DEFAULT_SALES_POINT+"'>"+DEFAULT_SALES_POINT+"</option>" + salesPointOpts;
+		$('#salePointSelects').append(salesPointOpts);
 		
 		function waitElement(sel, ck) { // TODO considering timeout??
 			var poller1 = 
@@ -651,6 +700,9 @@
 			data.important	= important;
 			data.orderNo	= orderNo;
 			
+			var salesPoint = $('#salePointSelects').val();
+			var isDefaultSP = salesPoint == DEFAULT_SALES_POINT;
+			
 			$('.salesDetail').each(function(idx){
 				var row = $(this);
 				if(!row.find('input[name=modelId]').val()){
@@ -666,12 +718,12 @@
 				
 				var id				= strDefault(row.find('input[name=id]').val());
 				var rowId			= row.attr('rowId');
-				var salePoint		= '專櫃';
-				var saleStatus		= '99. 已出貨';
+				var salePoint		= salesPoint;
+				var saleStatus		= isDefaultSP ? '99. 已出貨' : '20. 集貨中';
 				var activity		= null;
 				var priority		= null;
 				var orderDate		= today;
-				var checkBillStatus	= '對帳成功';
+				var checkBillStatus	= isDefaultSP ? '對帳成功' : null;
 				var arrivalStatus	= null;
 				var shippingDate	= today;
 				var sendMethod		= null;
@@ -717,9 +769,9 @@
 				return;
 			}
 			var data = collectData(), collects = data.details, orderNo = data.orderNo;
-			console.log('orderNo: ' +orderNo+'==');
+			//console.log('orderNo: ' +orderNo+'==');
 			if(idsForRemoved.length > 0){// 刪除
-				console.log('idsForRemoved: ' + idsForRemoved);
+				//console.log('idsForRemoved: ' + idsForRemoved);
 				$.ajax(moduleBaseUrl + '/deleteByIds.json', {
 					data: JSON.stringify(idsForRemoved),
 					dataType: 'json',
@@ -788,6 +840,39 @@
 			$('#operation-container').show();
 			$('#print-container').hide();
 		};
+		
+		var confirmMsgTmpl = '頁面有訂單資料，{subject}所有尚未儲存資料將會遺失，是否確定{subject}？';
+		function confirmHandler(subject, confirmYes){
+			if($("#salesDetailsContent > tr").length > 0) {
+				$('#confirmContent').html(confirmMsgTmpl.replace(/\{subject\}/g, subject));
+				$('#confirmYes')
+					.off('click')
+					.on('click', function(){
+						confirmYes();
+					})
+				$('#confirmModal').modal({show: true});
+			}else{
+				confirmYes();	
+			}
+		}
+		
+		win.newOrderHandler = function(){
+			confirmHandler('新增訂單', function(){
+				window.location.href = moduleBaseUrl + '/add';
+			});
+		};
+		win.closeHandler = function(){
+			confirmHandler('關閉', function(){
+				if(win.opener){
+					if($('#orderNo').html() && win.opener.location.href.indexOf(moduleBaseUrl + '/list') >= 0){
+						win.opener.location.reload();
+					}
+					win.close();
+				}else{
+					win.location.href = moduleBaseUrl + '/list';
+				}
+			});
+		};		
 		var printItems = 
 			{
 				member: ['name', 'fbName', 'mobile', 'idNo', 'important'],
