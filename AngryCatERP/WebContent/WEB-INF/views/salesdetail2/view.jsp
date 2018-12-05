@@ -255,7 +255,8 @@
  		<div class="form-group col-xs-5 f-group">
 			<label class="col-xs-5 control-label">
  			</label>			
-			<div class="col-xs-7"></div>
+			<div class="col-xs-7">
+			</div>
  		</div>
  	</div>
  	<div class="form-group f-group">
@@ -414,11 +415,12 @@
 					.replace('{discount}', v.localeNames.discount);
 			})
 			.join("");
-		// add no discount as first option
+		// add no discount as default option
 		discountOpts = "<option value='無' discount='1'>無</option>" + discountOpts;
 		vipIdx++;
 		var nonVipIdx = 0;
 		
+		// salesPoint select options(dropdown)
 		var salesPoints = parameters["銷售點"];
 		option = "<option value='{value}'>{label}</option>";
 		var salesPointOpts = 
@@ -428,6 +430,7 @@
 			})
 			.join("");
 		var DEFAULT_SALES_POINT = '專櫃';
+		// add 專櫃 as default optin
 		salesPointOpts = "<option value='"+DEFAULT_SALES_POINT+"'>"+DEFAULT_SALES_POINT+"</option>" + salesPointOpts;
 		$('#salePointSelects').append(salesPointOpts);
 		
@@ -864,8 +867,12 @@
 		win.closeHandler = function(){
 			confirmHandler('關閉', function(){
 				if(win.opener){
+					// 如果訂單已儲存，且parent window為銷售明細，最好重整這樣可以馬上看到更新的結果
 					if($('#orderNo').html() && win.opener.location.href.indexOf(moduleBaseUrl + '/list') >= 0){
-						win.opener.location.reload();
+						// 這裡使用自己的實作的query，這只是一個ajax請求，reload要重整整個頁面(至少兩個request，頁面也要重新render)，整個耗費的資源大很多
+						// TODO 也可考量將重新查詢的的動作放在確認之前
+						win.opener.angrycat.query(); 
+						//win.opener.location.reload();
 					}
 					win.close();
 				}else{
