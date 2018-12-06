@@ -318,7 +318,7 @@
 
 <script id="alert-template" type="text/template">
 	<div class="alert alert-{type} alert-dismissible" role="alert" style="display: none; text-align: center;">
-  		<button type="button" class="close" data-dismiss="alert" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+  		<button type="button" class="close alert-close-btn" data-dismiss="alert" aria-label="Close"><span aria-hidden="true">&times;</span></button>
   		{content}
 	</div>
 </script>
@@ -838,7 +838,10 @@
 				}
 			}		
 		};
+		// tasks before printing
 		// win.onbeforeprint = function(){};
+		
+		// tasks after printing
 		win.onafterprint = function(){			
 			$('#operation-container').show();
 			$('#print-container').hide();
@@ -921,7 +924,8 @@
 			
 			$('#operation-container').hide();
 			$('#print-container').show();
-
+			
+			$('.alert-close-btn').click();
 			win.print();
 		};
 		win.updateMemberPriceById = function(memberPrice, price, option){
