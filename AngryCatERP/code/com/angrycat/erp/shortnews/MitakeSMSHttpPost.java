@@ -3,7 +3,6 @@ package com.angrycat.erp.shortnews;
 import static com.angrycat.erp.common.EmailContact.BLUES;
 import static com.angrycat.erp.common.EmailContact.IFLY;
 import static com.angrycat.erp.common.EmailContact.JERRY;
-import static com.angrycat.erp.common.EmailContact.JOYCE;
 import static com.angrycat.erp.common.EmailContact.MIKO;
 import static com.angrycat.erp.condition.ConditionFactory.propertyDesc;
 import static com.angrycat.erp.condition.ConditionFactory.putInt;
@@ -224,12 +223,11 @@ public class MitakeSMSHttpPost {
 					if(remaining <= 500){						
 						String sendMsg = "簡訊點數即將用完，請盡快儲值，剩餘點數: " + remainingPoints;
 						SimpleMailMessage simpleMailMessage = new SimpleMailMessage(bean.templateMessage);
-						simpleMailMessage.setTo(JOYCE);
+						simpleMailMessage.setTo(JERRY);
 						simpleMailMessage.setText(sendMsg);
 						simpleMailMessage.setSubject("簡訊點數即將用完請協助儲值");
 						String[] cc = new String[]{IFLY,
-													BLUES,
-													JERRY};
+													BLUES};
 						simpleMailMessage.setCc(cc);
 						bean.mailSender.send(simpleMailMessage);
 					}
@@ -255,7 +253,7 @@ public class MitakeSMSHttpPost {
 //		testQueryMembers();
 //		testSendShortMsgToBirthMonth();
 //		testSendSortToSelf();
-		testSendLongToSelf();
+//		testSendLongToSelf();
 //		testSendShortMsg();
 //		shortMsgNotify20160401Activity();
 //		shortMsgNotifyForTesting();
@@ -278,6 +276,7 @@ public class MitakeSMSHttpPost {
 //		shortMsgNotify20171222Activity();
 //		shortMsgNotify20180222Activity();
 //		shortMsgNotify20180611Activity();
+//		shortMsgNotify20181026Activity();
 	}
 	
 	private static void uuidLen(){
@@ -302,7 +301,7 @@ public class MitakeSMSHttpPost {
 	}
 	
 	private static void strLen(){
-		String content = "OHM限時活動，即日起至6/17，消費滿8888贈一顆秘密琉璃，滿16888贈兩顆，網路商店與專櫃同步，詳情洽粉絲團或02-27761505";
+		String content = "10/26-31 OHM萬聖節特別活動，新品除外全面85折，門市與網路同步，詳情洽OHM粉絲團";
 		int len = content.length();
 		if(len > 70){
 			System.out.println("字數: " + len + "超過70字為長簡訊扣一點以上");
@@ -506,12 +505,11 @@ public class MitakeSMSHttpPost {
 					if(remaining <= 500){						
 						String sendMsg = "簡訊點數即將用完，請盡快儲值，剩餘點數: " + remainingPoints;
 						SimpleMailMessage simpleMailMessage = new SimpleMailMessage(templateMessage);
-						simpleMailMessage.setTo(JOYCE);
+						simpleMailMessage.setTo(JERRY);
 						simpleMailMessage.setText(sendMsg);
 						simpleMailMessage.setSubject("簡訊點數即將用完請協助儲值");
 						String[] cc = new String[]{IFLY,
-													BLUES,
-													JERRY};
+													BLUES};
 						simpleMailMessage.setCc(cc);
 						mailSender.send(simpleMailMessage);
 					}
@@ -809,6 +807,13 @@ public class MitakeSMSHttpPost {
 			mailSender.send(simpleMailMessage);
 		}
 	}
+	private static void shortMsgNotify20181026Activity(){
+		BaseTest.executeApplicationContext(acac->{
+			MitakeSMSHttpPost service = acac.getBean(MitakeSMSHttpPost.class);
+			service.setTestMode(true);
+			service.shortMsgNotifyAllMembers("OHM萬聖節特別活動", "10/26-31 OHM萬聖節特別活動，新品除外全面85折，門市與網路同步，詳情洽OHM粉絲團");
+		});
+	}	
 	private static void shortMsgNotify20180611Activity(){
 		BaseTest.executeApplicationContext(acac->{
 			MitakeSMSHttpPost service = acac.getBean(MitakeSMSHttpPost.class);
