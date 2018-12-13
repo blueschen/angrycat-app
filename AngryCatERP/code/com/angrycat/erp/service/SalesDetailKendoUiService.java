@@ -1,5 +1,8 @@
 package com.angrycat.erp.service;
 
+import static com.angrycat.erp.common.EmailContact.AT_OHM;
+import static com.angrycat.erp.common.EmailContact.JERRY;
+
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
@@ -16,12 +19,16 @@ import org.apache.commons.lang3.StringUtils;
 import org.hibernate.Session;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Scope;
+import org.springframework.mail.SimpleMailMessage;
+import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.angrycat.erp.component.SessionFactoryWrapper;
 import com.angrycat.erp.model.Product;
 import com.angrycat.erp.model.SalesDetail;
+import com.angrycat.erp.security.User;
+import com.angrycat.erp.web.WebUtils;
 @Service
 @Scope("prototype")
 public class SalesDetailKendoUiService extends
@@ -31,6 +38,11 @@ public class SalesDetailKendoUiService extends
 	private ProductKendoUiService productKendoUiService;
 	@Autowired
 	private SessionFactoryWrapper sfw;
+	
+	@Autowired
+	private JavaMailSender mailSender;
+	@Autowired
+	private SimpleMailMessage templateMessage;
 	
 	public static final String ACTION_NEW = "新增";
 	static final String ACTION_UPDATE = "修改";
@@ -113,7 +125,7 @@ public class SalesDetailKendoUiService extends
 				oldSaleStatus = oldDetail.getSaleStatus();
 			}
 			int stockChanged = updateStock(action, sd, p, oldSaleStatus);
-			if(StringUtils.isNotBlank(p.getWarning())){
+			if(StringUtils.isNotBlank(p.getWarning()) && !p.getWarning().contains("淘寶庫存已大於總庫存")){
 				msgs.add(p.getWarning());
 				
 				if(msgs.size() > 0){ // 原本是收集所有錯誤之後一次丟出，現在改為一發現有誤，立刻針對該筆庫存丟出錯誤，此舉是為了簡化連動庫存處理的複雜性
@@ -257,6 +269,25 @@ public class SalesDetailKendoUiService extends
 					msg = stockMsg + ":總庫存會小於0";
 				}else if(p.getTotalStockQty() < p.getTaobaoStockQty()){
 					msg = stockMsg + ":淘寶庫存已大於總庫存";
+					
+					// 2018-12-12喵娘需求: 於銷售時，總庫存小於淘寶庫存，要去扣淘寶，而非阻擋總庫存
+					p.setTaobaoStockQty(p.getTaobaoStockQty()-1);
+					SimpleMailMessage simpleMailMessage = new SimpleMailMessage(templateMessage);
+					simpleMailMessage.setFrom(JERRY);
+					User u = WebUtils.getSessionUser();
+					if(u != null){
+						String userId = u.getUserId();
+						// 一般使用者帳號與信箱相符，但管理者不在此限，這段程式碼是為了兼容測試和正式環境，上線穩定後也可考慮移除
+						if("jerry".equals(userId) || "root".equals(userId)){
+							userId = "jerrylin";
+						}
+						simpleMailMessage.setTo(new String[]{userId+AT_OHM});
+					}else{
+						simpleMailMessage.setTo(new String[]{JERRY});
+					}
+					simpleMailMessage.setText(msg+"系統自動扣掉淘寶庫存，請自行於淘寶同步");
+					simpleMailMessage.setSubject(simpleMailMessage.getText());
+					mailSender.send(simpleMailMessage);
 				}
 			}
 		}
@@ -272,7 +303,7 @@ public class SalesDetailKendoUiService extends
 		}
 		
 		String currentNote = ProductKendoUiService.genTotalStockChangeNote(action, msgTitle, stock, stockType);
-		p.setTotalStockChangeNote(currentNote);
+		p.setTotalStockChangeNote(currentNote+(msg != null && msg.contains("淘寶庫存已大於總庫存") ? "(淘寶扣1)" : ""));
 		return stock;
 	}
 	
