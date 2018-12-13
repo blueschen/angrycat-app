@@ -79,8 +79,26 @@ public class ProductStockExcelImporter {
 				if(StringUtils.isBlank(modelId)){
 					continue;
 				}
-				int totalStockQty = processor.getIntValu(COLUMN_NAME_總庫存);
-				int taobaoStockQty = processor.getIntValu(COLUMN_NAME_Taobao庫存);
+				modelId = modelId.trim();
+//				int totalStockQty = processor.getIntValu(COLUMN_NAME_總庫存);
+//				int taobaoStockQty = processor.getIntValu(COLUMN_NAME_Taobao庫存);
+//				
+//				if(taobaoStockQty > totalStockQty){
+//					taobaoStockIsMore.add(modelId + "淘寶庫存("+ taobaoStockQty +")大於總庫存("+ totalStockQty +")");
+//					//throw new RuntimeException(modelId + "淘寶庫存("+ taobaoStockQty +")大於總庫存("+ totalStockQty +")");
+//				}
+//				
+//				String nameEng = processor.getStrVal(COLUMN_NAME_英文名字);
+//				double price = processor.getDoubleVal(COLUMN_NAME_定價);
+//				price = price != 0 ? price : processor.getDoubleVal(COLUMN_NAME_專櫃售價);
+//				price = price != 0 ? price : processor.getDoubleVal(COLUMN_NAME_售價); 
+//				Double priceAsRMB = processor.getDouble(COLUMN_NAME_人民幣);
+//				String name = processor.getStrVal(COLUMN_NAME_品名);
+//				String seriesName = processor.getStrVal(COLUMN_NAME_系列名);
+//				
+				// 以下針對小安提供Excel客製欄位
+				int totalStockQty = processor.getIntValu("庫存");
+				int taobaoStockQty = 0;
 				
 				if(taobaoStockQty > totalStockQty){
 					taobaoStockIsMore.add(modelId + "淘寶庫存("+ taobaoStockQty +")大於總庫存("+ totalStockQty +")");
@@ -89,9 +107,7 @@ public class ProductStockExcelImporter {
 				
 				String nameEng = processor.getStrVal(COLUMN_NAME_英文名字);
 				double price = processor.getDoubleVal(COLUMN_NAME_定價);
-				price = price != 0 ? price : processor.getDoubleVal(COLUMN_NAME_專櫃售價);
-				price = price != 0 ? price : processor.getDoubleVal(COLUMN_NAME_售價); 
-				Double priceAsRMB = processor.getDouble(COLUMN_NAME_人民幣);
+				Double priceAsRMB = 0.0;
 				String name = processor.getStrVal(COLUMN_NAME_品名);
 				String seriesName = processor.getStrVal(COLUMN_NAME_系列名);
 				
@@ -126,7 +142,7 @@ public class ProductStockExcelImporter {
 					p.setNameEng(nameEng);
 					p.setName(name);
 				}else{
-					throw new RuntimeException("name and nameEng both not found value");
+					throw new RuntimeException(modelId+":name ["+name+"] and nameEng ["+nameEng+"] both not found value");
 				}
 				
 				p.setTotalStockQty(totalStockQty);
@@ -179,6 +195,19 @@ public class ProductStockExcelImporter {
 			
 			Session s = sfw.currentSession();
 			persistAsProduct(s, wb, "工作表1");
+			
+		}catch(Throwable e){
+			throw new RuntimeException(e);
+		}
+	}
+	@Transactional
+	public void resolveOHMToDBAt20181213(){
+		
+		try(BufferedInputStream bis = new BufferedInputStream(new FileInputStream(new File(src)));
+			Workbook wb = WorkbookFactory.create(bis);){
+			
+			Session s = sfw.currentSession();
+			persistAsProduct(s, wb, "所有商品");
 			
 		}catch(Throwable e){
 			throw new RuntimeException(e);
