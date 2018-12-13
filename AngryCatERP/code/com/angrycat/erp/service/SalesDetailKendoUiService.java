@@ -48,6 +48,9 @@ public class SalesDetailKendoUiService extends
 	static final String ACTION_UPDATE = "修改";
 	static final String ACTION_DELETE = "刪除";
 	static final String STATUS_INVALID = "作廢";
+	
+	private static final String TAOBAO_STOCK_GT_TOTAL = "淘寶庫存已大於總庫存";
+	
 	@Override
 	@Transactional
 	public List<?> deleteByIds(List<String> ids){
@@ -125,7 +128,7 @@ public class SalesDetailKendoUiService extends
 				oldSaleStatus = oldDetail.getSaleStatus();
 			}
 			int stockChanged = updateStock(action, sd, p, oldSaleStatus);
-			if(StringUtils.isNotBlank(p.getWarning()) && !p.getWarning().contains("淘寶庫存已大於總庫存")){
+			if(StringUtils.isNotBlank(p.getWarning()) && !p.getWarning().contains(TAOBAO_STOCK_GT_TOTAL)){
 				msgs.add(p.getWarning());
 				
 				if(msgs.size() > 0){ // 原本是收集所有錯誤之後一次丟出，現在改為一發現有誤，立刻針對該筆庫存丟出錯誤，此舉是為了簡化連動庫存處理的複雜性
@@ -268,9 +271,10 @@ public class SalesDetailKendoUiService extends
 				if(p.getTotalStockQty() < 0){
 					msg = stockMsg + ":總庫存會小於0";
 				}else if(p.getTotalStockQty() < p.getTaobaoStockQty()){
-					msg = stockMsg + ":淘寶庫存已大於總庫存";
+					msg = stockMsg + ":" + TAOBAO_STOCK_GT_TOTAL;
 					
 					// 2018-12-12喵娘需求: 於銷售時，總庫存小於淘寶庫存，要去扣淘寶，而非阻擋總庫存
+					// 相關程式碼散在各處，不過用'TAOBAO_STOCK_GT_TOTAL'關鍵字就能找到
 					p.setTaobaoStockQty(p.getTaobaoStockQty()-1);
 					SimpleMailMessage simpleMailMessage = new SimpleMailMessage(templateMessage);
 					simpleMailMessage.setFrom(JERRY);
@@ -303,7 +307,7 @@ public class SalesDetailKendoUiService extends
 		}
 		
 		String currentNote = ProductKendoUiService.genTotalStockChangeNote(action, msgTitle, stock, stockType);
-		p.setTotalStockChangeNote(currentNote+(msg != null && msg.contains("淘寶庫存已大於總庫存") ? "(淘寶扣1)" : ""));
+		p.setTotalStockChangeNote(currentNote+(msg != null && msg.contains(TAOBAO_STOCK_GT_TOTAL) ? "(淘寶扣1)" : ""));
 		return stock;
 	}
 	
