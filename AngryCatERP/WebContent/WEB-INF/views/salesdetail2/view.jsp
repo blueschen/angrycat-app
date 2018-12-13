@@ -876,9 +876,7 @@
 					|| win.opener.location.href.indexOf('product/list') >= 0)){
 						// 這裡使用自己的實作的query，這只是一個ajax請求，reload要重整整個頁面(至少兩個request，頁面也要重新render)，整個耗費的資源大很多
 						// TODO 也可考量將重新查詢的的動作放在確認之前
-						if(win.opener.angrycat.kendoGridService.query){
-							win.opener.angrycat.kendoGridService.query();
-						}
+						win.opener.angrycat.kendoGridService.query();
 						//win.opener.location.reload();
 					}
 					win.close();
