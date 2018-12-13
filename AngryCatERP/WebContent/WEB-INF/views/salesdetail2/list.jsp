@@ -209,17 +209,6 @@
 			angrycat.kendoGridService
 				.init(opts)
 				.fieldsReady(fieldsReadyHandler, afterGridInitHandler);
-			angrycat.query = function(){ // 依照頁面條件再次查詢，原來設計的目的是給「建立新訂單」使用
-				var mg = $('#mainGrid').data('kendoGrid');
-				var ds = mg.dataSource;
-				ds.query({
-					page: ds.page(),
-					pageSize: ds.pageSize(),
-					sort: ds.sort(),
-					group: ds.group(),
-					filter: ds.filter()
-				});
-			};
 		})(jQuery, kendo, angrycat);			
 	</script>
 </body>
