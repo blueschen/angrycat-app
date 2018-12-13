@@ -135,7 +135,7 @@ public class XSSFUtil {
 					throw new RuntimeException(e);
 				}
 			}else if(obj.getClass() == Double.class){
-				result = ""+(Double)obj;
+				result = new BigDecimal((Double)obj).toString();
 			}
 		}
 		return result;
