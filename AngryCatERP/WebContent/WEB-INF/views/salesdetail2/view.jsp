@@ -728,7 +728,7 @@
 				var orderDate		= today;
 				var checkBillStatus	= isDefaultSP ? '對帳成功' : null;
 				var arrivalStatus	= null;
-				var shippingDate	= today;
+				var shippingDate	= isDefaultSP ? today : null;
 				var sendMethod		= null;
 				var payDate			= today;
 				var contactInfo		= null;
