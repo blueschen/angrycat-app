@@ -134,6 +134,8 @@ public class XSSFUtil {
 				}catch(Throwable e){
 					throw new RuntimeException(e);
 				}
+			}else if(obj.getClass() == Double.class){
+				result = ""+(Double)obj;
 			}
 		}
 		return result;
