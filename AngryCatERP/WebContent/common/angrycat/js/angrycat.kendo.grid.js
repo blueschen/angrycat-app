@@ -2,13 +2,14 @@
 	var core = angrycat.core,
 		once = core.once,
 		minusTimezoneOffset = core.minusTimezoneOffset,
-		plusTimezoneOffset = core.plusTimezoneOffset;
+		plusTimezoneOffset = core.plusTimezoneOffset,
+		gridId = "#mainGrid";
 		
 	function init(opts){
 		var moduleName = opts.moduleName,
 			rootPath = opts.rootPath,
 			moduleBaseUrl = opts.moduleBaseUrl,
-			gridId = opts.gridId || "#mainGrid",
+			gridId = opts.gridId || gridId,
 			notiId = opts.notiId || "#updateNoti",
 			updateInfoWindowId = opts.updateInfoWindowId || "#updateInfoWindow",
 			DEFAULT_PAGE_VALUE = opts.page || 1,
@@ -1375,8 +1376,7 @@
 					afterGridInit(mainGrid);
 				}
 			});
-		}
-	
+		}		
 		return {
 			getAutoCompleteDefaultTemplate: getAutoCompleteDefaultTemplate,
 			getAutoCompleteCellEditor: getAutoCompleteCellEditor,
@@ -1397,8 +1397,20 @@
 			getFieldViaCell: getFieldViaCell
 		};
 	}
+	function query(){ // 依照頁面條件再次查詢，原來設計的目的是給「建立新訂單」使用
+		var mg = $(gridId).data('kendoGrid');
+		var ds = mg.dataSource;
+		ds.query({
+			page: ds.page(),
+			pageSize: ds.pageSize(),
+			sort: ds.sort(),
+			group: ds.group(),
+			filter: ds.filter()
+		});
+	}
 	angrycat.kendoGridService = {
-		init: init
+		init: init,
+		query: query
 	};
 	// on closeCell function, add custom event
 	kendo.ui.Grid.fn.closeCell = (function(closeCell){ // ref. http://jsfiddle.net/lhoeppner/nx96g/10/
