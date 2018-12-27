@@ -1373,7 +1373,8 @@
 				}
 				
 				if(typeof afterGridInit === "function"){
-					afterGridInit(mainGrid);
+					//afterGridInit(mainGrid);
+					afterGridInit.call(context, mainGrid);
 				}
 			});
 		}		
