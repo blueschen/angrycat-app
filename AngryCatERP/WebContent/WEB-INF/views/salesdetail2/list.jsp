@@ -171,7 +171,7 @@
 					saleStatusColumn = $.extend({}, locked, paramFEditors["銷售狀態"]),
 					salePointColumn = $.extend({}, locked, paramFEditors["銷售點"]),
 					fields = [
-		       			//0fieldName		1column title		2column width	3field type	4column filter operator	5field custom		6column custom			7column editor
+		       			//0fieldName		1column title		2column width	3field type	4column filter operator	5field custom		6column custom			7column editor          8column template
 						["saleStatus",		"狀態",				100,			"string",	"eq",					null,				saleStatusColumn,		paramEditors["銷售狀態"]],
 						["fbName",			"姓名",				150,			"string",	"contains",				null,				locked],
 						[memberFieldName,	"會員資料",			150,			"string",	"contains",				memberField,		memberColumn,			memberEditor],
@@ -205,6 +205,83 @@
 				return fields;
 			}
 			function afterGridInitHandler(mainGrid){
+				var changeStatusColor = 
+					function(cell, status){
+						if(!cell || !status){
+							return;
+						}
+						var bgc = "white";
+						var color = "white";
+						switch (status) {
+						case "10. 待出貨":
+							bgc = "#ff99e6";
+							break;
+						case "20. 集貨中":
+							bgc = "#ffa64d";
+							break;
+						case "30. 調貨中":
+							bgc = "#66ff66";
+							break;
+						case "40. 待補貨":
+							bgc = "#33ccff";
+							break;
+						case "99. 已出貨":
+							bgc = "black";
+							break;
+						case "98. 作廢":
+							bgc = "#999999";
+							color = "black";
+							break;
+						}
+						cell.css("background-color", bgc);
+						cell.css("color", color);
+					};
+				
+				var changeStatusColorIfRowCellContainsStatus = 
+					function(row, status){
+						var cells = row.children();
+						for(var q = 0; q < cells.length; q++){
+							var c = cells.eq(q);
+							var f = context.getFieldViaCell(c);
+							if(f == "saleStatus"){
+								changeStatusColor(c, status);
+								break;
+							}
+						}
+					};
+					
+				var context = this;
+				mainGrid.bind("dataBound", function(e){					
+					var rows = mainGrid.items();
+					if(rows.length == 0){
+						return;
+					}
+					for(var i = 0; i < rows.length; i++){
+						var row = $(rows[i]);
+						var dataItem = mainGrid.dataItem(row);
+						if(!dataItem){
+							continue;
+						}
+						changeStatusColorIfRowCellContainsStatus(row, dataItem.get("saleStatus"));
+					}
+				});
+				mainGrid.dataSource.bind("change", function(e){
+					if (e.action != 'itemchange' && e.field != 'saleStatus'){
+						return;
+					}
+					var rows = mainGrid.items();
+					if(rows.length == 0){
+						return;
+					}
+					for(var j = 0; j < rows.length; j++){
+						var row = $(rows[j]);
+						var dataItem = mainGrid.dataItem(row);
+						if(!dataItem || dataItem !== e.items[0]){
+							continue;
+						}
+						changeStatusColorIfRowCellContainsStatus(row, dataItem.get("saleStatus"));;
+					}
+				});
 			}
 			angrycat.kendoGridService
 				.init(opts)
