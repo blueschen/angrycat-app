@@ -214,16 +214,16 @@
 						var color = "white";
 						switch (status) {
 						case "10. 待出貨":
-							bgc = "#ff99e6";
+							bgc = "#ff8080";
 							break;
 						case "20. 集貨中":
 							bgc = "#ffa64d";
 							break;
 						case "30. 調貨中":
-							bgc = "#66ff66";
+							bgc = "#009933";
 							break;
 						case "40. 待補貨":
-							bgc = "#33ccff";
+							bgc = "#0099cc";
 							break;
 						case "99. 已出貨":
 							bgc = "black";
