@@ -200,7 +200,7 @@
 			<erp-file-ajax-callback></erp-file-ajax-callback>
 		</erp-file-ajax-btn>
  	</div>
- 	<div class="btn-group" role="group" ng-if="mainCtrl.isAdmin()">
+ 	<div class="btn-group" role="group">
  		<input type="button" ng-click="mainCtrl.downloadExcel()" class="btn btn-default"  ng-disabled="memberListForm.$dirty && memberListForm.$invalid" value="下載會員檔案"/>
  	</div>
  	<div class="btn-group" role="group" ng-if="mainCtrl.isAdmin()">
