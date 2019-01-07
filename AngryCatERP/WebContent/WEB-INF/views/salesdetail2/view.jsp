@@ -973,7 +973,7 @@
 	window, 
 	${requestScope[parameters] == null ? "null" : requestScope[parameters]}, 
 	'${rootPath}',
-	'${user}');
+	'${sessionScope.sessionUserId}');
 
 
 </script>
