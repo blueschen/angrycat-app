@@ -201,7 +201,7 @@
 					details = self.purchaseBill.purchaseBillDetails,
 					modelIdDuplicated = false;
 				$.each(details, function(i, detail){
-					if(detail.modelId == modelId){
+					if(i != idx && detail.modelId == modelId){
 						modelIdDuplicated = true;
 						return false;
 					}
@@ -212,6 +212,7 @@
 				}
 				details[idx].name = dataItem.name;
 				details[idx].nameEng = dataItem.nameEng;
+				e.sender.element.blur();
 			};
 			function successHandler(response, msg){
 				assignModel(response.data);
