@@ -59,7 +59,7 @@
           					class="dropdown-toggle" 
           					data-toggle="dropdown" 
           					role="button" 
-          					aria-haspopup="true" 
+          					aria-haspopup="true"
           					aria-expanded="false"
           					bs-dropdown>考試 <span class="caret"></span>
           				</a>
@@ -104,7 +104,7 @@
 				</ul>
 				<ul class="nav navbar-nav navbar-right">
 					<li>
-						<a href="${pageContext.request.contextPath}/logout"><span class="glyphicon glyphicon-user"></span>登出</a>
+						<a href="${pageContext.request.contextPath}/logout"><span class="glyphicon glyphicon-user"></span>&nbsp;&nbsp;&nbsp;&nbsp;${sessionScope.sessionUserId }&nbsp;&nbsp;登出</a>
 					</li>
 				</ul>
 			</div>		
