@@ -69,7 +69,7 @@
 
 <div class="row">
 	<div class="col-sm-offset-4">
-		<h2>新訂單&nbsp;-&nbsp;[<span id="orderNo"></span><span id="tmpOrderNo"></span>]</h2>
+		<h2>新訂單&nbsp;-&nbsp;[<span id="orderNo"></span><span id="tmpOrderNo"></span>] by ${sessionScope.sessionUserId } </h2>
 	</div>
 </div>
 
@@ -952,12 +952,13 @@
 		win.updateMemberPriceById = function(memberPrice, price, option){
 			option.selected = true;
 			var discount = option.getAttribute('discount');
-			var originalPrice = $(price).val();
-			if ($.isNumeric(originalPrice) && $.isNumeric(discount)){
-				var r = parseFloat(originalPrice) * parseFloat(discount);
-				$(memberPrice).val(Math.floor(r));
-			}
-			
+			if(option.getAttribute('value') != '單一特價'){
+				var originalPrice = $(price).val();
+				if ($.isNumeric(originalPrice) && $.isNumeric(discount)){
+					var r = parseFloat(originalPrice) * parseFloat(discount);
+					$(memberPrice).val(Math.floor(r));
+				}	
+			}			
 			this.calTotalPrice();
 		};
 		// 設定快速鍵
