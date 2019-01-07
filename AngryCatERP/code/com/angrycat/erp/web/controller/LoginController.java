@@ -69,6 +69,7 @@ public class LoginController {
 		List<User> users = loginQueryService.executeQueryList();
 		if(!users.isEmpty()){
 			WebUtils.currentSession().setAttribute(WebUtils.SESSION_USER, users.get(0));
+			WebUtils.currentSession().setAttribute(WebUtils.SESSION_USER+"Id", users.get(0).getUserId());
 			return "redirect:" + redirectTo;
 		}
 		model.addAttribute(LOGIN_ERR_MSG, "帳號不存在");
