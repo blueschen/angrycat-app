@@ -31,7 +31,7 @@ public class ParameterInsertService {
 	@Transactional
 	public void execute(){
 //		clearAllParams();
-//		initSalesDetailParams();
+		initSalesDetailParams();
 		initTestParams();
 	}
 	@Transactional
@@ -84,6 +84,7 @@ public class ParameterInsertService {
 			.add("FREEBLT", 	"0")
 			.add("FREEBED", 	"0")
 			.add("單一特價", 	"1")
+			.add("原價", 	"1")
 		
 		,new Parameters("付款別", s) // 前端已隱藏
 			.add("誠品")
