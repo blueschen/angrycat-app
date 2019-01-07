@@ -48,7 +48,8 @@ public class SalesDetail2Controller extends
 			"折扣別",
 			"付款別",
 			"付款狀態",
-			"郵寄方式"
+			"郵寄方式",
+			"對帳狀態"
 		);
 	static{
 		filterFieldConverter = new LinkedHashMap<>();
