@@ -952,12 +952,10 @@
 		win.updateMemberPriceById = function(memberPrice, price, option){
 			option.selected = true;
 			var discount = option.getAttribute('discount');
-			if(option.getAttribute('value') != '單一特價'){
-				var originalPrice = $(price).val();
-				if ($.isNumeric(originalPrice) && $.isNumeric(discount)){
-					var r = parseFloat(originalPrice) * parseFloat(discount);
-					$(memberPrice).val(Math.floor(r));
-				}	
+			var originalPrice = $(price).val();
+			if ($.isNumeric(originalPrice) && $.isNumeric(discount)){
+				var r = parseFloat(originalPrice) * parseFloat(discount);
+				$(memberPrice).val(Math.floor(r));
 			}			
 			this.calTotalPrice();
 		};
