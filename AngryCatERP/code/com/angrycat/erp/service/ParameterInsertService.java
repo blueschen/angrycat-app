@@ -73,6 +73,7 @@ public class ParameterInsertService {
 			.add("商店")
 			.add("私訊")
 			.add(SalesDetail.SALE_POINT_TAOBAO)
+			// .add("專櫃") // 這個選項不一定要有
 		
 		,new Parameters("折扣別", s,		"discount")
 			.add("VIP9折",		"0.9")
@@ -82,15 +83,16 @@ public class ParameterInsertService {
 			.add("EVENT8", 	"0.8")
 			.add("FREEBLT", 	"0")
 			.add("FREEBED", 	"0")
+			.add("單一特價", 	"1")
 		
-		,new Parameters("付款別", s)
+		,new Parameters("付款別", s) // 前端已隱藏
 			.add("誠品")
 			.add("PayPal")
 			.add("匯款")
 			.add("現金")
 			.add("刷卡")
 		
-		,new Parameters("付款狀態", s)
+		,new Parameters("付款狀態", s) // 前端已隱藏
 			.add("已付款")
 			.add("未付款")
 			.add("已付訂金")
@@ -104,6 +106,14 @@ public class ParameterInsertService {
 			.add("面交")
 			.add("Fedex(國際)")
 			.add("國際掛號")
+			
+		,new Parameters("對帳狀態", s)
+			.add("對帳成功")
+			.add("現金對帳成功")			
+			.add("PayPal對帳成功")
+			.add("刷卡成功")
+			.add("其他")
+
 			
 		).forEach(p->{
 			p.save();
