@@ -182,7 +182,7 @@
 						["memberPrice",		"實收",				100,			"number",	"gte"],
 						["discountType",	"折扣別",				150,			"string",	"contains",				null,				paramFEditors["折扣別"],	paramEditors["折扣別"]],						
 						["orderDate",		"銷售日",				150,			"date",		"gte"],
-						["checkBillStatus",	"對帳狀態",			150,			"string",	"contains"],
+						["checkBillStatus",	"對帳狀態",			150,			"string",	"contains",				null,				paramFEditors["對帳狀態"],	paramEditors["對帳狀態"]],
 						//["payDate",			"付款日",				150,			"date",		"gte"],
 						//["payType",			"付款別",				150,			"string",	"contains",				null,				paramFEditors["付款別"],	paramEditors["付款別"]],
 						//["payStatus",		"付款狀態",			150,			"string",	"contains",				null,				paramFEditors["付款狀態"],paramEditors["付款狀態"]],
