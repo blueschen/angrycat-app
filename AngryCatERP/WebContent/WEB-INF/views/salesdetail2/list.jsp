@@ -252,16 +252,17 @@
 					
 				var context = this;
 				mainGrid.bind("dataBound", function(e){					
-					var rows = mainGrid.items();
+					var rows = mainGrid.items(); // items這個API，如果遇到有lock的情境，會先拿所有locked的tr內容，再拿所有unlocked的部份
 					if(rows.length == 0){
 						return;
 					}
 					for(var i = 0; i < rows.length; i++){
 						var row = $(rows[i]);
-						var dataItem = mainGrid.dataItem(row);
+						var dataItem = mainGrid.dataItem(row); // 就算分成locked和unlocked兩塊，dataItem還是能拿到正確的資料
 						if(!dataItem){
 							continue;
 						}
+						// TODO 如果考量到效能，其實只要處理前面一半筆數；但假如使用者調整lock欄位可能就無法對應到狀態
 						changeStatusColorIfRowCellContainsStatus(row, dataItem.get("saleStatus"));
 					}
 				});
@@ -282,6 +283,17 @@
 						changeStatusColorIfRowCellContainsStatus(row, dataItem.get("saleStatus"));;
 					}
 				});
+				/*
+				$(document.body).bind("paste", function(e){
+					var clipboardData = e.clipboardData || window.clipboardData || e.originalEvent.clipboardData;
+					var text = clipboardData.getData('Text');
+					if(text && text.indexOf('\t') >= 0){
+						var ss = text.split('\t')
+						for(var i = 0; i < ss.length; i++){
+							alert(ss[i]);
+						}	
+					}
+				});*/
 			}
 			angrycat.kendoGridService
 				.init(opts)

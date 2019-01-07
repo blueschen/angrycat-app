@@ -332,7 +332,7 @@
 		<td class="input-td"><input type="text" class="form-control t-input {group} save-field" name="modelId" product-name="modelId" product-group-name="modelId-{group-mark}"/></td>
 		<td class="input-td"><input type="text" class="form-control t-input {group} save-field" name="productName" product-name="nameEng" product-group-name="nameEng-{group-mark}"/></td>
 		<td class="input-td"><input type="text" class="form-control t-input {group} save-field" name="price" product-name="suggestedRetailPrice" product-group-name="suggestedRetailPrice-{group-mark}" disabled="disabled" id="price-{group-mark}" save-field-type="number"/></td>
-		<td class="input-td"><input type="text" class="form-control t-input save-field" name="memberPrice" id="memberPrice-{group-mark}" save-field-type="number"/></td>
+		<td class="input-td"><input type="text" class="form-control t-input save-field" name="memberPrice" id="memberPrice-{group-mark}" save-field-type="number" onblur="calTotalPrice();"/></td>
 		<td class="select-td">
 			<select class="form-control save-field discount-select" name="discountType" id="discount-{group-mark}" onchange="updateMemberPriceById('#memberPrice-{group-mark}', '#price-{group-mark}', this.options[this.selectedIndex])">
 				{discount-select-options}
@@ -930,15 +930,7 @@
 			$('.alert-close-btn').click();
 			win.print();
 		};
-		win.updateMemberPriceById = function(memberPrice, price, option){
-			option.selected = true;
-			var discount = option.getAttribute('discount');
-			var originalPrice = $(price).val();
-			if ($.isNumeric(originalPrice) && $.isNumeric(discount)){
-				var r = parseFloat(originalPrice) * parseFloat(discount);
-				$(memberPrice).val(Math.floor(r));
-			}
-			
+		win.calTotalPrice = function(){
 			var totalPrice = 0;
 			$('input[name=price]').each(function(i){
 				var p = this.value;
@@ -956,6 +948,17 @@
 				}				
 			});
 			$('#totalMemberPrice').html(totalMemberPrice);
+		};
+		win.updateMemberPriceById = function(memberPrice, price, option){
+			option.selected = true;
+			var discount = option.getAttribute('discount');
+			var originalPrice = $(price).val();
+			if ($.isNumeric(originalPrice) && $.isNumeric(discount)){
+				var r = parseFloat(originalPrice) * parseFloat(discount);
+				$(memberPrice).val(Math.floor(r));
+			}
+			
+			this.calTotalPrice();
 		};
 		// 設定快速鍵
 		$(win.document.body).keydown(function(e){
