@@ -139,10 +139,6 @@ public class SalesDetail2Controller extends
 	@RequestMapping(value="/add",
 			method=RequestMethod.GET)
 	public String add(HttpServletRequest request, Model model){
-		Object u = WebUtils.currentSession().getAttribute(WebUtils.SESSION_USER);
-		if(u != null && u instanceof User){
-			request.setAttribute("user", ((User)(u)).getUserId());
-		}
 		request.setAttribute("moduleName", moduleName);
 		request.setAttribute(moduleName + "Parameters", CommonUtil.parseToJson(kendoUiGridService.listParameters(getParameterCatNames())));
 		return moduleName + "/view";
