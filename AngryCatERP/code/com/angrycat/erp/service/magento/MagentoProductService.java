@@ -1,6 +1,7 @@
 package com.angrycat.erp.service.magento;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.LinkedList;
 import java.util.List;
@@ -72,6 +73,9 @@ public class MagentoProductService extends MagentoBaseService {
 	public Map<String, StockInfo> filterByComparingStock(List<Product> products, BiPredicate<Integer, Integer> compareStock){
 		Map<String, Product> map = products.stream().collect(Collectors.toMap(Product::getModelId, Function.identity()));
 		JsonNodeWrapper jnw = listInventoryById(map.keySet().toArray(new String[map.size()]));
+		if(jnw == null){
+			return Collections.emptyMap();
+		}
 		if(isDebug()){
 			System.out.println("listInventoryById magento found count: " + jnw.getFound().size());
 		}
