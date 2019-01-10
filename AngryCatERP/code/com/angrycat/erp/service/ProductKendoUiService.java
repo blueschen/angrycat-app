@@ -33,13 +33,13 @@ public class ProductKendoUiService extends KendoUiService<Product, Product> {
 	private MagentoProductService magentoProductService;
 	@Autowired
 	private MailService mailService;
+	
 	@Override
 	List<?> deleteByIds(List<String> ids, Session s){
 		List<Product> results = (List<Product>)super.deleteByIds(ids, s);
-		// TODO 與Magento庫存非同步連動: 待其他功能完成後，再測試
 		// 應該不會發生刪除產品的情況，但為了一致性及方便，還是有設計連動Magento庫存的功能，但在這種情況下，只會把庫存改為0，庫存狀態改為缺貨，不會刪除商品資料
-//		results.stream().forEach(p->p.setTotalStockQty(0));
-//		asyncUpdateMagentoStock(results);
+		results.stream().forEach(p->p.setTotalStockQty(0));
+		asyncUpdateMagentoStock(results);
 		return results;
 	}
 	@Override
@@ -68,7 +68,7 @@ public class ProductKendoUiService extends KendoUiService<Product, Product> {
 		
 		List<Product> olds = Collections.emptyList();
 		
-		log("needToModifyStock:\n" + printJson(needToModifyStock)); 
+//		log("needToModifyStock:\n" + printJson(needToModifyStock)); 
 		if(needToModifyStock.size() != 0){
 			String q = "SELECT DISTINCT p FROM " + Product.class.getName() + " p WHERE p.id IN (:ids) ORDER BY p.id DESC";
 			olds = 
@@ -83,8 +83,7 @@ public class ProductKendoUiService extends KendoUiService<Product, Product> {
 		if(filterOut.size() == 0){
 			results = super.batchSaveOrMerge(targets, before, s);
 			
-			// TODO 與Magento庫存非同步連動: 待其他功能完成後，再測試
-//			asyncUpdateMagentoStock(targets);
+			asyncUpdateMagentoStock(targets);
 		}else{
 			String msg = "<h4>修改庫存狀態有誤:</h4>";
 			String w = filterOut.stream().filter(p->StringUtils.isNotBlank(p.getWarning())).map(p->"<h4>" + p.getWarning() + "</h4>").collect(Collectors.joining());
@@ -115,10 +114,19 @@ public class ProductKendoUiService extends KendoUiService<Product, Product> {
 	 * @param targets
 	 */
 	void asyncUpdateMagentoStock(List<Product> targets){
-		CompletableFuture.supplyAsync(()->magentoProductService.updateStockIfDifferentFromMagento(targets))
+		List<Product> cs = new ArrayList<>();
+		for(Product t : targets){
+			Product c = new Product();
+			cs.add(c);
+			
+			c.setModelId(t.getModelId());
+			c.setTotalStockQty(t.getTotalStockQty());
+			c.setTotalStockChangeNote(t.getTotalStockChangeNote());
+		}
+		CompletableFuture.supplyAsync(()->magentoProductService.updateStockIfDifferentFromMagento(cs))
 			.exceptionally((ex)-> {
 				String msg = "Contents:\n"; 
-				msg += targets.stream().map(p->p.getModelId()+":"+p.getTotalStockChangeNote()).collect(Collectors.joining("\n"));				
+				msg += cs.stream().map(p->p.getModelId()+":"+p.getTotalStockChangeNote()).collect(Collectors.joining("\n"));				
 				sendToAdmin("asyncUpdateMagentoStock Errors", msg + "error:\n" + ex); // TODO stacktrace formatted
 				return null;
 			});
@@ -398,8 +406,9 @@ public class ProductKendoUiService extends KendoUiService<Product, Product> {
 			Product prod = needToModifyStock.get(id);
 			int newTotalStockQty = prod.getTotalStockQty();
 			int newTaobaoStockQty = prod.getTaobaoStockQty();
-				
-			String[] intentions = prod.getWarning().split("_");
+			
+			String warning = prod.getWarning();
+			String[] intentions = warning.split("_");
 			String type = intentions[0];
 			String add = intentions[1];
 			int count = Integer.parseInt(intentions[2]);
@@ -464,7 +473,8 @@ public class ProductKendoUiService extends KendoUiService<Product, Product> {
 				}
 				if(!"+".equals(add)){ // 減總庫存
 					if(newTotalStockQty < newTaobaoStockQty){
-						prod.setWarning(msg+"總庫存已小於淘寶庫存");
+						String out = msg+"總庫存已小於淘寶庫存";
+						prod.setWarning(out);
 						filterOut.add(targets.remove(targets.indexOf(prod)));
 						continue;
 					}
