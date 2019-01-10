@@ -1,5 +1,7 @@
 package com.angrycat.erp.service.magento;
 
+import static com.angrycat.erp.common.EmailContact.JERRY;
+
 import java.io.BufferedOutputStream;
 import java.io.BufferedReader;
 import java.io.DataOutputStream;
@@ -11,8 +13,7 @@ import java.nio.charset.StandardCharsets;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import javax.annotation.PostConstruct;
-
+import org.apache.commons.lang3.StringUtils;
 import org.jboss.logging.Logger;
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -141,6 +142,14 @@ public class MagentoBaseService implements Serializable{
 		return result;
 	}
 	JsonNodeWrapper renderJson(String json){
+		if(StringUtils.isNotBlank(json) && json.startsWith("<")){
+			mailService
+			.to(JERRY)
+			.subject("renderJson error")
+			.content(json)
+			.sendSimple();
+			return null;
+		}
 		JsonNodeWrapper jnw = beanFactory.getBean(JsonNodeWrapper.class, json);
 		jnw.filterObjectNode();
 		return jnw;
