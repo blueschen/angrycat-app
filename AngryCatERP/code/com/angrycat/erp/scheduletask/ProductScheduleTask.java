@@ -14,8 +14,9 @@ public class ProductScheduleTask {
 	/**
 	 * 每天上午三點執行
 	 */
-	@Scheduled(cron="0 0 3 * * ?")
-	public void loadImg(){
-		loadImgService.execute();
-	}
+//	因為圖片網址已經失效，也就沒必要排程抓圖  
+//	@Scheduled(cron="0 0 3 * * ?")
+//	public void loadImg(){
+//		loadImgService.execute();
+//	}
 }
