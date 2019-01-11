@@ -61,6 +61,8 @@ public class ParameterInsertService {
 		Arrays.asList(		
 		new Parameters("銷售狀態", s)
 			.add("10. 待出貨")
+			.add("11. 待出貨(加單)")
+			.add("12. 待出貨(他日)")
 			.add("20. 集貨中")
 			.add("30. 調貨中")
 			.add("40. 待補貨")
