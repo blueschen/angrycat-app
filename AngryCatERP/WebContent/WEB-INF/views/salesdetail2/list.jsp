@@ -283,6 +283,14 @@
 						changeStatusColorIfRowCellContainsStatus(row, dataItem.get("saleStatus"));;
 					}
 				});
+				
+				mainGrid.bind("edit", function(e){
+			        var f = context.getFieldViaCell(e.container);
+					if(f == "modelId" && e.model.id){
+						e.preventDefault();
+						this.closeCell();
+					}
+				});
 				/*
 				$(document.body).bind("paste", function(e){
 					var clipboardData = e.clipboardData || window.clipboardData || e.originalEvent.clipboardData;
