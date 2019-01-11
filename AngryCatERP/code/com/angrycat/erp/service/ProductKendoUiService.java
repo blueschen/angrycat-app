@@ -130,7 +130,7 @@ public class ProductKendoUiService extends KendoUiService<Product, Product> {
 				sendToAdmin("asyncUpdateMagentoStock Errors", msg + "error:\n" + ex); // TODO stacktrace formatted
 				return null;
 			});
-		System.out.println("asyncUpdateMagentoStock end...");	
+//		System.out.println("asyncUpdateMagentoStock end...");	
 	}
 	/**
 	 * 用庫存表所有商品去找<br>
@@ -143,7 +143,7 @@ public class ProductKendoUiService extends KendoUiService<Product, Product> {
 			magentoProductService.updateStockIfMagentoIsMore(all);
 		}catch(Throwable e){
 			 // TODO stacktrace formatted
-			sendToAdmin("asyncUpdateMagentoStock Errors Errors", e.toString());
+			sendToAdmin("updateStockIfMagentoIsMore asyncUpdateMagentoStock Errors Errors", e.toString());
 		}
 	}
 	/**
@@ -186,7 +186,7 @@ public class ProductKendoUiService extends KendoUiService<Product, Product> {
 			report.setMagentoDiff(magentoDiff);
 		}catch(Throwable e){
 			 // TODO stacktrace formatted
-			sendToAdmin("asyncUpdateMagentoStock Errors Errors", e.toString());
+			sendToAdmin("generateStockReport asyncUpdateMagentoStock Errors Errors", e.toString());
 		}
 		return report;
 	}
