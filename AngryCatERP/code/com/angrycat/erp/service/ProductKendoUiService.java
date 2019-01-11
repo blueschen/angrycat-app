@@ -33,13 +33,16 @@ public class ProductKendoUiService extends KendoUiService<Product, Product> {
 	private MagentoProductService magentoProductService;
 	@Autowired
 	private MailService mailService;
+	@Autowired
+	private ProductStockService prroductStockService;
 	
 	@Override
 	List<?> deleteByIds(List<String> ids, Session s){
 		List<Product> results = (List<Product>)super.deleteByIds(ids, s);
 		// 應該不會發生刪除產品的情況，但為了一致性及方便，還是有設計連動Magento庫存的功能，但在這種情況下，只會把庫存改為0，庫存狀態改為缺貨，不會刪除商品資料
 		results.stream().forEach(p->p.setTotalStockQty(0));
-		asyncUpdateMagentoStock(results);
+//		asyncUpdateMagentoStock(results);
+		prroductStockService.asyncUpdateMagentoStock(results);
 		return results;
 	}
 	@Override
@@ -82,8 +85,8 @@ public class ProductKendoUiService extends KendoUiService<Product, Product> {
 		List<Product> results = Collections.emptyList();
 		if(filterOut.size() == 0){
 			results = super.batchSaveOrMerge(targets, before, s);
-			
-			asyncUpdateMagentoStock(targets);
+//			asyncUpdateMagentoStock(targets);
+			prroductStockService.asyncUpdateMagentoStock(targets);
 		}else{
 			String msg = "<h4>修改庫存狀態有誤:</h4>";
 			String w = filterOut.stream().filter(p->StringUtils.isNotBlank(p.getWarning())).map(p->"<h4>" + p.getWarning() + "</h4>").collect(Collectors.joining());
