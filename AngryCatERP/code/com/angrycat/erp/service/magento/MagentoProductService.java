@@ -71,6 +71,7 @@ public class MagentoProductService extends MagentoBaseService {
 	 * @return
 	 */
 	public Map<String, StockInfo> filterByComparingStock(List<Product> products, BiPredicate<Integer, Integer> compareStock){
+		// 在使用Collectors.toMap的時候如果key重複，會丟出java.lang.IllegalStateException: Duplicate key錯誤訊息
 		Map<String, Product> map = products.stream().collect(Collectors.toMap(Product::getModelId, Function.identity()));
 		JsonNodeWrapper jnw = listInventoryById(map.keySet().toArray(new String[map.size()]));
 		if(jnw == null){
