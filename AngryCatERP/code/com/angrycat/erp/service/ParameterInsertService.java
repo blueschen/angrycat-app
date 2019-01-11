@@ -30,7 +30,7 @@ public class ParameterInsertService {
 	private SessionFactoryWrapper sfw;
 	@Transactional
 	public void execute(){
-//		clearAllParams();
+		clearAllParams();
 		initSalesDetailParams();
 		initTestParams();
 	}
@@ -107,6 +107,8 @@ public class ParameterInsertService {
 			.add("面交")
 			.add("Fedex(國際)")
 			.add("國際掛號")
+			.add("順豐")
+			.add("專櫃")
 			
 		,new Parameters("對帳狀態", s)
 			.add("對帳成功")
