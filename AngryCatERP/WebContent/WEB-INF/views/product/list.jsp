@@ -85,7 +85,7 @@
 					locked = {locked: lockedFlag},
 					uneditable = {editable: false},
 					imgColumn = {
-						template: "<img alt='#=(imgDir ? modelId : '暫無圖片')#' class='productImg' style='height:50px; width:50px;' src='#=(imgDir ? (\'"+loadImgUrl+"\' + modelId) : '')#'>"
+						template: "<img alt='#=(imgDir ? modelId : '暫無圖片')#' class='productImg' style='height:50px; width:50px;' src='#=(\'"+loadImgUrl+"\' + modelId)#'>"
 					},
 					productCategoryFieldName = "productCategory",
 					productCategoryField = {
