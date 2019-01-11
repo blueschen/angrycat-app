@@ -729,7 +729,7 @@
 				var checkBillStatus	= isDefaultSP ? '對帳成功' : null;
 				var arrivalStatus	= null;
 				var shippingDate	= isDefaultSP ? today : null;
-				var sendMethod		= null;
+				var sendMethod		= isDefaultSP ? '專櫃' : null;
 				var payDate			= today;
 				var contactInfo		= null;
 				var registrant		= user;

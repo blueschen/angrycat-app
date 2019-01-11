@@ -172,6 +172,7 @@
 					salePointColumn = $.extend({}, locked, paramFEditors["銷售點"]),
 					fields = [
 		       			//0fieldName		1column title		2column width	3field type	4column filter operator	5field custom		6column custom			7column editor          8column template
+						["otherNote",		"出貨備註",			150,			"string",	"contains",				null,				locked],		       			
 						["saleStatus",		"狀態",				100,			"string",	"eq",					null,				saleStatusColumn,		paramEditors["銷售狀態"]],
 						["fbName",			"姓名",				150,			"string",	"contains",				null,				locked],
 						[memberFieldName,	"會員資料",			150,			"string",	"contains",				memberField,		memberColumn,			memberEditor],
@@ -194,10 +195,9 @@
 						[mobileFieldName,	"手機",				150,			"string",	"contains",				mobileField],
 						["idNo",			"身份證",				150,			"string",	"contains"],						
 						["arrivalStatus",	"已到貨",				150,			"string",	"eq",					null,				hidden],
-						["contactInfo",		"郵寄地址電話",		150,			"string",	"contains",				null,				hidden],
+						["contactInfo",		"郵寄地址電話",		150,			"string",	"contains",				null],
 						["activity",		"活動",				150,			"string",	"contains",				null,				hidden],
 						["priority",		"順序",				150,			"string",	"eq",					null,				hidden],
-						["otherNote",		"其他備註",			150,			"string",	"contains",				null,				hidden],
 						[opts.pk,			"SalesDetail ID",	150,			"string",	"eq",					uneditable,			hidden],
 						["rowId",			"Excel序號",			150,			"string",	"contains",				uneditable,			hidden]
 					];
