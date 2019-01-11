@@ -1326,7 +1326,6 @@
 					*/				
 					if(e.ctrlKey && altKey && keyCode == 65){// Ctrl + Alt + A 執行批次複製, ref. http://stackoverflow.com/questions/24273432/kendo-ui-grid-select-single-cell-get-back-dataitem-and-prevent-specific-cells
 						var selected = mainGrid.select();
-						//console.log("selected count: " + selected.length);
 						if(selected.length == 0){
 							return true;
 						}
@@ -1338,7 +1337,7 @@
 							var $ele = $(ele),
 								field = getFieldViaCell(ele),
 								dataItem = mainGrid.dataItem($ele.closest("tr"));
-						
+							
 							if(idx == 0 && dataItem === firstDataItem){
 								firstTd = $ele;
 							}
