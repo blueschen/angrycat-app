@@ -189,6 +189,7 @@ public class FormatListFactory {
 		PropertyFormat payDate = new PropertyFormat("付款日", "payDate");
 		payDate.setDateFormat(dateFormat);
 		
+		f.add(new PropertyFormat("出貨備註", "otherNote"));
 		f.add(new PropertyFormat("狀態", "saleStatus"));
 		f.add(new PropertyFormat("姓名", "fbName"));
 		f.add(new PropertyFormat("會員資料", "member.name"));
@@ -208,13 +209,12 @@ public class FormatListFactory {
 		f.add(new PropertyFormat("備註", "note"));
 		f.add(new PropertyFormat("手機", "mobile"));
 		f.add(new PropertyFormat("身分證", "idNo"));
+		f.add(new PropertyFormat("郵寄地址電話", "contactInfo"));
 		
 		f.add(new PropertyFormat("對帳狀態", "checkBillStatus"));
 		f.add(new PropertyFormat("已到貨", "arrivalStatus"));
-		f.add(new PropertyFormat("郵寄地址電話", "contactInfo"));
 		f.add(new PropertyFormat("活動", "activity"));
 		f.add(new PropertyFormat("順序", "priority"));
-		f.add(new PropertyFormat("其他備註", "otherNote"));
 		
 		f.add(new PropertyFormat("訂單編號", "orderNo"));
 		
