@@ -9,6 +9,7 @@ import javax.servlet.http.HttpServletResponse;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Scope;
+import org.springframework.core.env.Environment;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -40,6 +41,8 @@ public class ProductController extends KendoUiGridController<Product, Product> {
 	private ProductCategoryQueryService productCategoryQueryService;
 	@Autowired
 	private ProductExcelExporter productExcelExporter;
+	@Autowired
+	private Environment env;
 	
 	@Override
 	void init(){
@@ -75,13 +78,23 @@ public class ProductController extends KendoUiGridController<Product, Product> {
 		long start = System.currentTimeMillis();
 		ConditionConfig<Product> cc = kendoUiGridService.executeQueryPageable(conditionConfig);
 		
-		String parent = StartupWebAppInitializer.getUploadRoot();
+//		String parent = StartupWebAppInitializer.getUploadRoot();
+//		images.clear();
+//		cc.getResults().forEach(p->{
+//			String modelId = p.getModelId();
+//			String imgDir = p.getImgDir();
+//			String path = parent + imgDir;
+//			File f = new File(path);
+//			if(f.exists()){
+//				images.put(modelId, f);
+//			}
+//		});
+		String path = env.getProperty("syno.img.path.prefix");
 		images.clear();
 		cc.getResults().forEach(p->{
 			String modelId = p.getModelId();
-			String imgDir = p.getImgDir();
-			String path = parent + imgDir;
-			File f = new File(path);
+			String imgDir = path + modelId + ".jpg";
+			File f = new File(imgDir);
 			if(f.exists()){
 				images.put(modelId, f);
 			}
