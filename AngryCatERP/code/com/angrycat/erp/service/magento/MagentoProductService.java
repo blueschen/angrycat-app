@@ -30,7 +30,7 @@ public class MagentoProductService extends MagentoBaseService {
 	@PostConstruct
 	public void init(){
 		if(linodeDomain == null){
-			linodeDomain = env.getProperty("linode.host.domain") + "magento/index.php";
+			linodeDomain = env.getProperty("linode.host.domain");
 		}
 		setBaseUrl(linodeDomain);
 	}
@@ -173,7 +173,7 @@ public class MagentoProductService extends MagentoBaseService {
 	public JsonNodeWrapper updateInventoryByProductId(Map<String, Object> params){
 		JsonNodeWrapper result = null;
 		if(params.size()==0){
-			result = beanFactory.getBean(JsonNodeWrapper.class, "{\"status\":\"Params is empty\"}");
+			result = new JsonNodeWrapper("{\"status\":\"Params is empty\"}");
 			return result;
 		}
 		List<Object> args = new LinkedList<>();

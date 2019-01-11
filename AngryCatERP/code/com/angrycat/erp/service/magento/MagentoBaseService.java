@@ -142,16 +142,28 @@ public class MagentoBaseService implements Serializable{
 		return result;
 	}
 	JsonNodeWrapper renderJson(String json){
-		if(StringUtils.isNotBlank(json) && json.startsWith("<")){
+		JsonNodeWrapper jnw = null;
+		if(StringUtils.isBlank(json)){
+			return jnw;
+		}else if(json.startsWith("<")){ // 代表有回傳明確錯誤訊息
 			mailService
 			.to(JERRY)
 			.subject("renderJson error")
-			.content(json)
+			.content("error json contents:\n" + json)
 			.sendSimple();
-			return null;
+			return jnw;
 		}
-		JsonNodeWrapper jnw = beanFactory.getBean(JsonNodeWrapper.class, json);
-		jnw.filterObjectNode();
+		try{
+			jnw = new JsonNodeWrapper(json);
+			jnw.filterObjectNode();
+		}catch(Exception e){
+			mailService
+				.to(JERRY)
+				.subject("renderJson error")
+				.content("error json:\n" + json + "\n" + e)
+				.sendSimple();
+		}
+		
 		return jnw;
 	}
 	public JsonNodeWrapper request(String url, Object...args){
