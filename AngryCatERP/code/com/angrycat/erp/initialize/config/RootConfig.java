@@ -24,6 +24,7 @@ import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.mail.javamail.JavaMailSenderImpl;
 import org.springframework.orm.hibernate4.HibernateTransactionManager;
 import org.springframework.orm.hibernate4.LocalSessionFactoryBean;
+import org.springframework.scheduling.annotation.EnableAsync;
 import org.springframework.scheduling.annotation.EnableScheduling;
 import org.springframework.transaction.PlatformTransactionManager;
 import org.springframework.transaction.annotation.EnableTransactionManagement;
@@ -41,6 +42,7 @@ import com.mchange.v2.c3p0.ComboPooledDataSource;
 @ComponentScan(basePackages={"com.angrycat.erp.service", "com.angrycat.erp.excel", "com.angrycat.erp.ds", "com.angrycat.erp.component", "com.angrycat.erp.businessrule", "com.angrycat.erp.log", "com.angrycat.erp.shortnews", "com.angrycat.erp.onepos", "com.angrycat.erp.scheduletask", "com.angrycat.erp.member.vip"})
 @EnableTransactionManagement(proxyTargetClass=true)
 @EnableScheduling
+@EnableAsync
 public class RootConfig {
 	public static final String DEFAULT_BATCH_SIZE = "100";
 	
@@ -65,7 +67,7 @@ public class RootConfig {
 		if(StringUtils.isBlank(serverRoot)){
 //			System.setProperty("catalina.home", NAS_TOMCAT_PRODUCTION_PATH);
 			System.setProperty(CATALINA_HOME, LOCAL_TOMCAT_PATH);
-			//System.setProperty("catalina.home", NAS_TOMCAT_TEST1_PATH);
+//			System.setProperty("catalina.home", NAS_TOMCAT_TEST1_PATH);
 		}
 		// 新增流水號產生器: 美國團訂單
 		GenSerialUtil.addGenerator(new DefaultSerialGenerator(AmericanGroupBuyOrderForm.SALESNO_GENERATOR_ID, sessionFactory(dataSource()).getObject()));
