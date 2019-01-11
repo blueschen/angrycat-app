@@ -74,7 +74,7 @@
 					lastSelectedCondition: lastSelectedCondition,
 					addRowInit: function(dataItem, editRow){
 						dataItem.set("orderDate", new Date());
-						dataItem.set("saleStatus", parameters["銷售狀態"][1].nameDefault);
+						dataItem.set("saleStatus", parameters["銷售狀態"][3].nameDefault);
 						dataItem.set("salePoint", parameters["銷售點"][1].nameDefault);
 					},
 					lockedFlag: lockedFlag,
@@ -216,6 +216,12 @@
 						case "10. 待出貨":
 							bgc = "#ff8080";
 							break;
+						case "11. 待出貨(加單)":
+							bgc = "#ff3333";
+							break;
+						case "12. 待出貨(他日)":
+							bgc = "#cc0000";
+							break;							
 						case "20. 集貨中":
 							bgc = "#ffa64d";
 							break;
@@ -290,6 +296,19 @@
 						e.preventDefault();
 						this.closeCell();
 					}
+				});
+				
+				mainGrid.bind("saveChanges", function(e){
+					var ds = mainGrid.dataSource,
+						all = ds.view();           // 代表修改後的所有資料
+						for(var i = 0; i < all.length; i++){
+							var d = all[i];
+							if(!d.id && !d.modelId){
+								alert("銷售明細需要提供型號: " + d.modelId);
+								e.preventDefault();
+								return;
+							}
+						}
 				});
 				/*
 				$(document.body).bind("paste", function(e){
