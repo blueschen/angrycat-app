@@ -75,6 +75,7 @@ public class ParameterInsertService {
 			.add("商店")
 			.add("私訊")
 			.add(SalesDetail.SALE_POINT_TAOBAO)
+			.add("OT")
 			// .add("專櫃") // 這個選項不一定要有
 		
 		,new Parameters("折扣別", s,		"discount")
