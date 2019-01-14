@@ -326,6 +326,11 @@ public class SalesDetailKendoUiService extends
 		 * 		若為作廢，庫存不動
 		 * 		若為其他狀態，庫存加1
 		 */
+		if(StringUtils.isNotBlank(oldStatus)
+		&& StringUtils.isNotBlank(newStatus)
+		&& oldStatus.equals(newStatus)){
+			return 0;
+		}
 		if(action.equals(ACTION_NEW)){
 			if(null == newStatus || newStatus.contains(STATUS_INVALID)){
 				//throw new IllegalArgumentException(ACTION_NEW + " 的時候，應提供狀態");
@@ -340,12 +345,12 @@ public class SalesDetailKendoUiService extends
 			}
 			return 1;
 		}
-		if(action.equals(ACTION_UPDATE) && oldStatus != newStatus){
+		if(action.equals(ACTION_UPDATE)){ // oldStatus != newStatus在此會無法正常判斷
 			if((oldStatus == null && !newStatus.contains(STATUS_INVALID)) 
-			|| (oldStatus != null && oldStatus.contains(STATUS_INVALID))){
+			|| (oldStatus != null && oldStatus.contains(STATUS_INVALID) && !newStatus.contains(STATUS_INVALID))){
 				return -1;
 			}
-			if(oldStatus != null && newStatus.contains(STATUS_INVALID)){
+			if(oldStatus != null && !oldStatus.contains(STATUS_INVALID) && newStatus.contains(STATUS_INVALID)){
 				return 1;
 			}
 		}
