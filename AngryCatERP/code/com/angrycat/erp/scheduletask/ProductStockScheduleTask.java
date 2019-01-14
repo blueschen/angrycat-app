@@ -25,11 +25,16 @@ public class ProductStockScheduleTask {
 			.to(MIKO) 
 			.cc(IFLY, JERRY, BLUES)
 			.subject("庫存狀態通知");
+//		mailService
+//		.to(JERRY)
+//		.subject("庫存狀態通知");
 	}
+//	@Scheduled(cron="0 10 10 * * ?")
 	@Scheduled(cron="0 55 23 * * ?")
 	public void updateStockIfMagentoIsMore(){		
 		productKendoUiService.updateStockIfMagentoIsMore();
 	}
+//	@Scheduled(cron="0 20 13 * * ?")
 	@Scheduled(cron="0 50 23 * * 1")
 	public void generateStockReport(){		
 		ProductStockReport report = productKendoUiService.generateStockReport();
