@@ -71,7 +71,7 @@ public class MagentoBaseService implements Serializable{
 		this.debug = debug;
 	}
 	String getRequestUrl(String action){
-		String requestUrl = baseUrl + "/" + module + "/" + controller + "/" + action;
+		String requestUrl = baseUrl + module + "/" + controller + "/" + action;
 		return requestUrl;
 	}
 	public String connect(String action, Object...args){
