@@ -158,7 +158,7 @@ public class ProductKendoUiService extends KendoUiService<Product, Product> {
 		try{
 			Map<String, Integer> magentoStocks = magentoProductService.listAllInventory()
 				.toMap(
-					k->k.findValue("sku").textValue(), 
+					k->k.findValue("sku").textValue().trim(), 
 					v->Double.valueOf(v.findValue("qty").textValue()).intValue());
 			Set<String> magentoSkus = magentoStocks.keySet();
 			
