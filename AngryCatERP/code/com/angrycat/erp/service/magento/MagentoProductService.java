@@ -18,6 +18,7 @@ import org.springframework.stereotype.Service;
 
 import com.angrycat.erp.component.JsonNodeWrapper;
 import com.angrycat.erp.model.Product;
+import com.fasterxml.jackson.databind.JsonNode;
 
 @Service
 @Scope("prototype")
@@ -33,6 +34,7 @@ public class MagentoProductService extends MagentoBaseService {
 			linodeDomain = env.getProperty("linode.host.domain");
 		}
 		setBaseUrl(linodeDomain);
+		setDebug(false);
 	}
 	public String listAllProductsResponse(){
 		String result = connect("listAllProductsResponse");
@@ -82,14 +84,17 @@ public class MagentoProductService extends MagentoBaseService {
 		}
 		Map<String, StockInfo> infos = jnw
 			.toMap(k->{
-				String modelId = k.findValue("sku").textValue();
+				JsonNode jn = k.findValue("sku");
+				String modelId = jn.textValue();
 				return modelId;
 			},
 			v->{
-				int qty = Double.valueOf(v.findValue("qty").textValue()).intValue();
+				JsonNode jn = v.findValue("qty");
+				int qty = Double.valueOf(jn.textValue()).intValue();
 				String modelId = v.findValue("sku").textValue();
+				modelId = modelId.trim();
 				Product p = map.get(modelId);
-				StockInfo si = new StockInfo(modelId, qty, p.getTotalStockQty());
+				StockInfo si = new StockInfo(modelId, qty, p != null ? p.getTotalStockQty() : qty);
 				return si;
 			})
 			.entrySet()
