@@ -16,6 +16,9 @@
 	<link rel="stylesheet" href='<c:url value="/vendor/bootstrap/3.3.5/css/bootstrap-theme.css"/>'/>
 	<link rel="stylesheet" href='<c:url value="/common/spinner/spinner.css"/>'/>
 	
+	<script type="text/javascript" src="<c:url value="/vendor/kendoui/professional.2016.1.226.trial/js/jquery.min.js"/>"></script>
+	<script type="text/javascript" src="<c:url value="/vendor/bootstrap/3.3.5/js/bootstrap.min.js"/>"></script>
+	
 	<script type="text/javascript">
 		<%@ include file="/vendor/angularjs/1.4.3/angular.min.js" %>
 		<%@ include file="/vendor/angularjs/1.4.3/i18n/angular-locale_zh-tw.js" %>

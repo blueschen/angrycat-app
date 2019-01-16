@@ -31,7 +31,7 @@
           					role="button" 
           					aria-haspopup="true" 
           					aria-expanded="false"
-          					bs-dropdown>異動記錄 <span class="caret"></span>
+          					>異動記錄 <span class="caret"></span>
           				</a>
           				<ul class="dropdown-menu">
             				<li ${moduleName == "datachangelog" ? "class='active'" : ""}>
@@ -60,8 +60,7 @@
           					data-toggle="dropdown" 
           					role="button" 
           					aria-haspopup="true"
-          					aria-expanded="false"
-          					bs-dropdown>考試 <span class="caret"></span>
+          					aria-expanded="false">考試 <span class="caret"></span>
           				</a>
           				<ul class="dropdown-menu">
             				<li ${moduleName == "exam" ? "class='active'" : ""}>
@@ -88,8 +87,7 @@
           					data-toggle="dropdown" 
           					role="button" 
           					aria-haspopup="true" 
-          					aria-expanded="false"
-          					bs-dropdown>潘朵拉 <span class="caret"></span>
+          					aria-expanded="false">潘朵拉 <span class="caret"></span>
           				</a>
           				<ul class="dropdown-menu">
             				<li ${moduleName == "transferreply" ? "class='active'" : ""}>
